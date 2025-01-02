@@ -39,7 +39,7 @@
             prop="strategyId"
             :show-overflow-tooltip="true"
           /><el-table-column
-            label="参数的唯一标识"
+            label="参数key"
             align="center"
             prop="paramKey"
             :show-overflow-tooltip="true"
@@ -159,7 +159,7 @@
 </template>
 
 <script>
-import { addBusStrategyConfigDict, delBusStrategyConfigDict, getBusStrategyConfigDict, listBusStrategyConfigDict, updateBusStrategyConfigDict } from '@/api/business/bus-strategy-config-dict'
+import { addBusStrategyConfigDict, delBusStrategyConfigDict, getBusStrategyConfigDict, listBusStrategyConfigDictByStrategyId, updateBusStrategyConfigDict } from '@/api/business/bus-strategy-config-dict'
 
 export default {
   name: 'BusStrategyConfigDict',
@@ -210,7 +210,7 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
-      listBusStrategyConfigDict(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      listBusStrategyConfigDictByStrategyId(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busStrategyConfigDictList = response.data.list
         this.total = response.data.count
         this.loading = false

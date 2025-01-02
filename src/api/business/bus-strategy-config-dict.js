@@ -1,11 +1,10 @@
 import request from '@/utils/request'
 
-// 查询BusStrategyConfigDict列表
-export function listBusStrategyConfigDict(query) {
+// 根据strategy Id 查询BusStrategyConfigDict列表
+export function listBusStrategyConfigDictByStrategyId(strategyId) {
   return request({
-    url: '/api/v1/strategy-config',
-    method: 'get',
-    params: query
+    url: '/api/v1/strategy-config?strategyId=' + strategyId,
+    method: 'get'
   })
 }
 

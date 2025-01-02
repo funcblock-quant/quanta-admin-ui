@@ -26,9 +26,9 @@
             />
           </el-select>
           </el-form-item>
-          <el-form-item label="运行状态" prop="status"><el-select
+          <el-form-item label="状态" prop="status"><el-select
             v-model="queryParams.status"
-            placeholder="请输入注册策略运行状态"
+            placeholder="请输入策略状态"
             clearable
             size="small"
           >
@@ -56,17 +56,6 @@
               size="mini"
               @click="handleAdd"
             >新增
-            </el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              v-permisaction="['business:busStrategyBaseInfo:remove']"
-              type="danger"
-              icon="el-icon-delete"
-              size="mini"
-              :disabled="multiple"
-              @click="handleDelete"
-            >删除
             </el-button>
           </el-col>
         </el-row>
@@ -157,66 +146,98 @@
         />
 
         <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
+        <el-dialog :title="title" :visible.sync="open" width="1000px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
 
-            <el-form-item label="策略名称" prop="strategyName">
-              <el-input
-                v-model="form.strategyName"
-                placeholder="策略名称"
-              />
-            </el-form-item>
-            <el-form-item label="交易类型" prop="strategyCategory">
-              <el-select
-                v-model="form.strategyCategory"
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="dict in strategyCategoryOptions"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="偏好" prop="preference">
-              <el-select
-                v-model="form.preference"
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="dict in preferenceOptions"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="描述" prop="description">
-              <el-input
-                v-model="form.description"
-                placeholder="策略描述"
-              />
-            </el-form-item>
-            <el-form-item label="运行状态" prop="status">
-              <el-select
-                v-model="form.status"
-                placeholder="请选择"
-              >
-                <el-option
-                  v-for="dict in statusOptions"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="策略负责人" prop="owner">
-              <el-input
-                v-model="form.owner"
-                placeholder="策略负责人"
-              />
-            </el-form-item>
+            <el-card class="fused-card" shadow="never">
+              <div slot="header">
+                <h5>策略基础信息</h5>
+
+                <el-form-item label="策略名称" prop="strategyName">
+                  <el-input v-model="form.strategyName" placeholder="策略名称" class="responsive-width" />
+                </el-form-item>
+                <el-form-item label="交易类型" prop="strategyCategory">
+                  <el-select v-model="form.strategyCategory" placeholder="请选择" class="responsive-width">
+                    <el-option
+                      v-for="dict in strategyCategoryOptions"
+                      :key="dict.value"
+                      :label="dict.label"
+                      :value="dict.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="偏好" prop="preference">
+                  <el-select v-model="form.preference" placeholder="请选择" class="responsive-width">
+                    <el-option
+                      v-for="dict in preferenceOptions"
+                      :key="dict.value"
+                      :label="dict.label"
+                      :value="dict.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="描述" prop="description">
+                  <el-input
+                    v-model="form.description"
+                    type="textarea"
+                    placeholder="策略描述"
+                    class="responsive-width"
+                    :autosize="{ minRows: 3, maxRows: 5 }"
+                  />
+                </el-form-item>
+                <el-form-item label="负责人" prop="owner">
+                  <el-input v-model="form.owner" placeholder="策略负责人" class="responsive-width" />
+                </el-form-item>
+              </div></el-card>
+            <!-- 分割线 -->
+            <el-divider />
+            <!-- 策略配置模版信息 -->
+            <el-card class="fused-card" shadow="never">
+              <div slot="header">
+                <h5>策略配置模板信息</h5>
+              </div>
+              <div v-for="(config, index) in form.configurations" :key="index" class="config-item">
+                <div class="config-header">
+                  <span>配置 {{ index + 1 }}</span>
+                  <el-button
+                    v-if="form.configurations.length > 0"
+                    type="danger"
+                    icon="el-icon-delete"
+                    circle
+                    size="mini"
+                    @click="removeConfig(index,config.id)"
+                  />
+                </div>
+                <el-row :gutter="20">
+                  <!-- 第一行：key 和 名称 -->
+                  <el-col :span="12">
+                    <el-form-item label="key：" prop="paramKey">
+                      <el-input v-model="config.paramKey" placeholder="key" size="mini" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="名称：" prop="paramName">
+                      <el-input v-model="config.paramName" placeholder="名称" size="mini" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                  <!-- 第二行：默认值 和 是否必填 -->
+                  <el-col :span="12">
+                    <el-form-item label="默认值：" prop="defaultValue">
+                      <el-input v-model="config.defaultValue" placeholder="默认值" size="mini" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="是否必填" prop="required">
+                      <el-switch v-model="config.required" size="mini" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+
+              <el-button type="primary" icon="el-icon-plus" @click="addConfig">新增</el-button>
+            </el-card>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -231,6 +252,7 @@
 <script>
 import { addBusStrategyBaseInfo, delBusStrategyBaseInfo, getBusStrategyBaseInfo, listBusStrategyBaseInfo, updateBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 
+import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
 export default {
   name: 'BusStrategyBaseInfo',
   components: {
@@ -267,13 +289,18 @@ export default {
         status: undefined
 
       },
-      // 表单参数
-      form: {
-      },
       // 表单校验
       rules: { strategyName: [{ required: true, message: '策略名称不能为空', trigger: 'blur' }],
         strategyCategory: [{ required: true, message: '策略交易类型不能为空', trigger: 'blur' }],
         status: [{ required: true, message: '策略运行状态不能为空', trigger: 'blur' }]
+      },
+      form: {
+        configurations: [{ // 初始化至少一个配置项
+          paramKey: '',
+          paramName: '',
+          defaultValue: '',
+          required: false
+        }]
       }
     }
   },
@@ -316,7 +343,7 @@ export default {
         description: undefined,
         status: undefined,
         owner: undefined,
-        isDeleted: undefined
+        configurations: []
       }
       this.resetForm('form')
     },
@@ -358,13 +385,54 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const id = row.id || this.ids
-      getBusStrategyBaseInfo(id).then(response => {
-        this.form = response.data
-        this.open = true
-        this.title = '修改策略注册'
-        this.isEdit = true // 标记为编辑模式
-      })
+      const id = row.id
+      // 使用 Promise.all 并行查询数据
+      Promise.all([
+        getBusStrategyBaseInfo(id), // 查询策略基本信息
+        listBusStrategyConfigDictByStrategyId(id) // 查询策略配置模版数据
+      ])
+        .then(([strategyResponse, configurations]) => {
+          // 将接口数据设置到表单
+          console.log(configurations)
+          this.form = {
+            ...strategyResponse.data, // 策略信息数据
+            configurations: configurations.data.list // 附加数据
+          }
+          console.log(this.form)
+          this.open = true
+          this.title = '修改策略注册'
+          this.isEdit = true // 标记为编辑模式
+        })
+        .catch(error => {
+          console.error('数据加载失败', error)
+          this.$message.error('加载数据失败，请重试')
+        })
+    },
+    addConfig() {
+      // 确保配置项数组存在再执行 push
+      if (Array.isArray(this.form.configurations)) {
+        this.form.configurations.push({
+          paramKey: '',
+          paramName: '',
+          defaultValue: '',
+          required: false
+        })
+      } else {
+        console.error('configurations not initialized')
+      }
+    },
+    removeConfig(index, id) {
+      // var ids = (id && [id])
+      // this.$confirm('是否确认删除该配置', '警告', {
+      //   confirmButtonText: '确定',
+      //   cancelButtonText: '取消',
+      //   type: 'warning'
+      // }).then(function() {
+      //   return delBusStrategyConfigDict({ 'ids': ids })
+      // }).then((response) => {
+      //   return this.form.configurations.splice(index, 1)
+      // })
+      return this.form.configurations.splice(index, 1)
     },
     /** 提交按钮 */
     submitForm: function() {
@@ -432,3 +500,27 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.config-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.responsive-width {
+  width: 100%;
+}
+
+@media (min-width: 800px) {
+  .responsive-width {
+    width: 300px;
+  }
+}
+</style>
