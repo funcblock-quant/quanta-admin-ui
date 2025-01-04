@@ -2,7 +2,7 @@
 <template>
   <BasicLayout>
     <template #wrapper>
-      <el-card class="box-card">
+      <el-card class="box-card" style="display: flex; flex-direction: column; height: 100%;">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
           <el-form-item label="策略id" prop="strategyId"><el-input
             v-model="queryParams.strategyId"
@@ -27,114 +27,84 @@
           </el-form-item>
         </el-form>
 
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
+        <el-row :gutter="20" class="mb8">
+          <el-col :span="4">
             <el-button
               v-permisaction="['business:busStrategyInstance:add']"
               type="primary"
               icon="el-icon-plus"
               size="mini"
               @click="handleAdd"
-            >新增
+            >新增实例
             </el-button>
           </el-col>
         </el-row>
+        <div class="card-container" @scroll="handleScroll">
+          <el-row :gutter="30">
+            <el-col v-for="item in busStrategyInstanceList" :key="item.id" :span="8">
+              <el-card :header="item.instanceName" class="custom-card" shadow="always">
+                <div class="card-content">
+                  <div class="info-row">
+                    <span class="info-title">策略:</span>
+                    <span class="info-value">{{ item.strategyName || '-' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">账户组:</span>
+                    <span class="info-value">{{ item.accountGroupName || '-' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">交易所1:</span>
+                    <span class="info-value">{{ item.exchangeName1 || '-' }} ({{ item.exchangeId1Type || '-' }})</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">交易所2:</span>
+                    <span class="info-value">{{ item.exchangeName2 || '-' }} ({{ item.exchangeId2Type || '-' }})</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">启动时间:</span>
+                    <span class="info-value">{{ parseTime(item.startRunTime) || '-' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">停止时间:</span>
+                    <span class="info-value">{{ parseTime(item.stopRunTime) || '-' }}</span>
+                  </div>
+                </div>
 
-        <el-table v-loading="loading" :data="busStrategyInstanceList" @selection-change="handleSelectionChange">
-          <el-table-column width="55" align="center" /><el-table-column
-            label="策略id"
-            align="center"
-            prop="strategyId"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="账户组id"
-            align="center"
-            prop="accountGroupId"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="交易所id1"
-            align="center"
-            prop="exchangeId1"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="平台类型"
-            align="center"
-            prop="exchangeId1Type"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="交易所id2"
-            align="center"
-            prop="exchangeId2"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="平台类型"
-            align="center"
-            prop="exchangeId2Type"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="策略实例名称"
-            align="center"
-            prop="instanceName"
-            :show-overflow-tooltip="true"
-          /><el-table-column
-            label="启动时间"
-            align="center"
-            prop="startRunTime"
-            :show-overflow-tooltip="true"
-          >
-            <template slot-scope="scope">
-              <span>{{ parseTime(scope.row.startRunTime) }}</span>
-            </template>
-          </el-table-column><el-table-column
-            label="停止时间"
-            align="center"
-            prop="stopRunTime"
-            :show-overflow-tooltip="true"
-          >
-            <template slot-scope="scope">
-              <span>{{ parseTime(scope.row.stopRunTime) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-            <template slot-scope="scope">
-              <el-button
-                slot="reference"
-                v-permisaction="['business:busStrategyInstance:edit']"
-                size="mini"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleUpdate"
-              >修改
-              </el-button>
-              <el-popconfirm
-                class="delete-popconfirm"
-                title="确认要删除吗?"
-                confirm-button-text="删除"
-                @confirm="handleDelete(scope.row)"
-              >
-                <el-button
-                  slot="reference"
-                  v-permisaction="['business:busStrategyInstance:remove']"
-                  size="mini"
-                  type="text"
-                  icon="el-icon-delete"
-                >删除
-                </el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <pagination
-          v-show="total>0"
-          :total="total"
-          :page.sync="queryParams.pageIndex"
-          :limit.sync="queryParams.pageSize"
-          @pagination="getList"
-        />
+                <div class="card-actions">
+                  <el-button
+                    v-permisaction="['business:busStrategyInstance:edit']"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-edit"
+                    @click="handleUpdate(item)"
+                  >修改
+                  </el-button>
+                  <el-popconfirm
+                    class="delete-popconfirm"
+                    title="确认要下线实例吗?"
+                    confirm-button-text="下线"
+                    @confirm="handleDelete(item)"
+                  >
+                    <el-button
+                      slot="reference"
+                      v-permisaction="['business:busStrategyInstance:remove']"
+                      size="mini"
+                      type="text"
+                      icon="el-icon-delete"
+                    >下线策略
+                    </el-button>
+                  </el-popconfirm>
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+          <!-- 加载状态提示 -->
+          <div v-if="isLoading" class="loading-text">加载中...</div>
+          <div v-if="isNoMoreData" class="no-more-data">没有更多数据了</div>
+        </div>
 
         <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
+        <el-dialog :title="title" :visible.sync="open" width="600px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
 
             <el-form-item label="策略id" prop="strategyId">
@@ -197,6 +167,7 @@
             <el-button @click="cancel">取 消</el-button>
           </div>
         </el-dialog>
+
       </el-card>
     </template>
   </BasicLayout>
@@ -228,19 +199,19 @@ export default {
       isEdit: false,
       // 类型数据字典
       typeOptions: [],
-      busStrategyInstanceList: [],
-
       // 关系表类型
 
       // 查询参数
       queryParams: {
         pageIndex: 1,
-        pageSize: 10,
+        pageSize: 9,
         strategyId: undefined,
-        accountGroupId: undefined,
-        startRunTime: undefined
+        accountGroupId: undefined
 
       },
+      busStrategyInstanceList: [], // 卡片列表
+      isLoading: false, // 是否正在加载数据
+      isNoMoreData: false, // 是否没有更多数据
       // 表单参数
       form: {
       },
@@ -251,7 +222,7 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.loadData() // 初始化加载第一页数据
   },
   methods: {
     /** 查询参数列表 */
@@ -282,7 +253,9 @@ export default {
         exchangeId2Type: undefined,
         instanceName: undefined,
         serverIp: undefined,
-        serverName: undefined
+        serverName: undefined,
+        startRunTime: undefined,
+        stopRunTime: undefined
       }
       this.resetForm('form')
     },
@@ -297,7 +270,7 @@ export default {
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageIndex = 1
-      this.getList()
+      this.loadData()
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -389,7 +362,93 @@ export default {
         }
       }).catch(function() {
       })
+    },
+    // 模拟加载数据的函数
+    async loadData() {
+      if (this.isLoading || this.isNoMoreData) {
+        console.log('isNoMoreData', this.isNoMoreData)
+        console.log('isLoading', this.isLoading)
+        console.log('当前正在加载，或无更多数据，不再触发请求')
+        return
+      }
+      this.isLoading = true
+
+      // 异步加载数据
+      setTimeout(() => {
+        console.log('this.queryParams', this.queryParams)
+        listBusStrategyInstance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+          console.log('response', response)
+          this.total = response.data.count
+
+          this.loading = false
+          if (!response.data.list.length || response.data.list.length < this.queryParams.pageSize) {
+            this.isNoMoreData = true // 数据量小于页面大小，无更多数据
+          }
+          console.log('before cardlist:', this.cardList)
+          this.busStrategyInstanceList = [...this.busStrategyInstanceList, ...response.data.list] // 追加新数据
+          console.log('after cardlist:', this.cardList)
+          this.queryParams.pageIndex += 1 // 更新页码
+          this.isLoading = false // 加载完成
+          console.log('完成加载，isLoading', this.isLoading)
+        }, 1000) // 模拟加载时间
+      })
+    },
+    // 监听滚动事件
+    handleScroll(e) {
+      console.log('滚动事件触发')
+      const container = e.target
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
+        this.loadData() // 触底加载更多数据
+      }
     }
   }
 }
 </script>
+
+<style>
+  .custom-card {
+    margin-bottom: 20px; /* 添加卡片下方间隙 */
+  }
+  .card-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* 每行之间的间距 */
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .info-title {
+    font-weight: bold; /* 标题加粗 */
+    color: #333;
+  }
+
+  .info-value {
+    color: #666;
+    text-align: right;
+    word-break: break-word; /* 处理可能过长的内容换行 */
+  }
+
+  .card-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px; /* 滚动条空间 */
+    position: relative; /* 用于控制内部布局 */
+  }
+  .custom-card {
+    margin-bottom: 20px;
+  }
+  .loading-text,
+  .no-more-data {
+    text-align: center;
+    padding: 10px 0;
+    color: #999;
+    font-size: 14px;
+  }
+</style>

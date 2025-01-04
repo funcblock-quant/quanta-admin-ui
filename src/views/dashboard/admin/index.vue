@@ -1,47 +1,65 @@
 <template>
   <div class="dashboard-editor-container">
     <el-row :gutter="12">
+      <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px">
+        <el-form-item label="策略实例" prop="strategyInstance"><el-select
+          v-model="queryParams.strategyId"
+          placeholder="请选择策略实例"
+          clearable
+          size="small"
+        >
+          <el-option
+            v-for="instance in strategyInstanceList"
+            :key="instance.value"
+            :label="instance.label"
+            :value="instance.value"
+          />
+        </el-select>
+        </el-form-item>
+      </el-form></el-row>
+
+    <el-row :gutter="12">
       <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="总销售额" total="￥126,560">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+        <chart-card title="总资产" total="$ 12111.23">
+          <el-tooltip slot="action" class="item" effect="dark" content="统计策略所有账户的总资产" placement="top-start">
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
             <trend flag="top" style="margin-right: 16px;" rate="12">
-              <span slot="term">周同比</span>
+              <span slot="term">已实现收益</span>
             </trend>
             <trend flag="bottom" rate="11">
-              <span slot="term">日同比</span>
+              <span slot="term">未实现收益</span>
             </trend>
           </div>
-          <template slot="footer">日均销售额<span>￥ 234.56</span></template>
+          <template slot="footer">当日总收益<span>$ 234.56</span></template>
         </chart-card>
       </el-col>
       <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="访问量" :total="8846">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+        <chart-card title="资产走势" :total="8846">
+          <el-tooltip slot="action" class="item" effect="dark" content="统计策略所有账户的资产走势" placement="top-start">
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
             <mini-area />
           </div>
-          <template slot="footer">日访问量<span> {{ '1234' }}</span></template>
+          <template slot="footer">资产走势<span> {{ '1234' }}</span></template>
         </chart-card>
       </el-col>
       <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="支付笔数" :total="6560">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+        <chart-card title="总套利次数" :total="6560">
+          <el-tooltip slot="action" class="item" effect="dark" content="统计该实例总的套利次数" placement="top-start">
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
             <mini-bar />
           </div>
-          <template slot="footer">转化率 <span>60%</span></template>
+          <template slot="footer">胜率 <span>60%</span></template>
         </chart-card>
       </el-col>
       <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="运营活动效果" total="78%">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+        <chart-card title="总套利次数" total="78%">
+          <el-tooltip slot="action" class="item" effect="dark" content="统计该实例总的套利次数" placement="top-start">
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
@@ -62,7 +80,7 @@
     <el-card :bordered="false" :body-style="{padding: '0'}">
       <div class="salesCard">
         <el-tabs>
-          <el-tab-pane label="销售额">
+          <el-tab-pane label="盈亏金额">
             <el-row>
               <el-col :xl="16" :lg="12" :md="12" :sm="24" :xs="24">
                 <bar :list="barData" title="销售额排行" />
@@ -72,7 +90,7 @@
               </el-col>
             </el-row>
           </el-tab-pane>
-          <el-tab-pane label="访问量">
+          <el-tab-pane label="套利次数">
             <el-row>
               <el-col :xl="16" :lg="12" :md="12" :sm="24" :xs="24">
                 <bar :list="barData2" title="销售额趋势" />
@@ -134,10 +152,16 @@ export default {
     return {
       barData,
       barData2,
-      rankList
+      rankList,
+      busStrategyDashBoardInfo: undefined, // 返回的dashboard对象数据
+      // 查询参数
+      queryParams: {
+        strategyInstanceId: undefined
+      }
     }
   },
   methods: {
+
   }
 }
 </script>
