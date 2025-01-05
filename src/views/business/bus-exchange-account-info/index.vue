@@ -385,17 +385,18 @@ export default {
       const id =
                 row.id || this.ids
       this.getBusExchangeAccountGroupList()
-      getBusExchangeAccountInfo(id).then(response => {
+      Promise.all([
+        getBusExchangeAccountInfo(id),
+        listBusExchangeAccountInfoByGroupId(row.id)
+      ]).then(([response, selectedGroupResp]) => {
         this.form = response.data
+        const selectedList = selectedGroupResp.data || [] // 确保列表存在
+        this.form.accountGroupIds = selectedList.map((item) => item.id.toString())
+        console.log('accountGroupIds', this.form.accountGroupIds)
+
         this.open = true
         this.title = '修改账户配置'
         this.isEdit = true
-      })
-      listBusExchangeAccountInfoByGroupId(row.id).then(response => {
-        const selectedList = response.data || [] // 确保列表存在
-        // 遍历响应数据
-        this.form.accountGroupIds = selectedList.map((item) => item.id.toString())
-        console.log('accountGroupIds', this.form.accountGroupIds)
       })
     },
     updateExchangeInfo(selectedId) {
