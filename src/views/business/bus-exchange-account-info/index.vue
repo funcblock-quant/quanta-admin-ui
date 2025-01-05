@@ -12,14 +12,14 @@
             @keyup.enter.native="handleQuery"
           />
           </el-form-item>
-          <el-form-item label="id" prop="platformId"><el-select
-            v-model="queryParams.platformId"
-            placeholder="请选择"
+          <el-form-item label="交易所" prop="exchangeId"><el-select
+            v-model="queryParams.exchangeId"
+            placeholder="请选择交易所"
             clearable
             size="small"
           >
             <el-option
-              v-for="dict in platformIdOptions"
+              v-for="dict in exchangeOptions"
               :key="dict.key"
               :label="dict.value"
               :value="dict.key"
@@ -74,21 +74,20 @@
           </el-col>
         </el-row>
 
-        <el-table v-loading="loading" :data="busExchangeAccountInfoList" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55" align="center" /><el-table-column
-            label="钱包名称"
+        <el-table v-loading="loading" :data="busExchangeAccountInfoList">
+          <el-table-column
+            label="账户名称"
             align="center"
             prop="accountName"
             :show-overflow-tooltip="true"
-          /><el-table-column label="id" align="center" prop="platformId" :formatter="platformIdFormat" width="100">
-            <template slot-scope="scope">
-              {{ platformIdFormat(scope.row) }}
-            </template>
-          </el-table-column><el-table-column label="交易所名称" align="center" prop="platformName" :formatter="platformNameFormat" width="100">
-            <template slot-scope="scope">
-              {{ platformNameFormat(scope.row) }}
-            </template>
-          </el-table-column><el-table-column
+          />
+          <el-table-column
+            label="交易所名称"
+            align="center"
+            prop="exchangeName"
+            width="100"
+          />
+          <el-table-column
             label="交易所uid"
             align="center"
             prop="uid"
@@ -103,7 +102,8 @@
             <template slot-scope="scope">
               {{ accountTypeFormat(scope.row) }}
             </template>
-          </el-table-column><el-table-column
+          </el-table-column>
+          <el-table-column
             label="状态"
             align="center"
             prop="status"
@@ -122,7 +122,7 @@
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
-                @click="handleUpdate"
+                @click="handleUpdate(scope.row)"
               >修改
               </el-button>
               <el-popconfirm
@@ -156,30 +156,25 @@
         <el-dialog :title="title" :visible.sync="open" width="500px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
 
-            <el-form-item label="钱包名称" prop="accountName">
+            <el-form-item label="账户名称" prop="accountName">
               <el-input
                 v-model="form.accountName"
-                placeholder="钱包名称"
+                placeholder="账户名称"
               />
             </el-form-item>
-            <el-form-item label="id" prop="platformId">
+            <el-form-item label="交易所名称" prop="exchangeId">
               <el-select
-                v-model="form.platformId"
+                v-model="form.exchangeId"
                 placeholder="请选择"
+                @change="updateExchangeInfo"
               >
                 <el-option
-                  v-for="dict in platformIdOptions"
+                  v-for="dict in exchangeOptions"
                   :key="dict.key"
                   :label="dict.value"
                   :value="dict.key"
                 />
               </el-select>
-            </el-form-item>
-            <el-form-item label="交易所名称" prop="platformName">
-              <el-input
-                v-model="form.platformName"
-                placeholder="交易所名称"
-              />
             </el-form-item>
             <el-form-item label="交易所uid" prop="uid">
               <el-input
@@ -213,6 +208,22 @@
                 />
               </el-select>
             </el-form-item>
+            <el-form-item label="账户组" prop="accountGroup">
+              <el-select
+                v-model="form.accountGroupIds"
+                placeholder="请选择账户组"
+                clearable
+                size="small"
+                multiple
+              >
+                <el-option
+                  v-for="group in accountGroupList"
+                  :key="group.key"
+                  :value="group.key"
+                  :label="group.value"
+                />
+              </el-select>
+            </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -228,6 +239,10 @@
 import { addBusExchangeAccountInfo, delBusExchangeAccountInfo, getBusExchangeAccountInfo, listBusExchangeAccountInfo, updateBusExchangeAccountInfo } from '@/api/business/bus-exchange-account-info'
 
 import { listBusStrategyExchange } from '@/api/business/bus-strategy-exchange'
+import {
+  listBusExchangeAccountGroup,
+  listBusExchangeAccountInfoByGroupId
+} from '@/api/business/bus-exchange-account-group'
 export default {
   name: 'BusExchangeAccountInfo',
   components: {
@@ -254,16 +269,16 @@ export default {
       busExchangeAccountInfoList: [],
       accountTypeOptions: [], statusOptions: [],
       // 关系表类型
-      platformIdOptions: [],
-      platformNameOptions: [],
+      exchangeOptions: [],
+      accountGroupList: [],
 
       // 查询参数
       queryParams: {
         pageIndex: 1,
         pageSize: 10,
         accountName: undefined,
-        platformId: undefined,
-        platformName: undefined,
+        exchangeId: undefined,
+        exchangeName: undefined,
         accountType: undefined,
         status: undefined
 
@@ -273,7 +288,7 @@ export default {
       },
       // 表单校验
       rules: { accountName: [{ required: true, message: '钱包名称不能为空', trigger: 'blur' }],
-        platformId: [{ required: true, message: 'id不能为空', trigger: 'blur' }],
+        exchangeId: [{ required: true, message: '请选择账户对应交易所', trigger: 'blur' }],
         accountType: [{ required: true, message: '账户类型不能为空', trigger: 'blur' }],
         status: [{ required: true, message: '状态不能为空', trigger: 'blur' }]
       }
@@ -281,7 +296,6 @@ export default {
   },
   created() {
     this.getList()
-    this.getBusStrategyExchangeItems()
     this.getBusStrategyExchangeItems()
     this.getDicts('bus_exchange_account_type').then(response => {
       this.accountTypeOptions = response.data
@@ -312,11 +326,12 @@ export default {
 
         id: undefined,
         accountName: undefined,
-        platformId: undefined,
-        platformName: undefined,
+        exchangeId: undefined,
+        exchangeName: undefined,
         uid: undefined,
         accountType: undefined,
-        status: undefined
+        status: undefined,
+        accountGroupIds: undefined
       }
       this.resetForm('form')
     },
@@ -325,12 +340,6 @@ export default {
     },
     fileClose: function() {
       this.fileOpen = false
-    },
-    platformIdFormat(row) {
-      return this.selectItemsLabel(this.platformIdOptions, row.platformId)
-    },
-    platformNameFormat(row) {
-      return this.selectItemsLabel(this.platformNameOptions, row.platformName)
     },
     accountTypeFormat(row) {
       return this.selectDictLabel(this.accountTypeOptions, row.accountType)
@@ -341,10 +350,16 @@ export default {
     // 关系
     getBusStrategyExchangeItems() {
       this.getItems(listBusStrategyExchange, undefined).then(res => {
-        this.platformIdOptions = this.setItems(res, 'id', 'id')
+        this.exchangeOptions = this.setItems(res, 'id', 'exchangeName')
       })
     },
-    // 文件
+    getBusExchangeAccountGroupList() {
+      this.getItems(listBusExchangeAccountGroup, undefined).then(res => {
+        console.log('res', res.data.list)
+        this.accountGroupList = this.setItems(res, 'id', 'groupName')
+        console.log('accountGroupList', this.accountGroupList)
+      })
+    },
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageIndex = 1
@@ -359,27 +374,35 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
+      this.getBusExchangeAccountGroupList()
       this.open = true
       this.title = '添加账户配置'
       this.isEdit = false
-    },
-    // 多选框选中数据
-    handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.id)
-      this.single = selection.length !== 1
-      this.multiple = !selection.length
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
       const id =
                 row.id || this.ids
+      this.getBusExchangeAccountGroupList()
       getBusExchangeAccountInfo(id).then(response => {
         this.form = response.data
         this.open = true
         this.title = '修改账户配置'
         this.isEdit = true
       })
+      listBusExchangeAccountInfoByGroupId(row.id).then(response => {
+        const selectedList = response.data || [] // 确保列表存在
+        // 遍历响应数据
+        this.form.accountGroupIds = selectedList.map((item) => item.id.toString())
+        console.log('accountGroupIds', this.form.accountGroupIds)
+      })
+    },
+    updateExchangeInfo(selectedId) {
+      const selectedOption = this.exchangeOptions.find(
+        option => option.key === selectedId
+      )
+      this.form.exchangeName = selectedOption ? selectedOption.value : ''
     },
     /** 提交按钮 */
     submitForm: function() {
@@ -392,6 +415,7 @@ export default {
             type: 'warning'
           }).then(() => {
             if (this.form.id !== undefined) {
+              console.log('form', this.form)
               updateBusExchangeAccountInfo(this.form).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
@@ -422,7 +446,7 @@ export default {
     handleDelete(row) {
       var Ids = (row.id && [row.id]) || this.ids
 
-      this.$confirm('是否确认删除编号为"' + Ids + '"的数据项?', '警告', {
+      this.$confirm('是否确认删除账户? 删除后，账户将从已绑定的账户组移除。', '警告', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'

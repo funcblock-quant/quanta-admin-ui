@@ -44,3 +44,9 @@ export function delBusExchangeAccountGroup(data) {
   })
 }
 
+export function listBusExchangeAccountInfoByGroupId(accountId) {
+  return request({
+    url: '/api/v1/queryGroupListByAccountId/' + accountId,
+    method: 'get'
+  })
+}

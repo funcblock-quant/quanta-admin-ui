@@ -44,3 +44,10 @@ export function delBusExchangeAccountInfo(data) {
   })
 }
 
+export function listBusExchangeAccountInfoByGroupId(groupId) {
+  return request({
+    url: '/api/v1/queryAccountByGroupId/' + groupId,
+    method: 'get'
+  })
+}
+
