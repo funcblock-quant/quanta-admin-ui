@@ -309,7 +309,9 @@ export default {
         console.log('exchangeAccountList', this.exchangeAccountList)
         const selectedList = selectedAccountResp.data || [] // 确保列表存在
         // 遍历响应数据
-        this.form.selectedAccounts = selectedList.map((item) => item.id)
+        // this.form.selectedAccounts = selectedList.map((item) => item.id)
+        this.$set(this.form, 'selectedAccounts', selectedList.map((item) => item.id))
+
         console.log('selectedAccounts', this.form.selectedAccounts)
         this.$nextTick(() => {
           // 确保更新后，相关内容被重新渲染

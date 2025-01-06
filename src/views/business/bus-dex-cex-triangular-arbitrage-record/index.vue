@@ -3,7 +3,7 @@
   <BasicLayout>
     <template #wrapper>
       <el-card class="box-card">
-        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
+        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="85px">
           <el-form-item label="策略id" prop="strategyId"><el-input
             v-model="queryParams.strategyId"
             placeholder="请输入策略id"
@@ -12,13 +12,14 @@
             @keyup.enter.native="handleQuery"
           />
           </el-form-item>
-          <el-form-item label="套利记录id" prop="arbitrageId"><el-input
-            v-model="queryParams.arbitrageId"
-            placeholder="请输入套利记录id"
-            clearable
-            size="small"
-            @keyup.enter.native="handleQuery"
-          />
+          <el-form-item label="套利记录id" prop="arbitrageId">
+            <el-input
+              v-model="queryParams.arbitrageId"
+              placeholder="请输入套利记录id"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
           </el-form-item>
           <el-form-item label="套利类型" prop="type"><el-select
             v-model="queryParams.type"
@@ -55,21 +56,8 @@
           </el-form-item>
         </el-form>
 
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button
-              v-permisaction="['business:busDexCexTriangularArbitrageRecord:add']"
-              type="primary"
-              icon="el-icon-plus"
-              size="mini"
-              @click="handleAdd"
-            >新增
-            </el-button>
-          </el-col>
-        </el-row>
-
-        <el-table v-loading="loading" :data="busDexCexTriangularArbitrageRecordList" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55" align="center" /><el-table-column
+        <el-table v-loading="loading" :data="busDexCexTriangularArbitrageRecordList">
+          <el-table-column
             label="策略id"
             align="center"
             prop="strategyId"
@@ -89,7 +77,8 @@
             <template slot-scope="scope">
               {{ typeFormat(scope.row) }}
             </template>
-          </el-table-column><el-table-column
+          </el-table-column>
+          <el-table-column
             label="dex pool id"
             align="center"
             prop="dexPoolId"
@@ -114,17 +103,20 @@
             align="center"
             prop="tokenInAmount"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="token out 交易量"
             align="center"
             prop="tokenOutAmount"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="交易手续费"
             align="center"
             prop="txGasAmount"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="dex是否完成"
             align="center"
             prop="statusOnDex"
@@ -149,67 +141,74 @@
             align="center"
             prop="cexQuantityForQuoteToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="quote token价格"
             align="center"
             prop="cexPriceForQuoteToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="quote token手续费"
             align="center"
             prop="cexFeeAmountForQuoteToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="cex是否完成"
             align="center"
             prop="statusOnCexForQuoteToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="cex中base交易对"
             align="center"
             prop="cexSymbolForBaseToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="base token"
             align="center"
             prop="cexVolumnForBaseToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="base token价格"
             align="center"
             prop="cexPriceForBaseToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="base token手续费"
             align="center"
             prop="cexFeeAmountForBaseToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="cex是否完成"
             align="center"
             prop="statusOnCexForBaseToken"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="quote token利润"
             align="center"
             prop="quoteTokenProfit"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="base token利润"
             align="center"
             prop="baseTokenProfit"
             :show-overflow-tooltip="true"
-          /><el-table-column
+          />
+          <el-table-column
             label="套利单状态"
             align="center"
             prop="status"
             :formatter="statusFormat"
             width="100"
-          >
-            <template slot-scope="scope">
-              {{ statusFormat(scope.row) }}
-            </template>
-          </el-table-column>
+          />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
               <el-button
@@ -248,14 +247,6 @@
           @pagination="getList"
         />
 
-        <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="80px" />
-          <div slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submitForm">确 定</el-button>
-            <el-button @click="cancel">取 消</el-button>
-          </div>
-        </el-dialog>
       </el-card>
     </template>
   </BasicLayout>

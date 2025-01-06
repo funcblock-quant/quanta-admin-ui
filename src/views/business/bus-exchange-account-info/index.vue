@@ -4,9 +4,9 @@
     <template #wrapper>
       <el-card class="box-card">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
-          <el-form-item label="钱包名称" prop="accountName"><el-input
+          <el-form-item label="账户名称" prop="accountName"><el-input
             v-model="queryParams.accountName"
-            placeholder="请输入钱包名称"
+            placeholder="请输入账户名称"
             clearable
             size="small"
             @keyup.enter.native="handleQuery"
@@ -391,7 +391,9 @@ export default {
       ]).then(([response, selectedGroupResp]) => {
         this.form = response.data
         const selectedList = selectedGroupResp.data || [] // 确保列表存在
-        this.form.accountGroupIds = selectedList.map((item) => item.id.toString())
+        // this.form.accountGroupIds = selectedList.map((item) => item.id.toString()) // 这种方式会导致vue响应机制问题
+        // this.form = { ...this.form, accountGroupIds: selectedList.map(item => item.id.toString()) } //这种方法可行
+        this.$set(this.form, 'accountGroupIds', selectedList.map(item => item.id.toString())) // 这个也可行
         console.log('accountGroupIds', this.form.accountGroupIds)
 
         this.open = true

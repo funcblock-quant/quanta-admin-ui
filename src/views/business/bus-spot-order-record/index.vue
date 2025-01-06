@@ -3,7 +3,7 @@
   <BasicLayout>
     <template #wrapper>
       <el-card class="box-card">
-        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
+        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="90px">
           <el-form-item label="套利记录id" prop="arbitrageId"><el-input
             v-model="queryParams.arbitrageId"
             placeholder="请输入套利记录id"
@@ -26,7 +26,7 @@
             />
           </el-select>
           </el-form-item>
-          <el-form-item label="交易所订单id" prop="orderId"><el-input
+          <el-form-item label="交易所id" prop="orderId"><el-input
             v-model="queryParams.orderId"
             placeholder="请输入交易所订单id"
             clearable
@@ -62,8 +62,8 @@
           </el-col>
         </el-row>
 
-        <el-table v-loading="loading" :data="spotOrderRecordList" @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="55" align="center" /><el-table-column
+        <el-table v-loading="loading" :data="spotOrderRecordList">
+          <el-table-column
             label="套利记录id"
             align="center"
             prop="arbitrageId"
