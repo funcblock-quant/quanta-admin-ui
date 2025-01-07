@@ -4,13 +4,20 @@
     <template #wrapper>
       <el-card class="box-card" style="display: flex; flex-direction: column; height: 100%;">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
-          <el-form-item label="策略id" prop="strategyId"><el-input
-            v-model="queryParams.strategyId"
-            placeholder="请输入策略id"
-            clearable
-            size="small"
-            @keyup.enter.native="handleQuery"
-          />
+          <el-form-item label="策略" prop="strategyId">
+            <el-select
+              v-model="queryParams.strategyId"
+              placeholder="请选择策略"
+              clearable
+              size="small"
+            >
+              <el-option
+                v-for="strategy in strategyList"
+                :key="strategy.key"
+                :value="strategy.key"
+                :label="strategy.value"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="账户组" prop="accountGroupId">
             <el-select
@@ -18,7 +25,6 @@
               placeholder="请选择账户组"
               clearable
               size="small"
-              @keyup.enter.native="handleQuery"
             >
               <el-option
                 v-for="group in accountGroupList"
@@ -99,7 +105,7 @@
                     size="mini"
                     type="text"
                     icon="el-icon-edit"
-                    @click="handleUpdate(item)"
+                    @click.stop="handleUpdate(item)"
                   >修改
                   </el-button>
                   <el-popconfirm
@@ -114,6 +120,7 @@
                       size="mini"
                       type="text"
                       icon="el-icon-delete"
+                      @click.stop
                     >下线策略
                     </el-button>
                   </el-popconfirm>
@@ -126,128 +133,128 @@
           <div v-if="isNoMoreData" class="no-more-data">没有更多数据了</div>
         </div>
 
-        <!-- 增加创建观察组 -->
-        <el-dialog :title="title" :visible.sync="open" width="600px">
+        <!-- 增加策略实例 -->
+        <el-dialog :title="title" :visible.sync="open" width="1000px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+            <el-card class="fused-card" shadow="never">
+              <div slot="header">
+                <h5>策略基础信息</h5>
 
-            <el-form-item label="策略" prop="strategyId">
-              <el-select
-                v-model="form.strategyId"
-                placeholder="请选择策略"
-                clearable
-                size="small"
+                <el-form-item label="策略" prop="strategyId">
+                  <el-select
+                    v-model="form.strategyId"
+                    placeholder="请选择策略"
+                    clearable
+                    size="small"
+                    :disabled="isEdit"
+                    @change="getConfigurationDicts(form.strategyId)"
+                  >
+                    <el-option
+                      v-for="strategy in strategyList"
+                      :key="strategy.key"
+                      :value="strategy.key"
+                      :label="strategy.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="账户组" prop="accountGroupId">
+                  <el-select
+                    v-model="form.accountGroupId"
+                    placeholder="请选择账户组"
+                    clearable
+                    size="small"
+                  >
+                    <el-option
+                      v-for="group in accountGroupList"
+                      :key="group.key"
+                      :value="group.key"
+                      :label="group.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="交易所1" prop="exchangeId1">
+                  <el-select
+                    v-model="form.exchangeId1"
+                    placeholder="请选择交易所1"
+                    @change="updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')"
+                  >
+                    <el-option
+                      v-for="exchange in exchangeOptions"
+                      :key="exchange.key"
+                      :value="exchange.key"
+                      :label="exchange.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item label="平台类型" prop="exchangeId1Type">
+                  <el-input
+                    v-model="form.exchange1TypeLabel"
+                    placeholder="平台类型"
+                    readonly
+                  />
+                </el-form-item>
+                <el-form-item label="交易所2" prop="exchangeId2">
+                  <el-select
+                    v-model="form.exchangeId2"
+                    placeholder="请选择交易所2"
+                    @change="updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')"
+                  >
+                    <el-option
+                      v-for="exchange in exchangeOptions"
+                      :key="exchange.key"
+                      :value="exchange.key"
+                      :label="exchange.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item label="平台类型" prop="exchangeId2Type">
+                  <el-input
+                    v-model="form.exchange2TypeLabel"
+                    placeholder="平台类型"
+                    readonly
+                  />
+                </el-form-item>
+                <el-form-item label="策略实例名称" prop="instanceName">
+                  <el-input
+                    v-model="form.instanceName"
+                    placeholder="策略实例名称"
+                  />
+                </el-form-item>
+                <el-form-item label="服务器ip" prop="serverIp">
+                  <el-input
+                    v-model="form.serverIp"
+                    placeholder="服务器ip"
+                  />
+                </el-form-item>
+                <el-form-item label="服务器用户名" prop="serverName">
+                  <el-input
+                    v-model="form.serverName"
+                    placeholder="服务器用户名"
+                  />
+                </el-form-item>
+              </div>
+            </el-card>
+            <!-- 分割线 -->
+            <el-divider />
+            <el-card v-if="form.strategyId" class="fused-card" shadow="never">
+              <div slot="header">
+                <h5>策略配置参数</h5>
+              </div>
+              <el-form-item
+                v-for="(config, index) in configurationsDicts"
+                :key="config.paramKey"
+                :label="config.paramKey"
+                :prop="getProp(index)"
+                :rules="getRules(config, index)"
               >
-                <el-option
-                  v-for="strategy in strategyList"
-                  :key="strategy.key"
-                  :value="strategy.key"
-                  :label="strategy.value"
+                <el-input
+                  v-model="form.configurations[index].paramValue"
+                  :placeholder="'请输入' + config.paramName"
                 />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="账户组" prop="accountGroupId">
-              <el-select
-                v-model="form.accountGroupId"
-                placeholder="请选择账户组"
-                clearable
-                size="small"
-              >
-                <el-option
-                  v-for="group in accountGroupList"
-                  :key="group.key"
-                  :value="group.key"
-                  :label="group.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="交易所1" prop="exchangeId1">
-              <el-select
-                v-model="form.exchangeId1"
-                placeholder="请选择交易所1"
-                @change="updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')"
-              >
-                <el-option
-                  v-for="exchange in exchangeOptions"
-                  :key="exchange.key"
-                  :value="exchange.key"
-                  :label="exchange.value"
-                />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item label="平台类型" prop="exchangeId1Type">
-              <el-input
-                v-model="form.exchange1TypeLabel"
-                placeholder="平台类型"
-                readonly
-              />
-            </el-form-item>
-            <el-form-item label="交易所2" prop="exchangeId2">
-              <el-select
-                v-model="form.exchangeId2"
-                placeholder="请选择交易所2"
-                @change="updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')"
-              >
-                <el-option
-                  v-for="exchange in exchangeOptions"
-                  :key="exchange.key"
-                  :value="exchange.key"
-                  :label="exchange.value"
-                />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item label="平台类型" prop="exchangeId2Type">
-              <el-input
-                v-model="form.exchange2TypeLabel"
-                placeholder="平台类型"
-                readonly
-              />
-            </el-form-item>
-            <el-form-item label="策略实例名称" prop="instanceName">
-              <el-input
-                v-model="form.instanceName"
-                placeholder="策略实例名称"
-              />
-            </el-form-item>
-            <el-form-item label="服务器ip" prop="serverIp">
-              <el-input
-                v-model="form.serverIp"
-                placeholder="服务器ip"
-              />
-            </el-form-item>
-            <el-form-item label="服务器用户名" prop="serverName">
-              <el-input
-                v-model="form.serverName"
-                placeholder="服务器用户名"
-              />
-            </el-form-item>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submitForm">确 定</el-button>
-            <el-button @click="cancel">取 消</el-button>
-          </div>
-        </el-dialog>
-
-        <el-dialog :title="title" :visible.sync="watchListOpen" width="500px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-
-            <el-form-item label="币对组名称" prop="groupName">
-              <el-input
-                v-model="form.groupName"
-                placeholder="观察交易对名称"
-              />
-            </el-form-item>
-            <el-form-item label="是否自动刷新" prop="autoRefresh">
-              <el-switch v-model="form.autoRefresh" size="mini" />
-            </el-form-item>
-            <el-form-item label="自动刷新间隔(ms)" prop="refreshInterval">
-              <el-input
-                v-model="form.refreshInterval"
-                placeholder="自动刷新间隔"
-              />
-            </el-form-item>
-          </el-form>
+              </el-form-item>
+            </el-card></el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
             <el-button @click="cancel">取 消</el-button>
@@ -264,6 +271,9 @@ import { addBusStrategyInstance, delBusStrategyInstance, getBusStrategyInstance,
 import { listBusExchangeAccountGroup } from '@/api/business/bus-exchange-account-group'
 import { listBusStrategyExchange } from '@/api/business/bus-strategy-exchange'
 import { listBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
+import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
+import editor from '@/views/dashboard/editor/index.vue'
+import { listBusStrategyInstanceConfig } from '@/api/business/bus-strategy-instance-config'
 
 export default {
   name: 'BusStrategyInstance',
@@ -285,10 +295,8 @@ export default {
       title: '',
       // 是否显示弹出层
       open: false,
-      // 是否显示观察组层
-      watchListOpen: false,
-      // 是否显示交易组层
-      tradeListOpen: false,
+      // 修改实例弹出层
+      editOpen: false,
       isEdit: false,
       // 类型数据字典
       typeOptions: [],
@@ -317,7 +325,14 @@ export default {
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
         accountGroupId: [{ required: true, message: '账户组id不能为空', trigger: 'blur' }],
         instanceName: [{ required: true, message: '策略实例名称不能为空', trigger: 'blur' }]
-      }
+      },
+      configurationsDicts: [
+      ]
+    }
+  },
+  computed: {
+    editor() {
+      return editor
     }
   },
   created() {
@@ -333,6 +348,7 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
+      console.log('this.queryParams', this.queryParams)
       listBusStrategyInstance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busStrategyInstanceList = response.data.list
         this.total = response.data.count
@@ -353,6 +369,40 @@ export default {
         this.exchangeTypeOptions = this.setItems(res, 'id', 'exchangeType')
       })
     },
+    getConfigurationDicts(strategyId) {
+      console.log('getConfigurationDicts 开始，strategyId:', strategyId)
+      this.configurationsDicts = []
+      this.form.configurations = [] // 初始化为空数组
+      console.log('strategyId', strategyId)
+      if (strategyId === undefined || strategyId === null || strategyId === '') {
+        return
+      }
+      listBusStrategyConfigDictByStrategyId(strategyId).then(res => {
+        console.log('listBusStrategyConfigDictByStrategyId resp', res)
+        this.configurationsDicts = res.data.list
+        console.log('this.configurationsDicts', this.configurationsDicts)
+        this.configurationsDicts.forEach(config => {
+          this.form.configurations.push({
+            paramKey: config.paramKey,
+            paramValue: config.defaultValue || ''
+          })
+        })
+        console.log('getConfigurationDicts 结束，configurationsDicts:', this.configurationsDicts)
+      })
+    },
+    getProp(index) {
+      return `configurations[${index}].paramValue`
+    },
+
+    getRules(config, index) {
+      if (config.required) {
+        return [
+          { required: true, message: `${config.paramName}不能为空`, trigger: 'blur' },
+          ...(config.paramType === 'number' ? [{ type: 'number', message: `${config.paramName}必须是数字`, trigger: 'blur' }] : [])
+        ]
+      }
+      return [] // 如果不是必填项，则返回空数组
+    },
     // 获取策略列表
     getStrategyList() {
       this.getItems(listBusStrategyBaseInfo, undefined).then(res => {
@@ -364,6 +414,7 @@ export default {
       const exchangeType = this.exchangeTypeDicts.find(option => option.value === type)
       return exchangeType ? exchangeType.label : '-'
     },
+
     // 取消按钮
     cancel() {
       this.open = false
@@ -386,8 +437,10 @@ export default {
         serverIp: undefined,
         serverName: undefined,
         startRunTime: undefined,
-        stopRunTime: undefined
+        stopRunTime: undefined,
+        configurations: []
       }
+      this.configurationsDicts = []
       this.resetForm('form')
     },
     getImgList: function() {
@@ -416,7 +469,7 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = '添加策略实例配置'
+      this.title = '添加策略实例'
       this.isEdit = false
     },
     updateExchangePlatformType(exchangeKey, exchangeTypeLabelKey, exchangeTypeKey, exchangeName) {
@@ -426,17 +479,44 @@ export default {
         this.form[exchangeTypeLabelKey] = this.exchangeTypeDicts.find(option => option.value === this.exchangeTypeOptions.find(option => option.key === this.form[exchangeKey]).value).label
         this.form[exchangeTypeKey] = this.exchangeTypeDicts.find(option => option.value === this.exchangeTypeOptions.find(option => option.key === this.form[exchangeKey]).value).value
       } else {
-        this.form[exchangeTypeLabelKey] = '' // 清空平台类型
+        this.form[exchangeTypeLabelKey] = ''
         this.form[exchangeTypeKey] = ''
       }
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const id =
-                row.id || this.ids
-      getBusStrategyInstance(id).then(response => {
+      const id = row.id
+      const instanceConfigParams = {
+        pageIndex: 1,
+        pageSize: 10000,
+        strategyInstanceId: row.id
+      }
+      console.log('row', row)
+      console.log('strategyInstanceId', instanceConfigParams.strategyInstanceId)
+      Promise.all([
+        getBusStrategyInstance(id),
+        listBusStrategyInstanceConfig(instanceConfigParams)
+      ]).then(([response, configResp]) => {
         this.form = response.data
+        this.form.configurations = [] // 初始化为空数组
+
+        this.getConfigurationDicts(this.form.strategyId)
+        configResp.data.list.forEach(item => {
+          const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
+          if (configIndex !== -1) {
+            this.form.configurations[configIndex].paramValue = item.paramValue
+          }
+        })
+
+        // 手动调用 updateExchangePlatformType 方法，设置平台类型
+        if (this.form.exchangeId1) {
+          this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
+        }
+        if (this.form.exchangeId2) {
+          this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
+        }
+
         this.open = true
         this.title = '修改策略实例配置'
         this.isEdit = true
@@ -454,11 +534,18 @@ export default {
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
+            const configurationsArray = Object.keys(this.form.configurations).map(key => ({
+              paramKey: key,
+              paramValue: this.form.configurations[key].paramValue
+            }))
+            const formData = { ...this.form, configurations: configurationsArray }
+            console.log('formData:', formData)
             if (this.form.id !== undefined) {
               updateBusStrategyInstance(this.form).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
                   this.open = false
+                  this.queryParams.pageIndex = 1
                   this.getList()
                 } else {
                   this.msgError(response.msg)
@@ -469,6 +556,7 @@ export default {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
                   this.open = false
+                  this.queryParams.pageIndex = 1
                   this.getList()
                 } else {
                   this.msgError(response.msg)
@@ -493,6 +581,10 @@ export default {
         return delBusStrategyInstance({ 'ids': Ids })
       }).then((response) => {
         if (response.code === 200) {
+          console.log('delete success')
+          this.queryParams.pageIndex = 1
+          this.busStrategyInstanceList = []
+          console.log('this.queryParams', this.queryParams)
           this.msgSuccess(response.msg)
           this.open = false
           this.getList()
@@ -535,9 +627,6 @@ export default {
     handleCardClick(item) {
       // 根据需要进行跳转，可以使用路由导航或直接打开新页面
       this.$router.push({ name: 'StrategyInstanceDetails', query: { id: item.id }})
-
-      // 如果需要直接用 `window.open`
-      // window.open(`/strategy/details?id=${item.id}`, '_blank');
     }
   }
 }
@@ -595,5 +684,26 @@ export default {
   }
   .clickable-card:hover {
     background-color: #f5f5f5;
+  }
+  .config-item {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .responsive-width {
+    width: 100%;
+  }
+
+  @media (min-width: 800px) {
+    .responsive-width {
+      width: 300px;
+    }
   }
 </style>

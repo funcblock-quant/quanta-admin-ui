@@ -10,5 +10,5 @@ RUN npm run build:prod
 FROM registry.cn-shanghai.aliyuncs.com/lwmeng/nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 8000
 CMD ["nginx", "-g", "daemon off;"]
