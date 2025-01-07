@@ -16,10 +16,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-          cache: 'yarn'
+          cache: 'npm' # 缓存 npm 依赖
 
       - name: install
-        run: yarn
+        run: npm ci # 使用 npm ci 进行干净安装
 
       - name: install sass-migrator
         run: npm install -g sass-migrator
