@@ -33,12 +33,22 @@ jobs:
       - name: List build directory contents
         run: ls -la build
 
-      - name: rsync deployments
-        uses: burnett01/rsync-deployments@4.1
+#      - name: rsync deployments
+#        uses: burnett01/rsync-deployments@4.1
+#        with:
+#          switches: -avzr --delete --filter=':- .gitignore'
+#          path: build/*
+#          remote_path: /data/quanta-admin-ui
+#          remote_host: ${{ secrets.SSH_HOST }}
+#          remote_user: ${{ secrets.SSH_USERNAME }}
+#          remote_key: ${{ secrets.DEPLOY_KEY_PROD }}
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
         with:
-          switches: -avzr --delete --filter=':- .gitignore'
-          path: build/*
-          remote_path: /data/quanta-admin-ui
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USERNAME }}
-          remote_key: ${{ secrets.DEPLOY_KEY_PROD }}
+          host: 13.230.153.171
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_KEY_PROD }}
+          script: |
+            cd /data/quanta-admin-ui
+            docker compose up -d --build
