@@ -18,6 +18,9 @@ jobs:
           node-version: '20.x'
           cache: 'npm' # 缓存 npm 依赖
 
+      - name: Test network connectivity
+        run: ping registry.npmjs.org
+
       - name: install
         run: npm ci # 使用 npm ci 进行干净安装
 
