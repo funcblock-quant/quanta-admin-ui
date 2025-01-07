@@ -30,15 +30,8 @@ jobs:
       - name: Build
         run: npm run build:prod
 
-      - name: ClearFile
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.DEPLOY_KEY_PROD }}
-          # 重启的脚本，根据自身情况做相应改动，一般要做的是migrate数据库以及重启服务器
-          script: |
-            sudo rm -rf /data/quanta-admin-ui/*
+      - name: List build directory contents
+        run: ls -la build
 
       - name: rsync deployments
         uses: burnett01/rsync-deployments@4.1
