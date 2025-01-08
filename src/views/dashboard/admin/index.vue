@@ -2,19 +2,22 @@
   <div class="dashboard-editor-container">
     <el-row :gutter="12">
       <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px">
-        <el-form-item label="策略实例" prop="strategyInstance"><el-select
-          v-model="queryParams.strategyId"
-          placeholder="请选择策略实例"
-          clearable
-          size="small"
-        >
-          <el-option
-            v-for="instance in strategyInstanceList"
-            :key="instance.value"
-            :label="instance.label"
-            :value="instance.value"
-          />
-        </el-select>
+        <el-form-item label="策略实例" prop="strategyInstance">
+          <el-select
+            v-model="queryParams.strategyInstanceId"
+            placeholder="请选择策略实例"
+            clearable
+            filterable
+            size="small"
+            @change="queryDashBoardByInstanceId(queryParams.strategyInstanceId)"
+          >
+            <el-option
+              v-for="instance in strategyInstanceList"
+              :key="instance.key"
+              :label="instance.value"
+              :value="instance.key"
+            />
+          </el-select>
         </el-form-item>
       </el-form></el-row>
 
@@ -115,6 +118,7 @@ import MiniBar from '@/components/MiniBar'
 import MiniProgress from '@/components/MiniProgress'
 import RankList from '@/components/RankList/index'
 import Bar from '@/components/Bar.vue'
+import { listBusStrategyInstance } from '@/api/business/bus-strategy-instance'
 
 const barData = []
 const barData2 = []
@@ -156,12 +160,28 @@ export default {
       busStrategyDashBoardInfo: undefined, // 返回的dashboard对象数据
       // 查询参数
       queryParams: {
-        strategyInstanceId: undefined
-      }
+        strategyInstanceId: undefined // 策略实例id
+      },
+      strategyInstanceList: []
     }
   },
+  created() {
+    this.getInstanceList()
+  },
   methods: {
+    // 获取策略实例列表
+    getInstanceList() {
+      this.getItems(listBusStrategyInstance, undefined).then(res => {
+        this.strategyInstanceList = this.setItems(res, 'id', 'strategyName')
+      })
+    },
+    // 根据实例id获取dashboard数据
+    queryDashBoardByInstanceId(instanceId) {
+      // 获取统计数据，包含总资产，资产变化，总套利次数，套利胜率等数据
 
+      // 获取套利记录列表
+
+    }
   }
 }
 </script>

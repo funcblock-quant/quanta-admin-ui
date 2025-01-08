@@ -626,7 +626,7 @@ export default {
     },
     handleCardClick(item) {
       // 根据需要进行跳转，可以使用路由导航或直接打开新页面
-      this.$router.push({ name: 'StrategyInstanceDetails', query: { id: item.id }})
+      this.$router.push({ name: 'Dashboard', query: { instanceId: item.id }})
     }
   }
 }
