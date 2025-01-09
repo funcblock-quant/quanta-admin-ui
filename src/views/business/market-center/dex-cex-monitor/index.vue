@@ -58,15 +58,34 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="Slippage Bps"
+            align="center"
+            prop="slippageBps"
+            :show-overflow-tooltip="true"
+            :formatter="formatSlippage"
+          />
+          <el-table-column
             label="Amm Pool"
             align="center"
             prop="ammPoolId"
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="Base Token"
+            align="center"
+            prop="baseTokenMint"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="Base Profit"
             align="center"
             prop="baseProfit"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Quote Token"
+            align="center"
+            prop="quoteTokenMint"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -176,8 +195,11 @@
                   <el-slider
                     v-model="batchForm.slippage"
                     show-input
-                    step="1"
-                  />
+                    step="0.01"
+                    :precision="2"
+                  >
+                    <template slot="append">%</template>
+                  </el-slider>
                 </el-form-item>
 
               </el-row>
@@ -351,7 +373,6 @@ export default {
         this.msgError('获取列表数据失败：' + error)
       })
     },
-
     /** 查询观察币种 */
     getSymbolWatchList() {
       this.loading = true
@@ -445,7 +466,7 @@ export default {
 
       this.batchForm.takerFee = Number(this.batchForm.takerFee)
       this.batchForm.volume = Number(this.batchForm.volume)
-      this.batchForm.slippage = this.batchForm.slippage.toString()
+      this.batchForm.slippage = (this.batchForm.slippage * 10000).toString()
       console.log('this.batchForm.takerFee', this.batchForm.takerFee)
       // 构造请求数据
       this.batchForm.symbolsArray = symbolsArray
@@ -482,6 +503,13 @@ export default {
         }
       }).catch(function() {
       })
+    },
+    formatSlippage(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '') {
+        return '' // 或者其他默认值，例如 0
+      }
+      const slippage = Number(cellValue) / 100
+      return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
     }
   }
 }
