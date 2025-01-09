@@ -298,7 +298,8 @@ export default {
       },
       exchangeType: [
         { key: 'Binance', value: 'Binance' },
-        { key: 'OKX', value: 'OKX' }
+        { key: 'OKX', value: 'OKX' },
+        { key: 'GateIO', value: 'GateIO' }
       ],
 
       // 表单校验
