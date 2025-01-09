@@ -437,11 +437,11 @@ export default {
       this.resetForm('queryForm')
       this.handleQuery()
     },
-    /** 批量新增按钮操作 */
+    /** 新增按钮操作 */
     handleBatchAdd() {
       this.reset()
       this.batchOpen = true
-      this.title = '批量添加链上链下三角套利观察'
+      this.title = '添加链上链下三角套利观察'
       this.isEdit = false
     },
     /** 修改按钮操作 */
