@@ -33,7 +33,7 @@
               icon="el-icon-plus"
               size="mini"
               @click="handleBatchAdd"
-            >批量新增
+            >新增
             </el-button>
           </el-col>
         </el-row>
@@ -135,9 +135,7 @@
               <el-form-item label="观察币种列表" prop="symbols">
                 <el-input
                   v-model="batchForm.symbols"
-                  type="textarea"
-                  placeholder="请输入交易币种，每个币种用`;`分隔，例如：BTC/USDT;ETH/USDT"
-                  rows="3"
+                  placeholder="请输入交易币种"
                 />
               </el-form-item>
             </el-card>
@@ -460,11 +458,7 @@ export default {
     },
     // 提交批量添加
     submitBatchForm() {
-      // 将 symbols 文本解析为数组
-      const symbolsArray = this.batchForm.symbols
-        .split(';')
-        .map(s => s.trim())
-        .filter(s => s) // 去除空字符串
+      const symbolsArray = [this.batchForm.symbols]
 
       this.batchForm.takerFee = Number(this.batchForm.takerFee)
       this.batchForm.volume = Number(this.batchForm.volume)
