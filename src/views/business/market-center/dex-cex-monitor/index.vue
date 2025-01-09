@@ -462,7 +462,7 @@ export default {
 
       this.batchForm.takerFee = Number(this.batchForm.takerFee)
       this.batchForm.volume = Number(this.batchForm.volume)
-      this.batchForm.slippage = (this.batchForm.slippage * 10000).toString()
+      this.batchForm.slippage = (this.batchForm.slippage * 100).toString()
       console.log('this.batchForm.takerFee', this.batchForm.takerFee)
       // 构造请求数据
       this.batchForm.symbolsArray = symbolsArray
