@@ -319,18 +319,36 @@ export default {
   created() {
     this.getList()
     this.getSymbolWatchList()
+    this.startTimer()
   },
+  mounted() {
+    window.addEventListener('focus', this.handleFocus)
+    window.addEventListener('blur', this.handleBlur)
+  },
+  beforeDestroy() {
+    this.clearTimer() // 组件销毁前清除定时器
+    window.removeEventListener('focus', this.handleFocus)
+    window.removeEventListener('blur', this.handleBlur)
+  },
+
   methods: {
     /** 查询参数列表 */
     getList() {
       this.loading = true
       console.log('this.queryParams', this.queryParams)
       listBusDexCexTriangularObserver(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
-        this.busDexCexTriangularObserverList = response.data.list
-        this.total = response.data.count
+        if (response.code === 200) { // 检查响应状态码
+          // 正确的做法是替换整个数组，而不是修改数组的引用
+          this.busDexCexTriangularObserverList = response.data.list
+          this.total = response.data.count
+        } else {
+          this.msgError(response.msg)
+        }
         this.loading = false
-      }
-      )
+      }).catch((error) => { // 添加错误处理
+        this.loading = false
+        this.msgError('获取列表数据失败：' + error)
+      })
     },
 
     /** 查询观察币种 */
@@ -342,6 +360,28 @@ export default {
         console.log(this.symbolWatchList)
       }
       )
+    },
+    startTimer() {
+      if (this.timer) {
+        clearInterval(this.timer) // 如果定时器已存在，先清除
+      }
+      this.timer = setInterval(() => {
+        this.getList()
+      }, 5000) // 每 5 秒刷新一次
+    },
+    clearTimer() {
+      if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      }
+    },
+    handleFocus() {
+      console.log('页面获取焦点')
+      this.startTimer()
+    },
+    handleBlur() {
+      console.log('页面失去焦点')
+      this.clearTimer()
     },
     // 取消按钮
     cancel() {
