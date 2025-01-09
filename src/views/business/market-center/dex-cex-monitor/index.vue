@@ -189,7 +189,7 @@
               </div>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
-                  <el-form-item label="交易所" prop="ammPool">
+                  <el-form-item label="交易所" prop="exchangeType">
                     <el-select
                       v-model="batchForm.exchangeType"
                       placeholder="请选择交易所"
@@ -206,17 +206,17 @@
                     </el-select>
                   </el-form-item>
                 </el-col>
-                <el-col :span="1.5">
-                  <el-form-item label="AMM池合约地址" prop="ammPool">
-                    <el-input
-                      v-model="batchForm.ammPool"
-                      placeholder="请输入AMM合约地址"
-                    />
-                  </el-form-item>
-                </el-col>
               </el-row>
               <el-row :gutter="20" class="mb8">
-                <el-form-item label="Taker Fee" prop="ammPool">
+                <el-form-item label="Volume" prop="volume">
+                  <el-input
+                    v-model="batchForm.volume"
+                    placeholder="请输入交易volume"
+                  />
+                </el-form-item>
+              </el-row>
+              <el-row :gutter="20" class="mb8">
+                <el-form-item label="Taker Fee" prop="takerFee">
                   <el-input
                     v-model="batchForm.takerFee"
                     placeholder="请输入交易所taker fee"
@@ -402,12 +402,22 @@ export default {
         .map(s => s.trim())
         .filter(s => s) // 去除空字符串
 
+      this.batchForm.takerFee = Number(this.batchForm.takerFee)
+      this.batchForm.volume = Number(this.batchForm.volume)
+      this.batchForm.slippage = this.batchForm.takerFee.toString()
+      console.log('this.batchForm.takerFee', this.batchForm.takerFee)
       // 构造请求数据
       this.batchForm.symbolsArray = symbolsArray
 
       // 批量请求
       batchAddBusDexCexTriangularObserver(this.batchForm).then(res => {
-
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.batchOpen = false
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+        }
       })
     },
     /** 删除按钮操作 */
