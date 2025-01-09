@@ -81,6 +81,7 @@
             align="center"
             prop="baseProfit"
             :show-overflow-tooltip="true"
+            :formatter="formatProfit"
           />
           <el-table-column
             label="Quote Token"
@@ -93,6 +94,7 @@
             align="center"
             prop="quoteProfit"
             :show-overflow-tooltip="true"
+            :formatter="formatProfit"
           />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
@@ -510,6 +512,13 @@ export default {
       }
       const slippage = Number(cellValue) / 100
       return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
+    },
+    formatProfit(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '') {
+        return '' // 或者其他默认值，例如 0
+      }
+      const slippage = Number(cellValue)
+      return slippage.toFixed(6).toString() // 保留四位小数，根据需要调整
     }
   }
 }
