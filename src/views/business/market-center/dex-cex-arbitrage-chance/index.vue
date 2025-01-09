@@ -15,8 +15,8 @@
             >
               <el-option
                 v-for="symbol in symbolWatchList"
-                :key="symbol.name"
-                :value="symbol.name"
+                :key="symbol.symbol"
+                :value="symbol.symbol"
               />
             </el-select>
           </el-form-item>
@@ -133,6 +133,7 @@
 
 <script>
 import { listDexCexArbitrageChance } from '@/api/business/bus-dex-cex-triangular-arbitrage-record'
+import { listBusDexCexTriangularSymbolList } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
   name: 'BusTriangleOrdersRecord',
@@ -160,11 +161,11 @@ export default {
       // 类型数据字典
       typeOptions: [],
       symbolWatchList: [
-        { name: 'BTC/USDT', id: 'btc_usdt' },
-        { name: 'ETH/USDT', id: 'eth_usdt' },
-        { name: 'BNB/USDT', id: 'bnb_usdt' },
-        { name: 'DOGE/USDT', id: 'doge_usdt' },
-        { name: 'XRP/USDT', id: 'xrp_usdt' }
+        { symbol: 'BTC/USDT' },
+        { symbol: 'ETH/USDT' },
+        { symbol: 'BNB/USDT' },
+        { symbol: 'DOGE/USDT' },
+        { symbol: 'XRP/USDT' }
       ],
       // 查询参数
       queryParams: {
@@ -187,6 +188,7 @@ export default {
   },
   created() {
     this.getList()
+    this.getSymbolWatchList()
     this.getDicts('bus_trade_side').then(response => {
       this.sideOptions = response.data
     })
@@ -210,6 +212,16 @@ export default {
       listDexCexArbitrageChance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busDexCexArbitrageChanceList = response.data
         this.loading = false
+      }
+      )
+    },
+    /** 查询观察币种 */
+    getSymbolWatchList() {
+      this.loading = true
+      listBusDexCexTriangularSymbolList().then(response => {
+        this.symbolWatchList = response.data
+        this.loading = false
+        console.log(this.symbolWatchList)
       }
       )
     },
