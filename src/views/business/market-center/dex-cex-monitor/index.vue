@@ -404,7 +404,7 @@ export default {
 
       this.batchForm.takerFee = Number(this.batchForm.takerFee)
       this.batchForm.volume = Number(this.batchForm.volume)
-      this.batchForm.slippage = this.batchForm.takerFee.toString()
+      this.batchForm.slippage = this.batchForm.slippage.toString()
       console.log('this.batchForm.takerFee', this.batchForm.takerFee)
       // 构造请求数据
       this.batchForm.symbolsArray = symbolsArray
@@ -414,6 +414,7 @@ export default {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
           this.batchOpen = false
+          this.batchForm = []
           this.getList()
         } else {
           this.msgError(res.msg)
