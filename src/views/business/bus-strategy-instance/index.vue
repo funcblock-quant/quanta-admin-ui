@@ -238,23 +238,36 @@
             </el-card>
             <!-- 分割线 -->
             <el-divider />
-            <el-card v-if="form.strategyId" class="fused-card" shadow="never">
-              <div slot="header">
-                <h5>策略配置参数</h5>
-              </div>
-              <el-form-item
-                v-for="(config, index) in configurationsDicts"
-                :key="config.paramKey"
-                :label="config.paramKey"
-                :prop="getProp(index)"
-                :rules="getRules(config, index)"
-              >
-                <el-input
-                  v-model="form.configurations[index].paramValue"
-                  :placeholder="'请输入' + config.paramName"
-                />
-              </el-form-item>
-            </el-card></el-form>
+            <template>
+              <el-card v-if="form.strategyId" class="fused-card" shadow="never">
+                <div slot="header">
+                  <h5>策略配置参数</h5>
+                </div>
+                <el-form ref="form" :model="form" label-width="150px">
+                  <el-form-item
+                    v-for="(config, index) in configurationsDicts"
+                    :key="config.paramKey"
+                    :label-width="labelWidth"
+                    :prop="getProp(index)"
+                    :rules="getRules(config, index)"
+                  >
+                    <template slot="label">
+                      <div class="label-container">
+                        <span>{{ config.paramKey }}</span>
+                        <el-tooltip :content="config.paramName" placement="top">
+                          <i class="el-icon-question tooltip-icon" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                    <el-input
+                      v-model="form.configurations[index].paramValue"
+                      :placeholder="'请输入' + config.paramName + ',默认值为' + config.defaultValue"
+                    />
+                  </el-form-item>
+                </el-form>
+              </el-card>
+            </template>
+          </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
             <el-button @click="cancel">取 消</el-button>
@@ -273,7 +286,6 @@ import { listBusStrategyExchange } from '@/api/business/bus-strategy-exchange'
 import { listBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
 import editor from '@/views/dashboard/editor/index.vue'
-import { listBusStrategyInstanceConfig } from '@/api/business/bus-strategy-instance-config'
 
 export default {
   name: 'BusStrategyInstance',
@@ -293,6 +305,7 @@ export default {
       total: 0,
       // 弹出层标题
       title: '',
+      labelWidth: '120px',
       // 是否显示弹出层
       open: false,
       // 修改实例弹出层
@@ -320,6 +333,7 @@ export default {
       isNoMoreData: false, // 是否没有更多数据
       // 表单参数
       form: {
+        configurations: []
       },
       // 表单校验
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
@@ -384,7 +398,7 @@ export default {
         this.configurationsDicts.forEach(config => {
           this.form.configurations.push({
             paramKey: config.paramKey,
-            paramValue: config.defaultValue || ''
+            paramName: config.paramName
           })
         })
         console.log('getConfigurationDicts 结束，configurationsDicts:', this.configurationsDicts)
@@ -486,41 +500,64 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
+      console.log('reset 后 this.form.configurations', this.form.configurations)
       const id = row.id
-      const instanceConfigParams = {
-        pageIndex: 1,
-        pageSize: 10000,
-        strategyInstanceId: row.id
-      }
       console.log('row', row)
-      console.log('strategyInstanceId', instanceConfigParams.strategyInstanceId)
-      Promise.all([
-        getBusStrategyInstance(id),
-        listBusStrategyInstanceConfig(instanceConfigParams)
-      ]).then(([response, configResp]) => {
-        this.form = response.data
-        this.form.configurations = [] // 初始化为空数组
+      let strategyInstanceResponse
+      getBusStrategyInstance(id)
+        .then(response => {
+          Object.assign(this.form, response.data)
+          strategyInstanceResponse = response
 
-        this.getConfigurationDicts(this.form.strategyId)
-        configResp.data.list.forEach(item => {
-          const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
-          if (configIndex !== -1) {
-            this.form.configurations[configIndex].paramValue = item.paramValue
-          }
+          console.log('instanceResp data', response.data)
+          // 使用 response.data.id 作为参数调用 listBusStrategyConfigDictByStrategyId
+          return listBusStrategyConfigDictByStrategyId(response.data.strategyId)
         })
+        .then(configDictResp => {
+          this.configurationsDicts = configDictResp.data.list
+          console.log('初始化前 this.form.configurations', this.form.configurations)
+          // 根据配置模版，初始化this.form.configurations
+          this.form.configurations = this.configurationsDicts.map(config => ({
+            paramKey: config.paramKey,
+            paramName: config.paramName
+          }))
+          console.log('初始化后 this.form.configurations', this.form.configurations)
 
-        // 手动调用 updateExchangePlatformType 方法，设置平台类型
-        if (this.form.exchangeId1) {
-          this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
-        }
-        if (this.form.exchangeId2) {
-          this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
-        }
+          console.log('this.configurationsDicts', this.configurationsDicts)
+          console.log('strategyInstanceResponse.data.configs', strategyInstanceResponse?.data?.configs)
+          // 根据策略实际查出的配置项，修改this.form.configurations，更新成之前设置的值
+          if (strategyInstanceResponse && strategyInstanceResponse.data && strategyInstanceResponse.data.configs && Array.isArray(strategyInstanceResponse.data.configs)) {
+            strategyInstanceResponse.data.configs.forEach(item => {
+              const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
+              console.log(`find index for paramKey ${item.paramKey} is ${configIndex}`)
+              if (configIndex !== -1) {
+                // 使用 $set 或 splice 正确更新
+                this.$set(this.form.configurations, configIndex, {
+                  ...this.form.configurations[configIndex],
+                  paramValue: item.paramValue
+                })
+                console.log(`Updated config at index ${configIndex}:`, this.form.configurations[configIndex])
+              } else {
+                console.warn(`Config with paramKey ${item.paramKey} not found in configurations`)
+              }
+            })
+            console.log('Updated this.form.configurations', this.form.configurations)
+          } else {
+            console.warn('strategyInstanceResponse.data.configs is not an array or is undefined:', strategyInstanceResponse?.data?.configs)
+          }
 
-        this.open = true
-        this.title = '修改策略实例配置'
-        this.isEdit = true
-      })
+          // 手动调用 updateExchangePlatformType 方法，设置平台类型
+          if (this.form.exchangeId1) {
+            this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
+          }
+          if (this.form.exchangeId2) {
+            this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
+          }
+
+          this.open = true
+          this.title = '修改策略实例配置'
+          this.isEdit = true
+        })
     },
     /** 提交按钮 */
     submitForm: function() {
@@ -700,7 +737,15 @@ export default {
   .responsive-width {
     width: 100%;
   }
+  .label-container {
+    display: inline-flex; /* 使用 inline-flex，更灵活 */
+    align-items: center;
+  }
 
+  .tooltip-icon {
+    margin-left: 5px;
+    cursor: pointer;
+  }
   @media (min-width: 800px) {
     .responsive-width {
       width: 300px;
