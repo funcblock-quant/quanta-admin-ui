@@ -62,7 +62,12 @@
                 shadow="always"
                 @click.native="handleCardClick(item)"
               >
+                <div class="card-status" :class="statusClass(item.status)" />
                 <div class="card-content">
+                  <div class="info-row">
+                    <span class="info-title">策略id:</span>
+                    <span class="info-value">{{ item.id || '-' }}</span>
+                  </div>
                   <div class="info-row">
                     <span class="info-title">策略:</span>
                     <span class="info-value">{{ item.strategyName || '-' }}</span>
@@ -755,6 +760,15 @@ export default {
           this.msgError(response.msg)
         }
       })
+    },
+    // 根据状态，显示不同的状态样式
+    statusClass(status) {
+      if (status === '0') { // 假设 0 代表暂停
+        return 'status-paused'
+      } else if (status === '1') { // 假设 1 代表运行中
+        return 'status-running'
+      }
+      return '' // 其他状态，不添加样式
     }
   }
 }
@@ -832,7 +846,27 @@ export default {
     display: inline-flex; /* 使用 inline-flex，更灵活 */
     align-items: center;
   }
-
+  .custom-card {
+    position: relative; /* 使小圆点可以定位 */
+  }
+  .card-status {
+    position: absolute;
+    top: 20px; /* 调整位置 */
+    right: 10px; /* 调整位置 */
+    width: 8px;
+    height: 8px;
+    border-radius: 100%; /* 圆形 */
+  }
+  .status-paused {
+    background-color: #d00000;
+  }
+  .status-running {
+    background-color: green;
+  }
+  .loading-text, .no-more-data {
+    text-align: center;
+    padding: 10px;
+  }
   .tooltip-icon {
     margin-left: 5px;
     cursor: pointer;

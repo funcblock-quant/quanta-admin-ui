@@ -90,27 +90,20 @@
             <template slot-scope="scope">
               {{ connectTypeFormat(scope.row) }}
             </template>
-          </el-table-column><el-table-column
-            label="网络健康"
-            align="center"
-            prop="networkStatus"
-            :formatter="networkStatusFormat"
-            width="100"
-          >
+          </el-table-column>
+          <el-table-column label="网络健康" align="center" prop="networkStatus" width="100">
             <template slot-scope="scope">
-              {{ networkStatusFormat(scope.row) }}
+              <div class="network-status">
+                <span class="status-dot" :class="networkStatusClass(scope.row.networkStatus)" />
+              </div>
             </template>
-          </el-table-column><el-table-column
-            label="服务器状态"
-            align="center"
-            prop="status"
-            :formatter="statusFormat"
-            width="100"
-          >
+          </el-table-column>
+          <el-table-column label="服务器状态" align="center" prop="status" width="100">
             <template slot-scope="scope">
-              {{ statusFormat(scope.row) }}
+              <span :class="statusTextColor(scope.row.status)">{{ statusFormat(scope.row) }}</span>
             </template>
-          </el-table-column><el-table-column
+          </el-table-column>
+          <el-table-column
             label="cpu核心数"
             align="center"
             prop="cpuNum"
@@ -535,8 +528,49 @@ export default {
           this.msgError(response.msg)
         }
       })
+    },
+    networkStatusClass(status) {
+      if (status === '1') { // 假设 '1' 代表网络正常
+        return 'status-online'
+      } else if (status === '-1') { // 假设 '0' 代表网络异常
+        return 'status-offline'
+      }
+      return '' // 其他状态
+    },
+    statusTextColor(status) {
+      if (status === '2' || status === '3') { // 假设 '2' 代表停用
+        return 'status-paused-text'
+      }
+      return 'status-running-text' // 否则为启用状态，默认绿色
     }
 
   }
 }
 </script>
+
+<style scoped>
+/* ... 其他样式 */
+.network-status { /* 包含圆点和文字的容器 */
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px; /* 圆点和文字的间距 */
+}
+.status-online {
+  background-color: green;
+}
+.status-offline {
+  background-color: #d00000;
+}
+.status-paused-text {
+  color: #d00000;
+}
+.status-running-text {
+  color: green;
+}
+</style>/
