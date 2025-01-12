@@ -141,7 +141,7 @@
                 >
                   <el-button
                     slot="reference"
-                    v-permisaction="['business:busServerInfo:remove']"
+                    v-permisaction="['business:busServerInfo:edit']"
                     size="mini"
                     type="text"
                     icon="el-icon-video-play"
@@ -159,7 +159,7 @@
                 >
                   <el-button
                     slot="reference"
-                    v-permisaction="['business:busServerInfo:remove']"
+                    v-permisaction="['business:busServerInfo:edit']"
                     size="mini"
                     type="text"
                     icon="el-icon-video-pause"
