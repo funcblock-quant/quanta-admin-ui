@@ -44,3 +44,18 @@ export function delBusStrategyInstance(data) {
   })
 }
 
+// 启动BusStrategyInstance
+export function startBusStrategyInstance(id) {
+  return request({
+    url: '/api/v1/startStrategyInstance/' + id,
+    method: 'put'
+  })
+}
+
+// 停用BusStrategyInstance
+export function stopBusStrategyInstance(id) {
+  return request({
+    url: '/api/v1/stopStrategyInstance/' + id,
+    method: 'put'
+  })
+}

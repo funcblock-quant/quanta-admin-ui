@@ -62,7 +62,12 @@
                 shadow="always"
                 @click.native="handleCardClick(item)"
               >
+                <div class="card-status" :class="statusClass(item.status)" />
                 <div class="card-content">
+                  <div class="info-row">
+                    <span class="info-title">策略id:</span>
+                    <span class="info-value">{{ item.id || '-' }}</span>
+                  </div>
                   <div class="info-row">
                     <span class="info-title">策略:</span>
                     <span class="info-value">{{ item.strategyName || '-' }}</span>
@@ -108,6 +113,26 @@
                     @click.stop="handleUpdate(item)"
                   >修改
                   </el-button>
+                  <el-button
+                    slot="reference"
+                    v-permisaction="['business:busStrategyInstance:edit']"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-video-play"
+                    :disabled="item.status === '1'"
+                    @click.stop="handleStart(item)"
+                  >启用
+                  </el-button>
+                  <el-button
+                    slot="reference"
+                    v-permisaction="['business:busStrategyInstance:edit']"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-video-pause"
+                    :disabled="item.status === '0'"
+                    @click.stop="handleStop(item)"
+                  >停用
+                  </el-button>
                   <el-popconfirm
                     class="delete-popconfirm"
                     title="确认要下线实例吗?"
@@ -134,7 +159,7 @@
         </div>
 
         <!-- 增加策略实例 -->
-        <el-dialog :title="title" :visible.sync="open" width="1000px">
+        <el-drawer :title="title" :visible.sync="open" :before-close="handleDrawClose">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             <el-card class="fused-card" shadow="never">
               <div slot="header">
@@ -222,44 +247,64 @@
                     placeholder="策略实例名称"
                   />
                 </el-form-item>
-                <el-form-item label="服务器ip" prop="serverIp">
-                  <el-input
-                    v-model="form.serverIp"
-                    placeholder="服务器ip"
-                  />
-                </el-form-item>
-                <el-form-item label="服务器用户名" prop="serverName">
-                  <el-input
-                    v-model="form.serverName"
-                    placeholder="服务器用户名"
-                  />
-                </el-form-item>
+
               </div>
             </el-card>
             <!-- 分割线 -->
             <el-divider />
-            <el-card v-if="form.strategyId" class="fused-card" shadow="never">
+            <el-card class="fused-card" shadow="never">
               <div slot="header">
-                <h5>策略配置参数</h5>
+                <h5>选择服务器</h5>
+                <el-form-item label="服务器" prop="serverIp">
+                  <el-select
+                    v-model="form.serverId"
+                    placeholder="请选择要部署的服务器"
+                  >
+                    <el-option
+                      v-for="server in serverList"
+                      :key="server.id"
+                      :value="`${server.id}`"
+                      :label="formatServerInfo(server)"
+                    />
+                  </el-select>
+                </el-form-item>
               </div>
-              <el-form-item
-                v-for="(config, index) in configurationsDicts"
-                :key="config.paramKey"
-                :label="config.paramKey"
-                :prop="getProp(index)"
-                :rules="getRules(config, index)"
-              >
-                <el-input
-                  v-model="form.configurations[index].paramValue"
-                  :placeholder="'请输入' + config.paramName"
-                />
-              </el-form-item>
-            </el-card></el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submitForm">确 定</el-button>
-            <el-button @click="cancel">取 消</el-button>
-          </div>
-        </el-dialog>
+            </el-card>
+
+            <template>
+              <el-card v-if="form.strategyId" class="fused-card" shadow="never">
+                <div slot="header">
+                  <h5>策略配置参数</h5>
+                </div>
+                <el-form ref="form" :model="form" label-width="150px">
+                  <el-form-item
+                    v-for="(config, index) in configurationsDicts"
+                    :key="config.paramKey"
+                    :label-width="labelWidth"
+                    :prop="getProp(index)"
+                    :rules="getRules(config, index)"
+                  >
+                    <template slot="label">
+                      <div class="label-container">
+                        <span>{{ config.paramKey }}</span>
+                        <el-tooltip :content="config.paramName" placement="top">
+                          <i class="el-icon-question tooltip-icon" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                    <el-input
+                      v-model="form.configurations[index].paramValue"
+                      :placeholder="'请输入' + config.paramName + ',默认值为' + config.defaultValue"
+                    />
+                  </el-form-item>
+                </el-form>
+              </el-card>
+            </template>
+          </el-form>
+          <br>
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </el-drawer>
 
       </el-card>
     </template>
@@ -267,13 +312,20 @@
 </template>
 
 <script>
-import { addBusStrategyInstance, delBusStrategyInstance, getBusStrategyInstance, listBusStrategyInstance, updateBusStrategyInstance } from '@/api/business/bus-strategy-instance'
+import {
+  addBusStrategyInstance,
+  delBusStrategyInstance,
+  getBusStrategyInstance,
+  listBusStrategyInstance,
+  startBusStrategyInstance, stopBusStrategyInstance,
+  updateBusStrategyInstance
+} from '@/api/business/bus-strategy-instance'
 import { listBusExchangeAccountGroup } from '@/api/business/bus-exchange-account-group'
 import { listBusStrategyExchange } from '@/api/business/bus-strategy-exchange'
 import { listBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
 import editor from '@/views/dashboard/editor/index.vue'
-import { listBusStrategyInstanceConfig } from '@/api/business/bus-strategy-instance-config'
+import { listBusServerInfo } from '@/api/business/bus-server-info'
 
 export default {
   name: 'BusStrategyInstance',
@@ -293,6 +345,7 @@ export default {
       total: 0,
       // 弹出层标题
       title: '',
+      labelWidth: '120px',
       // 是否显示弹出层
       open: false,
       // 修改实例弹出层
@@ -306,6 +359,8 @@ export default {
       exchangeTypeOptions: [],
       exchangeTypeDicts: [],
       strategyList: [],
+      // 可用服务器列表
+      serverList: [],
 
       // 查询参数
       queryParams: {
@@ -320,6 +375,7 @@ export default {
       isNoMoreData: false, // 是否没有更多数据
       // 表单参数
       form: {
+        configurations: []
       },
       // 表单校验
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
@@ -340,6 +396,7 @@ export default {
     this.getBusExchangeAccountGroupList()
     this.getBusStrategyExchangeItems()
     this.getStrategyList()
+    this.getServerList()
     this.getDicts('bus_exchange_type').then(response => {
       this.exchangeTypeDicts = response.data
     })
@@ -384,7 +441,7 @@ export default {
         this.configurationsDicts.forEach(config => {
           this.form.configurations.push({
             paramKey: config.paramKey,
-            paramValue: config.defaultValue || ''
+            paramName: config.paramName
           })
         })
         console.log('getConfigurationDicts 结束，configurationsDicts:', this.configurationsDicts)
@@ -434,8 +491,7 @@ export default {
         exchange2Type: undefined,
         exchange2TypeLabel: undefined,
         instanceName: undefined,
-        serverIp: undefined,
-        serverName: undefined,
+        serverId: undefined,
         startRunTime: undefined,
         stopRunTime: undefined,
         configurations: []
@@ -472,6 +528,13 @@ export default {
       this.title = '添加策略实例'
       this.isEdit = false
     },
+    handleDrawClose(done) {
+      this.$confirm('关闭后表单数据会丢失，确认关闭？')
+        .then(_ => {
+          done()
+        })
+        .catch(_ => {})
+    },
     updateExchangePlatformType(exchangeKey, exchangeTypeLabelKey, exchangeTypeKey, exchangeName) {
       const exchange = this.exchangeOptions.find(option => option.key === this.form[exchangeKey])
       this.form[exchangeName] = exchange.value
@@ -487,40 +550,49 @@ export default {
     handleUpdate(row) {
       this.reset()
       const id = row.id
-      const instanceConfigParams = {
-        pageIndex: 1,
-        pageSize: 10000,
-        strategyInstanceId: row.id
-      }
       console.log('row', row)
-      console.log('strategyInstanceId', instanceConfigParams.strategyInstanceId)
-      Promise.all([
-        getBusStrategyInstance(id),
-        listBusStrategyInstanceConfig(instanceConfigParams)
-      ]).then(([response, configResp]) => {
-        this.form = response.data
-        this.form.configurations = [] // 初始化为空数组
+      let strategyInstanceResponse
+      getBusStrategyInstance(id)
+        .then(response => {
+          Object.assign(this.form, response.data)
+          strategyInstanceResponse = response
 
-        this.getConfigurationDicts(this.form.strategyId)
-        configResp.data.list.forEach(item => {
-          const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
-          if (configIndex !== -1) {
-            this.form.configurations[configIndex].paramValue = item.paramValue
-          }
+          // 使用 response.data.id 作为参数调用 listBusStrategyConfigDictByStrategyId
+          return listBusStrategyConfigDictByStrategyId(response.data.strategyId)
         })
+        .then(configDictResp => {
+          this.configurationsDicts = configDictResp.data.list
+          // 根据配置模版，初始化this.form.configurations
+          this.form.configurations = this.configurationsDicts.map(config => ({
+            paramKey: config.paramKey,
+            paramName: config.paramName
+          }))
+          // 根据策略实际查出的配置项，修改this.form.configurations，更新成之前设置的值
+          if (strategyInstanceResponse && strategyInstanceResponse.data && strategyInstanceResponse.data.configs && Array.isArray(strategyInstanceResponse.data.configs)) {
+            strategyInstanceResponse.data.configs.forEach(item => {
+              const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
+              if (configIndex !== -1) {
+                // 使用 $set 或 splice 正确更新
+                this.$set(this.form.configurations, configIndex, {
+                  ...this.form.configurations[configIndex],
+                  paramValue: item.paramValue
+                })
+              }
+            })
+          }
 
-        // 手动调用 updateExchangePlatformType 方法，设置平台类型
-        if (this.form.exchangeId1) {
-          this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
-        }
-        if (this.form.exchangeId2) {
-          this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
-        }
+          // 手动调用 updateExchangePlatformType 方法，设置平台类型
+          if (this.form.exchangeId1) {
+            this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
+          }
+          if (this.form.exchangeId2) {
+            this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
+          }
 
-        this.open = true
-        this.title = '修改策略实例配置'
-        this.isEdit = true
-      })
+          this.open = true
+          this.title = '修改策略实例配置'
+          this.isEdit = true
+        })
     },
     /** 提交按钮 */
     submitForm: function() {
@@ -627,6 +699,76 @@ export default {
     handleCardClick(item) {
       // 根据需要进行跳转，可以使用路由导航或直接打开新页面
       this.$router.push({ name: 'Dashboard', query: { instanceId: item.id }})
+    },
+    getServerList() {
+      // 查询当前状态为已启用的服务器列表
+      var queryServersParams = {
+        pageIndex: 1,
+        pageSize: 1000,
+        status: 1,
+        networkStatus: 1
+      }
+      listBusServerInfo(queryServersParams).then(response => {
+        this.serverList = response.data.list
+      })
+    },
+    formatServerInfo(server) {
+      return server.serverIp + '(' + server.cpuNum + '核 ' + server.memorySize + 'G)'
+    },
+    handleStart(row) { // 新增处理启用方法
+      this.$confirm('是否确认启动该策略实例?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.submitStartForm(row) // 调用提交停用请求的方法，并将 row 传递过去
+      })
+    },
+    handleStop(row) { // 新增处理停用方法
+      this.$confirm('是否确认停用该策略实例?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.submitStopForm(row) // 调用提交停用请求的方法，并将 row 传递过去
+      })
+    },
+    /** 停用服务器 */
+    submitStopForm(row) {
+      console.log('stop server with id:', row.id)
+      stopBusStrategyInstance(row.id).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.open = false
+          this.queryParams.pageIndex = 1
+          this.getList()
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+    /** 启用服务器 */
+    submitStartForm(row) {
+      console.log('start server with id:', row.id)
+      startBusStrategyInstance(row.id).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.open = false
+          this.queryParams.pageIndex = 1
+          this.getList()
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+    // 根据状态，显示不同的状态样式
+    statusClass(status) {
+      if (status === '0') { // 假设 0 代表暂停
+        return 'status-paused'
+      } else if (status === '1') { // 假设 1 代表运行中
+        return 'status-running'
+      }
+      return '' // 其他状态，不添加样式
     }
   }
 }
@@ -700,7 +842,35 @@ export default {
   .responsive-width {
     width: 100%;
   }
-
+  .label-container {
+    display: inline-flex; /* 使用 inline-flex，更灵活 */
+    align-items: center;
+  }
+  .custom-card {
+    position: relative; /* 使小圆点可以定位 */
+  }
+  .card-status {
+    position: absolute;
+    top: 20px; /* 调整位置 */
+    right: 10px; /* 调整位置 */
+    width: 8px;
+    height: 8px;
+    border-radius: 100%; /* 圆形 */
+  }
+  .status-paused {
+    background-color: #d00000;
+  }
+  .status-running {
+    background-color: green;
+  }
+  .loading-text, .no-more-data {
+    text-align: center;
+    padding: 10px;
+  }
+  .tooltip-icon {
+    margin-left: 5px;
+    cursor: pointer;
+  }
   @media (min-width: 800px) {
     .responsive-width {
       width: 300px;
