@@ -65,7 +65,7 @@
                 <div class="card-status" :class="statusClass(item.status)" />
                 <div class="card-content">
                   <div class="info-row">
-                    <span class="info-title">策略id:</span>
+                    <span class="info-title">实例id:</span>
                     <span class="info-value">{{ item.id || '-' }}</span>
                   </div>
                   <div class="info-row">
