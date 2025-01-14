@@ -1,4 +1,3 @@
-
 <template>
   <BasicLayout>
     <template #wrapper>
@@ -196,48 +195,14 @@
               <div slot="header">
                 <h5>策略配置模板信息</h5>
               </div>
-              <div v-for="(config, index) in form.configurations" :key="index" class="config-item">
-                <div class="config-header">
-                  <span>配置 {{ index + 1 }}</span>
-                  <el-button
-                    v-if="form.configurations.length > 0"
-                    type="danger"
-                    icon="el-icon-delete"
-                    circle
-                    size="mini"
-                    @click="removeConfig(index,config.id)"
-                  />
-                </div>
-                <el-row :gutter="20">
-                  <!-- 第一行：key 和 名称 -->
-                  <el-col :span="12">
-                    <el-form-item label="key：" prop="paramKey">
-                      <el-input v-model="config.paramKey" placeholder="key" size="mini" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="名称：" prop="paramName">
-                      <el-input v-model="config.paramName" placeholder="名称" size="mini" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row :gutter="20">
-                  <!-- 第二行：默认值 和 是否必填 -->
-                  <el-col :span="12">
-                    <el-form-item label="默认值：" prop="defaultValue">
-                      <el-input v-model="config.defaultValue" placeholder="默认值" size="mini" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="是否必填" prop="required">
-                      <el-switch v-model="config.required" size="mini" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-              </div>
 
-              <el-button type="primary" icon="el-icon-plus" @click="addConfig">新增</el-button>
-            </el-card>
+              <div>
+                <codemirror
+                  ref="editor"
+                  v-model="form.schema.schemaText"
+                  :options="options"
+                />
+              </div></el-card>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -252,13 +217,35 @@
 <script>
 import { addBusStrategyBaseInfo, delBusStrategyBaseInfo, getBusStrategyBaseInfo, listBusStrategyBaseInfo, updateBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 
-import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
+import '@/api/tools/cm-setting.js'
+import { listBusStrategyConfigSchemaByInstanceId } from '@/api/business/bus-strategy-config-schema'
+
 export default {
   name: 'BusStrategyBaseInfo',
   components: {
+    // RecursiveForm
   },
   data() {
     return {
+      code: '',
+      formStructure: {}, // 保存层级数据
+      yamlData: {}, // 解析后的 YAML 数据对象
+      options: {
+        line: true,
+        theme: '3024-day', // 主题
+        tabSize: 4, // 制表符的宽度
+        indentUnit: 2, // 一个块应该缩进多少个空格（无论这在编辑语言中意味着什么）。默认值为 2。
+        firstLineNumber: 1, // 从哪个数字开始计算行数。默认值为 1。
+        readOnly: false, // 只读
+        smartIndent: true, // 上下文缩进
+        lineNumbers: true, // 是否显示行号
+        styleActiveLine: true, // 高亮选中行
+        viewportMargin: Infinity, // 处理高度自适应时搭配使用
+        showCursorWhenSelecting: true, // 当选择处于活动状态时是否应绘制游标
+        mode: 'yaml'
+      },
+      formConfig: {}, // 关键：将其设置为响应式
+      labelWidth: '150px',
       // 遮罩层
       loading: true,
       // 选中数组
@@ -295,12 +282,10 @@ export default {
         status: [{ required: true, message: '策略运行状态不能为空', trigger: 'blur' }]
       },
       form: {
-        configurations: [{ // 初始化至少一个配置项
-          paramKey: '',
-          paramName: '',
-          defaultValue: '',
-          required: false
-        }]
+        schema: {
+          schemaText: undefined,
+          schemaType: 'yaml'
+        }
       }
     }
   },
@@ -343,7 +328,10 @@ export default {
         description: undefined,
         status: undefined,
         owner: undefined,
-        configurations: []
+        schema: {
+          schemaText: undefined,
+          schemaType: 'yaml'
+        }
       }
       this.resetForm('form')
     },
@@ -378,6 +366,7 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
+      console.log('form after reset:', this.form)
       this.open = true
       this.title = '添加策略注册'
       this.isEdit = false
@@ -389,14 +378,14 @@ export default {
       // 使用 Promise.all 并行查询数据
       Promise.all([
         getBusStrategyBaseInfo(id), // 查询策略基本信息
-        listBusStrategyConfigDictByStrategyId(id) // 查询策略配置模版数据
+        listBusStrategyConfigSchemaByInstanceId(id) // 查询策略配置模版数据
       ])
         .then(([strategyResponse, configurations]) => {
           // 将接口数据设置到表单
           console.log(configurations)
           this.form = {
             ...strategyResponse.data, // 策略信息数据
-            configurations: configurations.data.list // 附加数据
+            schema: configurations.data.list[0] // 附加数据
           }
           console.log(this.form)
           this.open = true
@@ -436,6 +425,7 @@ export default {
     },
     /** 提交按钮 */
     submitForm: function() {
+      // TODO yaml格式校验
       this.$refs['form'].validate(valid => {
         if (valid) {
           // 弹出确认框
@@ -497,25 +487,25 @@ export default {
       }).catch(function() {
       })
     }
+
   }
 }
 </script>
 
 <style scoped>
-.config-item {
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-}
-.config-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
 .responsive-width {
   width: 100%;
+}
+
+form label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+form input {
+  padding: 5px;
+  width: 300px;
 }
 
 @media (min-width: 800px) {

@@ -19,6 +19,21 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="账户组" prop="accountGroupId">
+            <el-select
+              v-model="queryParams.accountGroupId"
+              placeholder="请选择账户组"
+              clearable
+              size="small"
+            >
+              <el-option
+                v-for="group in accountGroupList"
+                :key="group.key"
+                :value="group.key"
+                :label="group.value"
+              />
+            </el-select>
+          </el-form-item>
 
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -56,6 +71,28 @@
                   <div class="info-row">
                     <span class="info-title">策略:</span>
                     <span class="info-value">{{ item.strategyName || '-' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">账户组:</span>
+                    <span class="info-value">{{ item.accountGroupName || '-' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">交易所1:</span>
+                    <span class="info-value">
+                      {{ item.exchange1Name || '-' }}
+                      <template>
+                        ({{ formatExchangeType(item.exchange1Type) }})
+                      </template>
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-title">交易所2:</span>
+                    <span class="info-value">
+                      {{ item.exchange2Name || '-' }}
+                      <template>
+                        ({{ formatExchangeType(item.exchange2Type) }})
+                      </template>
+                    </span>
                   </div>
                   <div class="info-row">
                     <span class="info-title">启动时间:</span>
@@ -135,7 +172,7 @@
                     clearable
                     size="small"
                     :disabled="isEdit"
-                    @change="getConfigSchema(form.strategyId)"
+                    @change="getConfigurationDicts(form.strategyId)"
                   >
                     <el-option
                       v-for="strategy in strategyList"
@@ -145,7 +182,65 @@
                     />
                   </el-select>
                 </el-form-item>
+                <el-form-item label="账户组" prop="accountGroupId">
+                  <el-select
+                    v-model="form.accountGroupId"
+                    placeholder="请选择账户组"
+                    clearable
+                    size="small"
+                  >
+                    <el-option
+                      v-for="group in accountGroupList"
+                      :key="group.key"
+                      :value="group.key"
+                      :label="group.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="交易所1" prop="exchangeId1">
+                  <el-select
+                    v-model="form.exchangeId1"
+                    placeholder="请选择交易所1"
+                    @change="updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')"
+                  >
+                    <el-option
+                      v-for="exchange in exchangeOptions"
+                      :key="exchange.key"
+                      :value="exchange.key"
+                      :label="exchange.value"
+                    />
+                  </el-select>
+                </el-form-item>
 
+                <el-form-item label="平台类型" prop="exchangeId1Type">
+                  <el-input
+                    v-model="form.exchange1TypeLabel"
+                    placeholder="平台类型"
+                    readonly
+                  />
+                </el-form-item>
+                <el-form-item label="交易所2" prop="exchangeId2">
+                  <el-select
+                    v-model="form.exchangeId2"
+                    placeholder="请选择交易所2"
+                    @change="updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')"
+                  >
+                    <el-option
+                      v-for="exchange in exchangeOptions"
+                      :key="exchange.key"
+                      :value="exchange.key"
+                      :label="exchange.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item label="平台类型" prop="exchangeId2Type">
+                  <el-input
+                    v-model="form.exchange2TypeLabel"
+                    placeholder="平台类型"
+                    readonly
+                  />
+                </el-form-item>
                 <el-form-item label="策略实例名称" prop="instanceName">
                   <el-input
                     v-model="form.instanceName"
@@ -181,14 +276,28 @@
                 <div slot="header">
                   <h5>策略配置参数</h5>
                 </div>
-                <!--                <codemirror-->
-                <!--                  ref="editor"-->
-                <!--                  v-model="form.schema.schemaText"-->
-                <!--                  :options="options"-->
-                <!--                />-->
-                <fieldset>
-                  <RecursiveForm :data="form.schema.parsedData" />
-                </fieldset>
+                <el-form ref="form" :model="form" label-width="150px">
+                  <el-form-item
+                    v-for="(config, index) in configurationsDicts"
+                    :key="config.paramKey"
+                    :label-width="labelWidth"
+                    :prop="getProp(index)"
+                    :rules="getRules(config, index)"
+                  >
+                    <template slot="label">
+                      <div class="label-container">
+                        <span>{{ config.paramKey }}</span>
+                        <el-tooltip :content="config.paramName" placement="top">
+                          <i class="el-icon-question tooltip-icon" />
+                        </el-tooltip>
+                      </div>
+                    </template>
+                    <el-input
+                      v-model="form.configurations[index].paramValue"
+                      :placeholder="'请输入' + config.paramName + ',默认值为' + config.defaultValue"
+                    />
+                  </el-form-item>
+                </el-form>
               </el-card>
             </template>
           </el-form>
@@ -211,35 +320,19 @@ import {
   startBusStrategyInstance, stopBusStrategyInstance,
   updateBusStrategyInstance
 } from '@/api/business/bus-strategy-instance'
+import { listBusExchangeAccountGroup } from '@/api/business/bus-exchange-account-group'
+import { listBusStrategyExchange } from '@/api/business/bus-strategy-exchange'
 import { listBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
+import { listBusStrategyConfigDictByStrategyId } from '@/api/business/bus-strategy-config-dict'
 import editor from '@/views/dashboard/editor/index.vue'
 import { listBusServerInfo } from '@/api/business/bus-server-info'
-import '@/api/tools/cm-setting.js'
-import * as YAML from 'yaml-ast-parser'
-import RecursiveForm from '@/components/CodeMirrorInput/RecursiveForm.vue'
-import { listBusStrategyConfigSchemaByInstanceId } from '@/api/business/bus-strategy-config-schema'
 
 export default {
   name: 'BusStrategyInstance',
   components: {
-    RecursiveForm
   },
   data() {
     return {
-      options: {
-        line: true,
-        theme: '3024-day', // 主题
-        tabSize: 4, // 制表符的宽度
-        indentUnit: 2, // 一个块应该缩进多少个空格（无论这在编辑语言中意味着什么）。默认值为 2。
-        firstLineNumber: 1, // 从哪个数字开始计算行数。默认值为 1。
-        readOnly: false, // 只读
-        smartIndent: true, // 上下文缩进
-        lineNumbers: true, // 是否显示行号
-        styleActiveLine: true, // 高亮选中行
-        viewportMargin: Infinity, // 处理高度自适应时搭配使用
-        showCursorWhenSelecting: true, // 当选择处于活动状态时是否应绘制游标
-        mode: 'yaml'
-      },
       // 遮罩层
       loading: true,
       // 选中数组
@@ -261,6 +354,10 @@ export default {
       // 类型数据字典
       typeOptions: [],
       // 关系表类型
+      accountGroupList: [],
+      exchangeOptions: [],
+      exchangeTypeOptions: [],
+      exchangeTypeDicts: [],
       strategyList: [],
       // 可用服务器列表
       serverList: [],
@@ -269,7 +366,8 @@ export default {
       queryParams: {
         pageIndex: 1,
         pageSize: 9,
-        strategyId: undefined
+        strategyId: undefined,
+        accountGroupId: undefined
 
       },
       busStrategyInstanceList: [], // 卡片列表
@@ -277,16 +375,15 @@ export default {
       isNoMoreData: false, // 是否没有更多数据
       // 表单参数
       form: {
-        schema: {
-          schemaText: undefined, // 存储 YAML 字符串
-          schemaType: 'yaml',
-          parsedData: {} // 存储解析后的动态对象
-        }
+        configurations: []
       },
       // 表单校验
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
+        accountGroupId: [{ required: true, message: '账户组id不能为空', trigger: 'blur' }],
         instanceName: [{ required: true, message: '策略实例名称不能为空', trigger: 'blur' }]
-      }
+      },
+      configurationsDicts: [
+      ]
     }
   },
   computed: {
@@ -296,6 +393,8 @@ export default {
   },
   created() {
     this.loadData() // 初始化加载第一页数据
+    this.getBusExchangeAccountGroupList()
+    this.getBusStrategyExchangeItems()
     this.getStrategyList()
     this.getServerList()
     this.getDicts('bus_exchange_type').then(response => {
@@ -303,81 +402,6 @@ export default {
     })
   },
   methods: {
-    handleYamlChange() {
-      try {
-        const parsedAst = YAML.load(this.form.schema.schemaText) // 将 YAML 解析为 AST
-        const lines = this.form.schema.schemaText.split('\n') // 将 YAML 拆分成行
-        console.log(lines)
-        console.log('parsedAst', parsedAst)
-
-        // 递归解析 YAML 节点
-        const parseNode = (node, lineIndexContext = { currentLine: 0 }) => {
-          if (!node) return
-
-          // 针对不同类型的 YAML 节点进行处理
-          if (Array.isArray(node.mappings)) {
-            // 处理对象结构
-            const result = {}
-            node.mappings.forEach((childNode) => {
-              const key = childNode.key.value // 字段名
-              const value = parseNode(childNode.value, lineIndexContext) // 递归解析值
-
-              // 获取注释（通过 startPosition 转行号）
-              const lineIndex = this.getLineIndexFromPosition(this.form.schema.schemaText, childNode.startPosition)
-              const comment = this.getPreviousComment(lines, lineIndex)
-
-              // 记录字段和注释
-              result[key] = {
-                value: value !== undefined ? value : null,
-                label: comment || key
-              }
-            })
-            return result
-          } else if (node.items) {
-            // 处理数组结构
-            return node.items.map((item) => parseNode(item, lineIndexContext))
-          } else if (node.value) {
-            // 处理标量值
-            return node.value
-          }
-
-          return null // 其他情况返回 null
-        }
-
-        // 开始解析根节点
-        const result = parseNode(parsedAst)
-        console.log('form.schema.schemaText', result)
-        this.$set(this.form.schema, 'parsedData', result)
-      } catch (error) {
-        console.error('YAML 解析出错:', error)
-      }
-    },
-    // 提取行号的工具方法
-    getLineIndexFromPosition(yamlString, position) {
-      const lines = yamlString.split('\n')
-      let currentPos = 0
-
-      for (let i = 0; i < lines.length; i++) {
-        const lineLength = lines[i].length + 1 // 包括换行符
-        if (currentPos + lineLength > position) {
-          return i // 找到对应行号
-        }
-        currentPos += lineLength
-      }
-
-      return -1 // 如果无法找到，返回无效值
-    },
-    // 提取上一行注释的工具方法
-    getPreviousComment(lines, currentLineIndex) {
-      if (currentLineIndex <= 0 || currentLineIndex >= lines.length) return '' // 无效行索引
-
-      const prevLine = lines[currentLineIndex - 1]?.trim() // 提取前一行，避免索引越界
-      console.log('prevLine', prevLine)
-      if (prevLine && prevLine.startsWith('#')) {
-        return prevLine.slice(1).trim() // 返回去除 # 后的注释内容
-      }
-      return '' // 无注释
-    },
     /** 查询参数列表 */
     getList() {
       this.loading = true
@@ -389,7 +413,53 @@ export default {
       }
       )
     },
+    // 获取交易所账户组列表
+    getBusExchangeAccountGroupList() {
+      this.getItems(listBusExchangeAccountGroup, undefined).then(res => {
+        this.accountGroupList = this.setItems(res, 'id', 'groupName')
+      })
+    },
+    // 获取交易所列表
+    getBusStrategyExchangeItems() {
+      this.getItems(listBusStrategyExchange, undefined).then(res => {
+        this.exchangeOptions = this.setItems(res, 'id', 'exchangeName')
+        this.exchangeTypeOptions = this.setItems(res, 'id', 'exchangeType')
+      })
+    },
+    getConfigurationDicts(strategyId) {
+      console.log('getConfigurationDicts 开始，strategyId:', strategyId)
+      this.configurationsDicts = []
+      this.form.configurations = [] // 初始化为空数组
+      console.log('strategyId', strategyId)
+      if (strategyId === undefined || strategyId === null || strategyId === '') {
+        return
+      }
+      listBusStrategyConfigDictByStrategyId(strategyId).then(res => {
+        console.log('listBusStrategyConfigDictByStrategyId resp', res)
+        this.configurationsDicts = res.data.list
+        console.log('this.configurationsDicts', this.configurationsDicts)
+        this.configurationsDicts.forEach(config => {
+          this.form.configurations.push({
+            paramKey: config.paramKey,
+            paramName: config.paramName
+          })
+        })
+        console.log('getConfigurationDicts 结束，configurationsDicts:', this.configurationsDicts)
+      })
+    },
+    getProp(index) {
+      return `configurations[${index}].paramValue`
+    },
 
+    getRules(config, index) {
+      if (config.required) {
+        return [
+          { required: true, message: `${config.paramName}不能为空`, trigger: 'blur' },
+          ...(config.paramType === 'number' ? [{ type: 'number', message: `${config.paramName}必须是数字`, trigger: 'blur' }] : [])
+        ]
+      }
+      return [] // 如果不是必填项，则返回空数组
+    },
     // 获取策略列表
     getStrategyList() {
       this.getItems(listBusStrategyBaseInfo, undefined).then(res => {
@@ -397,6 +467,11 @@ export default {
         console.log('strategyList', this.strategyList)
       })
     },
+    formatExchangeType(type) {
+      const exchangeType = this.exchangeTypeDicts.find(option => option.value === type)
+      return exchangeType ? exchangeType.label : '-'
+    },
+
     // 取消按钮
     cancel() {
       this.open = false
@@ -419,10 +494,7 @@ export default {
         serverId: undefined,
         startRunTime: undefined,
         stopRunTime: undefined,
-        schema: {
-          schemaText: undefined,
-          schemaType: 'yaml'
-        }
+        configurations: []
       }
       this.configurationsDicts = []
       this.resetForm('form')
@@ -463,46 +535,67 @@ export default {
         })
         .catch(_ => {})
     },
+    updateExchangePlatformType(exchangeKey, exchangeTypeLabelKey, exchangeTypeKey, exchangeName) {
+      const exchange = this.exchangeOptions.find(option => option.key === this.form[exchangeKey])
+      this.form[exchangeName] = exchange.value
+      if (exchange) {
+        this.form[exchangeTypeLabelKey] = this.exchangeTypeDicts.find(option => option.value === this.exchangeTypeOptions.find(option => option.key === this.form[exchangeKey]).value).label
+        this.form[exchangeTypeKey] = this.exchangeTypeDicts.find(option => option.value === this.exchangeTypeOptions.find(option => option.key === this.form[exchangeKey]).value).value
+      } else {
+        this.form[exchangeTypeLabelKey] = ''
+        this.form[exchangeTypeKey] = ''
+      }
+    },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
       const id = row.id
       console.log('row', row)
-      getBusStrategyInstance(id).then(response => {
-        this.form = response.data
-        this.handleYamlChange()
-      })
-      this.open = true
-      this.title = '修改策略实例配置'
-      this.isEdit = true
+      let strategyInstanceResponse
+      getBusStrategyInstance(id)
+        .then(response => {
+          Object.assign(this.form, response.data)
+          strategyInstanceResponse = response
+
+          // 使用 response.data.id 作为参数调用 listBusStrategyConfigDictByStrategyId
+          return listBusStrategyConfigDictByStrategyId(response.data.strategyId)
+        })
+        .then(configDictResp => {
+          this.configurationsDicts = configDictResp.data.list
+          // 根据配置模版，初始化this.form.configurations
+          this.form.configurations = this.configurationsDicts.map(config => ({
+            paramKey: config.paramKey,
+            paramName: config.paramName
+          }))
+          // 根据策略实际查出的配置项，修改this.form.configurations，更新成之前设置的值
+          if (strategyInstanceResponse && strategyInstanceResponse.data && strategyInstanceResponse.data.configs && Array.isArray(strategyInstanceResponse.data.configs)) {
+            strategyInstanceResponse.data.configs.forEach(item => {
+              const configIndex = this.form.configurations.findIndex(c => c.paramKey === item.paramKey)
+              if (configIndex !== -1) {
+                // 使用 $set 或 splice 正确更新
+                this.$set(this.form.configurations, configIndex, {
+                  ...this.form.configurations[configIndex],
+                  paramValue: item.paramValue
+                })
+              }
+            })
+          }
+
+          // 手动调用 updateExchangePlatformType 方法，设置平台类型
+          if (this.form.exchangeId1) {
+            this.updateExchangePlatformType('exchangeId1', 'exchange1TypeLabel', 'exchange1Type', 'exchange1Name')
+          }
+          if (this.form.exchangeId2) {
+            this.updateExchangePlatformType('exchangeId2', 'exchange2TypeLabel', 'exchange2Type', 'exchange2Name')
+          }
+
+          this.open = true
+          this.title = '修改策略实例配置'
+          this.isEdit = true
+        })
     },
     /** 提交按钮 */
     submitForm: function() {
-      const rebuildYaml = (data, indentLevel = 0) => {
-        if (typeof data !== 'object' || data === null) return data
-
-        const indent = '  '.repeat(indentLevel) // 用于控制嵌套时的缩进
-        let yaml = ''
-
-        Object.entries(data).forEach(([key, { value, label: comment }]) => {
-          if (comment) {
-            yaml += `${indent}# ${comment}\n` // 插入注释
-          }
-
-          if (typeof value === 'object' && value !== null) {
-            // 递归处理嵌套对象
-            yaml += `${indent}${key}:\n${rebuildYaml(value, indentLevel + 1)}`
-          } else {
-            // 简单键值对
-            yaml += `${indent}${key}: ${value}\n`
-          }
-        })
-        return yaml
-      }
-
-      // 使用递归函数生成 YAML 字符串
-      const updatedYaml = rebuildYaml(this.form.schema.parsedData)
-
       this.$refs['form'].validate(valid => {
         if (valid) {
           const confirmMessage = this.isEdit
@@ -513,8 +606,12 @@ export default {
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            this.$set(this.form.schema, 'schemaText', updatedYaml)
-
+            const configurationsArray = Object.keys(this.form.configurations).map(key => ({
+              paramKey: key,
+              paramValue: this.form.configurations[key].paramValue
+            }))
+            const formData = { ...this.form, configurations: configurationsArray }
+            console.log('formData:', formData)
             if (this.form.id !== undefined) {
               updateBusStrategyInstance(this.form).then(response => {
                 if (response.code === 200) {
@@ -602,19 +699,6 @@ export default {
     handleCardClick(item) {
       // 根据需要进行跳转，可以使用路由导航或直接打开新页面
       this.$router.push({ name: 'Dashboard', query: { instanceId: item.id }})
-    },
-
-    getConfigSchema(strategyId) {
-      listBusStrategyConfigSchemaByInstanceId(strategyId).then(response => {
-        this.$set(this.form.schema, 'schemaText', response.data.list[0].schemaText)
-        console.log('response.data.list[0].schemaText', response.data.list[0].schemaText)
-        console.log('this.form.schema', this.form.schema)
-
-        this.$nextTick(() => {
-          console.log('this.form.schema after update:', this.form.schema)
-          this.handleYamlChange() // 在这里调用，确保数据已经更新
-        })
-      })
     },
     getServerList() {
       // 查询当前状态为已启用的服务器列表
