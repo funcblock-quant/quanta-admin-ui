@@ -73,6 +73,7 @@
                     size="mini"
                     type="text"
                     icon="el-icon-edit"
+                    :disabled="item.status === '1'"
                     @click.stop="handleUpdate(item)"
                   >修改
                   </el-button>
@@ -108,6 +109,7 @@
                       size="mini"
                       type="text"
                       icon="el-icon-delete"
+                      :disabled="item.status === '1'"
                       @click.stop
                     >下线策略
                     </el-button>
@@ -152,29 +154,44 @@
                     placeholder="策略实例名称"
                   />
                 </el-form-item>
+                <el-form-item label="实例类型" prop="type">
+                  <el-select
+                    v-model="form.type"
+                    placeholder="请选择实例类型"
+                    clearable
+                    size="small"
+                  >
+                    <el-option
+                      v-for="type in instanceTypeList"
+                      :key="type.key"
+                      :value="type.key"
+                      :label="type.value"
+                    />
+                  </el-select>
+                </el-form-item>
 
               </div>
             </el-card>
             <!-- 分割线 -->
             <el-divider />
-            <el-card class="fused-card" shadow="never">
-              <div slot="header">
-                <h5>选择服务器</h5>
-                <el-form-item label="服务器" prop="serverIp">
-                  <el-select
-                    v-model="form.serverId"
-                    placeholder="请选择要部署的服务器"
-                  >
-                    <el-option
-                      v-for="server in serverList"
-                      :key="server.id"
-                      :value="`${server.id}`"
-                      :label="formatServerInfo(server)"
-                    />
-                  </el-select>
-                </el-form-item>
-              </div>
-            </el-card>
+            <!--            <el-card class="fused-card" shadow="never">-->
+            <!--              <div slot="header">-->
+            <!--                <h5>选择服务器</h5>-->
+            <!--                <el-form-item label="服务器" prop="serverIp">-->
+            <!--                  <el-select-->
+            <!--                    v-model="form.serverId"-->
+            <!--                    placeholder="请选择要部署的服务器"-->
+            <!--                  >-->
+            <!--                    <el-option-->
+            <!--                      v-for="server in serverList"-->
+            <!--                      :key="server.id"-->
+            <!--                      :value="`${server.id}`"-->
+            <!--                      :label="formatServerInfo(server)"-->
+            <!--                    />-->
+            <!--                  </el-select>-->
+            <!--                </el-form-item>-->
+            <!--              </div>-->
+            <!--            </el-card>-->
 
             <template>
               <el-card v-if="form.strategyId" class="fused-card" shadow="never">
@@ -240,6 +257,10 @@ export default {
         showCursorWhenSelecting: true, // 当选择处于活动状态时是否应绘制游标
         mode: 'yaml'
       },
+      instanceTypeList: [
+        { key: '0', value: '观察' },
+        { key: '1', value: '交易' }
+      ],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -285,7 +306,8 @@ export default {
       },
       // 表单校验
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
-        instanceName: [{ required: true, message: '策略实例名称不能为空', trigger: 'blur' }]
+        instanceName: [{ required: true, message: '策略实例名称不能为空', trigger: 'blur' }],
+        type: [{ required: true, message: '实例类型不能为空', trigger: 'blur' }]
       }
     }
   },
