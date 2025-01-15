@@ -146,7 +146,7 @@
 
         <!-- 添加或修改对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="1000px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+          <el-form ref="form" :model="form" :rules="rules" label-width="110px">
 
             <el-card class="fused-card" shadow="never">
               <div slot="header">
@@ -155,7 +155,7 @@
                 <el-form-item label="策略名称" prop="strategyName">
                   <el-input v-model="form.strategyName" placeholder="策略名称" class="responsive-width" />
                 </el-form-item>
-                <el-form-item label="交易类型" prop="strategyCategory">
+                <el-form-item label="策略交易类型" prop="strategyCategory">
                   <el-select v-model="form.strategyCategory" placeholder="请选择" class="responsive-width">
                     <el-option
                       v-for="dict in strategyCategoryOptions"
@@ -186,6 +186,9 @@
                 </el-form-item>
                 <el-form-item label="负责人" prop="owner">
                   <el-input v-model="form.owner" placeholder="策略负责人" class="responsive-width" />
+                </el-form-item>
+                <el-form-item label="Grpc Endpoint" prop="owner">
+                  <el-input v-model="form.grpcEndpoint" placeholder="Grpc 连接信息" class="responsive-width" />
                 </el-form-item>
               </div></el-card>
             <!-- 分割线 -->
@@ -328,6 +331,7 @@ export default {
         description: undefined,
         status: undefined,
         owner: undefined,
+        grpcEndpoint: undefined,
         schema: {
           schemaText: undefined,
           schemaType: 'yaml'
