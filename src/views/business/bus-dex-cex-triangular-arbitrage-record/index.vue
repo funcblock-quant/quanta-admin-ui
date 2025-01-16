@@ -21,23 +21,9 @@
               @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="套利类型" prop="type"><el-select
-            v-model="queryParams.type"
-            placeholder="链上链下三角套利记录套利类型"
-            clearable
-            size="small"
-          >
-            <el-option
-              v-for="dict in typeOptions"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            />
-          </el-select>
-          </el-form-item>
           <el-form-item label="套利单状态" prop="status"><el-select
             v-model="queryParams.status"
-            placeholder="链上链下三角套利记录套利单状态"
+            placeholder="套利单状态"
             clearable
             size="small"
           >
@@ -67,17 +53,7 @@
             align="center"
             prop="arbitrageId"
             :show-overflow-tooltip="true"
-          /><el-table-column
-            label="套利类型"
-            align="center"
-            prop="type"
-            :formatter="typeFormat"
-            width="100"
-          >
-            <template slot-scope="scope">
-              {{ typeFormat(scope.row) }}
-            </template>
-          </el-table-column>
+          />
           <el-table-column
             label="dex pool id"
             align="center"
@@ -209,34 +185,6 @@
             :formatter="statusFormat"
             width="100"
           />
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-            <template slot-scope="scope">
-              <el-button
-                slot="reference"
-                v-permisaction="['business:busDexCexTriangularArbitrageRecord:edit']"
-                size="mini"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleUpdate(scope.row)"
-              >修改
-              </el-button>
-              <el-popconfirm
-                class="delete-popconfirm"
-                title="确认要删除吗?"
-                confirm-button-text="删除"
-                @confirm="handleDelete(scope.row)"
-              >
-                <el-button
-                  slot="reference"
-                  v-permisaction="['business:busDexCexTriangularArbitrageRecord:remove']"
-                  size="mini"
-                  type="text"
-                  icon="el-icon-delete"
-                >删除
-                </el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
         </el-table>
 
         <pagination

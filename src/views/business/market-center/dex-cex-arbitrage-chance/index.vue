@@ -61,13 +61,13 @@
           <el-table-column
             label="dex"
             align="center"
-            prop="exchange1"
+            prop="dex"
             :show-overflow-tooltip="true"
           />
           <el-table-column
             label="cex"
             align="center"
-            prop="exchange2"
+            prop="cex"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -92,40 +92,6 @@
           @pagination="getList"
         />
 
-        <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-
-            <el-form-item label="交易角色" prop="role">
-              <el-input
-                v-model="form.role"
-                placeholder="交易角色"
-              />
-            </el-form-item>
-            <el-form-item label="持仓状态" prop="status">
-              <el-input
-                v-model="form.status"
-                placeholder="持仓状态"
-              />
-            </el-form-item>
-            <el-form-item label="交易手续费" prop="fees">
-              <el-input
-                v-model="form.fees"
-                placeholder="交易手续费"
-              />
-            </el-form-item>
-            <el-form-item label="交易手续费计价单位" prop="feeAsset">
-              <el-input
-                v-model="form.feeAsset"
-                placeholder="交易手续费计价单位"
-              />
-            </el-form-item>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submitForm">确 定</el-button>
-            <el-button @click="cancel">取 消</el-button>
-          </div>
-        </el-dialog>
       </el-card>
     </template>
   </BasicLayout>
