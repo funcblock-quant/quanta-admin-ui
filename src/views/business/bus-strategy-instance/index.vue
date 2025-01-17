@@ -111,7 +111,7 @@
                       icon="el-icon-delete"
                       :disabled="item.status === '1'"
                       @click.stop
-                    >下线策略
+                    >下线实例
                     </el-button>
                   </el-popconfirm>
                 </div>
