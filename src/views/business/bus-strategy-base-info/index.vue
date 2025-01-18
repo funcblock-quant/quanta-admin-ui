@@ -218,8 +218,9 @@
 </template>
 
 <script>
-import { addBusStrategyBaseInfo, delBusStrategyBaseInfo, getBusStrategyBaseInfo, listBusStrategyBaseInfo, updateBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 
+import yaml from 'yaml'
+import { addBusStrategyBaseInfo, delBusStrategyBaseInfo, getBusStrategyBaseInfo, listBusStrategyBaseInfo, updateBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 import '@/api/tools/cm-setting.js'
 import { listBusStrategyConfigSchemaByInstanceId } from '@/api/business/bus-strategy-config-schema'
 
@@ -429,7 +430,33 @@ export default {
     },
     /** 提交按钮 */
     submitForm: function() {
-      // TODO yaml格式校验
+      // yaml格式校验
+      let yamlValid = true // 添加一个标志变量，用于记录 YAML 校验结果
+      let yamlErrorMessage = ''// 存储yaml错误信息
+
+      try {
+        // 解析 YAML，验证格式
+        const parsed = yaml.parse(this.form.schema.schemaText)
+        console.log('Valid YAML:', parsed)
+      } catch (err) {
+        console.error('Invalid YAML:', err)
+        console.error('Error message:', err.message)
+        if (err.mark) {
+          console.error('Error mark:', err.mark)
+          console.error('Error line:', err.mark.line)
+          console.error('Error column:', err.mark.column)
+          yamlErrorMessage = `YAML 格式错误：${err.message}，错误位置：第 ${err.mark.line + 1} 行，第 ${err.mark.column + 1} 列`
+        } else {
+          yamlErrorMessage = `YAML 格式错误：${err.message}`
+        }
+        yamlValid = false // 设置标志变量为 false，表示 YAML 校验失败
+      }
+
+      if (!yamlValid) {
+        this.$message.error(yamlErrorMessage) // 使用 Element UI 的 $message 组件显示错误信息
+        return // 中断提交流程
+      }
+
       this.$refs['form'].validate(valid => {
         if (valid) {
           // 弹出确认框
