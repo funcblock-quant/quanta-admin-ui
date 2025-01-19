@@ -11,19 +11,20 @@
             @keyup.enter.native="handleQuery"
           />
           </el-form-item>
-          <el-form-item label="交易类型" prop="strategyCategory"><el-select
-            v-model="queryParams.strategyCategory"
-            placeholder="请输入注册策略交易类型"
-            clearable
-            size="small"
-          >
-            <el-option
-              v-for="dict in strategyCategoryOptions"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            />
-          </el-select>
+          <el-form-item label="交易类型" prop="strategyCategory">
+            <el-select
+              v-model="queryParams.strategyCategory"
+              placeholder="请输入注册策略交易类型"
+              clearable
+              size="small"
+            >
+              <el-option
+                v-for="dict in strategyCategoryOptions"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status"><el-select
             v-model="queryParams.status"
