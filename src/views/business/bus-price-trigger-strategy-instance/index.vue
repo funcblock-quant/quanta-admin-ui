@@ -44,6 +44,10 @@
             <span class="value">{{ item.symbol }}</span>
           </div>
           <div class="data-item">
+            <span class="label">买卖方向：</span>
+            <span class="value" :class="sideClass(item.side)">{{ sideFormat(item.side) }}</span>
+          </div>
+          <div class="data-item">
             <span class="label">开仓价格：</span>
             <span class="value">{{ item.openPrice }}</span>
           </div>
@@ -56,35 +60,31 @@
             <span class="value">{{ item.amount }}</span>
           </div>
           <div class="data-item">
-            <span class="label">买卖方向：</span>
-            <span class="value">{{ sideFormat(item.side) }}</span>
-          </div>
-          <div class="data-item">
             <span class="label">停止时间：</span>
             <span class="value">{{ parseTime(item.closeTime) }}</span>
           </div>
           <div class="data-item">
             <span class="label">状态：</span>
-            <span class="value">{{ statusFormat(item.status) }}</span>
+            <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
           </div>
-          <div class="mt-10">
-            <el-button
-              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"
-              size="mini"
-              type="text"
-              icon="el-icon-edit"
-              @click="handleUpdate(item)"
-            >修改
-            </el-button>
-            <el-popconfirm
-              class="delete-popconfirm"
-              title="确认要删除吗?"
-              confirm-button-text="删除"
-              @confirm="handleDelete(item)"
-            >
-              <el-button type="text" size="mini">删除</el-button>
-            </el-popconfirm>
-          </div>
+          <!--          <div class="mt-10">-->
+          <!--            <el-button-->
+          <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
+          <!--              size="mini"-->
+          <!--              type="text"-->
+          <!--              icon="el-icon-edit"-->
+          <!--              @click="handleUpdate(item)"-->
+          <!--            >修改-->
+          <!--            </el-button>-->
+          <!--            <el-popconfirm-->
+          <!--              class="delete-popconfirm"-->
+          <!--              title="确认要删除吗?"-->
+          <!--              confirm-button-text="删除"-->
+          <!--              @confirm="handleDelete(item)"-->
+          <!--            >-->
+          <!--              <el-button type="text" size="mini">删除</el-button>-->
+          <!--            </el-popconfirm>-->
+          <!--          </div>-->
         </div>
 
         <el-collapse v-model="activeNames">
@@ -287,6 +287,7 @@ export default {
         this.$set(item, 'details', response.data.list || [])
       }).catch(error => {
         this.$message.error(`加载详情失败: ${error.message}`)
+        this.clearTimer(item.id)
       })
     },
     beforeDestroy() {
@@ -405,13 +406,27 @@ export default {
     },
     // 根据状态，显示不同的状态样式
     statusClass(status) {
-      if (status === '0') { // 假设 0 代表暂停
+      if (status === 'stopped') { // 假设 0 代表暂停
         return 'status-paused'
-      } else if (status === '1') { // 假设 1 代表运行中
+      } else if (status === 'started') { // 假设 1 代表运行中
         return 'status-running'
+      } else if (status === 'expired') {
+        return 'status-expired'
+      } else if (status === 'created') {
+        return 'status-created'
       }
       return '' // 其他状态，不添加样式
     },
+    // 根据买卖方向，显示不同样式
+    sideClass(side) {
+      if (side === 'long') {
+        return 'buy-side'
+      } else if (side === 'short') {
+        return 'sell-side'
+      }
+      return '' // 其他状态，不添加样式
+    },
+
     /** 查看详情操作 */
     handleExpand(row, expandedRows) {
       const id = row.id
@@ -440,11 +455,28 @@ export default {
 
 <style scoped>
 .status-paused {
-  background-color: #d00000;
+  color: #d00000;
 }
 .status-running {
-  background-color: green;
+  color: green;
 }
+.status-expired {
+  color: #7e7e7e;
+}
+.status-created {
+  color: #050505;
+}
+
+.buy-side {
+  background-color: #e9fad5;
+  color: #559600;
+}
+
+.sell-side {
+  background-color: #fceeee;
+  color: #d00000;
+}
+
 .main-data {
   display: flex; /* 使用 Flexbox 布局 */
   flex-wrap: wrap; /* 允许换行 */
