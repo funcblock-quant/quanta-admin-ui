@@ -16,20 +16,52 @@
             <el-form-item label="API Key" prop="apiKey" :rules="[{ required: true, message: '请输入 API Key', trigger: 'blur' }]">
               <el-input v-model="apiKeyData.apiKey" placeholder="请输入 API Key" style="width: 600px" />
             </el-form-item>
-            <el-form-item label="Username" prop="username" :rules="[{ required: true, message: '请输入 Username', trigger: 'blur' }]">
-              <el-input v-model="apiKeyData.username" placeholder="请输入 Username" style="width: 600px" />
-            </el-form-item>
-            <el-form-item label="password" prop="password" :rules="[{ required: true, message: '请输入 Password', trigger: 'blur' }]">
+            <el-form-item label="Secret Key" prop="secretKey" :rules="[{ required: true, message: '请输入 Secret Key', trigger: 'blur' }]">
               <el-input
-                v-model="apiKeyData.password"
-                placeholder="请输入 Password"
+                v-model="apiKeyData.secretKey"
+                placeholder="请输入 Secret Key"
                 style="width: 600px"
-                :type="passwordVisible ? 'text' : 'password'"
-                show-password
+              >
+                <!-- 在这里添加后置插槽 -->
+                <template #append>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    :loading="apikeyTesting"
+                    style="background-color: #4a90e2; color: white; border-color: #4a90e2"
+                    @click="testConnection"
+                  >
+                    {{ apikeyTesting ? "测试中..." : "测试连接" }}
+                  </el-button>
+                </template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="账户名称" prop="accountName" :rules="[{ required: true, message: '请输入 账户名称', trigger: 'blur' }]">
+              <el-input
+                v-model="apiKeyData.accountName"
+                placeholder="请输入 账户名称"
+                style="width: 600px"
               />
             </el-form-item>
+            <el-form-item label="交易所" prop="exchange" :rules="[{ required: true, message: '请选择 交易所', trigger: 'blur' }]">
+              <el-select
+                v-model="apiKeyData.exchange"
+                placeholder="请选择交易所"
+                clearable
+                size="small"
+                style="width: 600px"
+              >
+                <el-option
+                  v-for="exchange in exchangeList"
+                  :key="exchange.value"
+                  :label="exchange.label"
+                  :value="exchange.value"
+                />
+              </el-select>
+            </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="bindApiKey">绑定</el-button>
+              <el-button type="primary" @click="bindApiKey">确认</el-button>
+              <el-button @click="cancelBindApiKey">取消</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -72,8 +104,8 @@
                 type="primary"
                 icon="el-icon-s-tools"
                 size="mini"
-                @click="handleApiKeyUpdate"
-              >更新API-Key
+                @click="handleApiKeyManage"
+              >管理API-Key
               </el-button>
             </el-form-item>
           </el-form>
@@ -193,10 +225,86 @@
                 placeholder="选择日期"
               />
             </el-form-item>
+            <el-form-item label="api key" prop="side">
+              <el-select
+                v-model="form.apiConfig"
+                placeholder="选择api key"
+              >
+                <el-option
+                  v-for="apikey in apiKeyList"
+                  :key="apikey.id"
+                  :label="apikey.accountName"
+                  :value="apikey.id"
+                />
+              </el-select>
+            </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
             <el-button @click="cancel">取 消</el-button>
+          </div>
+        </el-dialog>
+
+        <!-- api-key list -->
+        <el-dialog :title="apiKeyManageTitle" :visible.sync="showApiKeyList" width="1200px">
+          <el-table v-loading="loading" :data="apiKeyList">
+            <el-table-column
+              label="API Key"
+              align="center"
+              prop="apiKey"
+              width="400"
+              :show-overflow-tooltip="true"
+            />
+            <el-table-column
+              label="Secret Key"
+              align="center"
+              prop="secretKey"
+              width="400"
+            />>
+            <el-table-column
+              label="账户名称"
+              align="center"
+              prop="accountName"
+              width="80"
+            />
+            <el-table-column
+              label="交易所"
+              align="center"
+              prop="exchange"
+              width="80"
+            />
+            <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <!--                <el-button-->
+                <!--                  slot="reference"-->
+                <!--                  size="mini"-->
+                <!--                  type="text"-->
+                <!--                  icon="el-icon-edit"-->
+                <!--                  @click="handleApiKeyUpdate(scope.row)"-->
+                <!--                >修改-->
+                <!--                </el-button>-->
+                <el-popconfirm
+                  class="delete-popconfirm"
+                  title="确认要删除该API key吗?"
+                  confirm-button-text="删除"
+                  @confirm="handleApiKeyDelete(scope.row)"
+                >
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-delete"
+                  >删除
+                  </el-button>
+                </el-popconfirm>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="text-align: center; margin: 20px 0;">
+            <el-button type="primary" size="small" icon="el-icon-plus" @click="handleApiKeyAdd">绑定新的API Key</el-button>
+          </div>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="closeApiManage">返 回</el-button>
           </div>
         </el-dialog>
       </div></template>
@@ -207,7 +315,7 @@
 import { addBusPriceTriggerStrategyInstance, getBusPriceTriggerStrategyInstance, listBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyInstance } from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
 import {
-  addBusPriceTriggerStrategyApikeyConfig,
+  addBusPriceTriggerStrategyApikeyConfig, checkApiKeyHealth, delBusPriceTriggerStrategyApikeyConfig,
   listBusPriceTriggerStrategyApikeyConfig, updateBusPriceTriggerStrategyApikeyConfig
 } from '@/api/business/bus-price-trigger-strategy-apikey-config'
 
@@ -229,6 +337,7 @@ export default {
       total: 0,
       // 弹出层标题
       title: '',
+      apiKeyManageTitle: '',
       // 是否显示弹出层
       open: false,
       isEdit: false,
@@ -248,14 +357,21 @@ export default {
         { label: '做多', value: 'long' },
         { label: '做空', value: 'short' }
       ],
+      exchangeList: [
+        { label: 'Gate.io', value: 'GateIo' }
+      ],
       // 查询参数
       queryParams: {
         pageIndex: 1,
         pageSize: 10,
         closeTime: undefined,
-        status: undefined
+        status: undefined,
+        idOrder: 'desc'
 
       },
+      // 联通性测试
+      apikeyTesting: false, // 是否正在测试
+      apikeyTestResult: null, // 测试结果提示
       // 表单参数
       form: {
       },
@@ -266,13 +382,17 @@ export default {
       timers: {}, // 使用对象存储定时器，key 为 item.id
       activeNames: [], // 用于控制 Collapse 组件的展开状态
       apiKeyBound: null,
+      apiKeyEditMode: false,
       apiKeyData: {
         id: undefined,
         apiKey: undefined,
-        username: undefined,
-        password: undefined
+        secretKey: undefined,
+        accountName: undefined,
+        exchange: undefined
       },
-      showBindForm: false
+      apiKeyList: [],
+      showBindForm: false,
+      showApiKeyList: false
     }
   },
   computed: {
@@ -285,8 +405,8 @@ export default {
           if (typeof detail !== 'object' || detail === null) { // 检查 detail 是否是对象且不为 null
             return '' // 如果不是对象或为 null，则返回空对象，避免错误
           }
-          const { id, exchangeName, monitoredOpenedNum, pnl } = detail // 解构需要的字段
-          return `Trade ID: ${id}, ExchangeName: ${exchangeName}, monitoredOpenedNum: ${monitoredOpenedNum}, pnl: ${pnl}` // 构建格式化字符串
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset } = detail // 解构需要的字段
+          return `Time: ${this.formatUTCTime(createdAt)} 交易所: ${exchangeName} 以 $${originPrice} 价格成交一笔数量为: ${originQty}的${symbol},手续费消耗: ${this.formatFees(fee)}${feeAsset}方向:${this.formatSide(side)}, 角色: ${this.formatRole(role)}, pnl: ${pnl}` // 构建格式化字符串
         })
       }
     }
@@ -300,20 +420,50 @@ export default {
     getBindApiKey() {
       const queryApiKeyParams = {
         pageIndex: 1,
-        pageSize: 1,
+        pageSize: 100,
         id: 'desc'
       }
       listBusPriceTriggerStrategyApikeyConfig(queryApiKeyParams).then(response => {
         this.total = response.data.count
         if (this.total > 0) {
           this.apiKeyBound = true
-          this.apiKeyData = response.data.list[0]
+          this.apiKeyList = response.data.list
           this.getList()
         } else {
           this.apiKeyBound = false
           this.showBindForm = false
         }
       })
+    },
+    /** 测试 API key连通性*/
+    testConnection() {
+      if (!this.apiKeyData.apiKey || !this.apiKeyData.secretKey) {
+        this.$message.error('请先填写 API Key 和 Secret Key')
+        return
+      }
+      this.apikeyTesting = true
+      const testConnectionParams = {
+        apiKey: this.apiKeyData.apiKey,
+        secretKey: this.apiKeyData.secretKey,
+        exchange: this.apiKeyData.exchange
+      }
+      try {
+        checkApiKeyHealth(testConnectionParams).then(response => {
+          console.log(response)
+          this.apikeyTestResult = response.data.isHealth
+          if (response.code === 200) {
+            if (response.data.isHealth) {
+              this.$message.success('连接成功！')
+            } else {
+              this.$message.success('连接失败！')
+            }
+          } else {
+            this.$message.error('测试发生异常')
+          }
+        })
+      } finally {
+        this.apikeyTesting = false
+      }
     },
     /** 查询参数列表 */
     getList() {
@@ -331,10 +481,47 @@ export default {
       })
     },
     /** 更新apikey*/
-    handleApiKeyUpdate() {
-      this.showBindForm = true
+    handleApiKeyManage() {
+      this.getBindApiKey()
+      this.showApiKeyList = true
+      this.apiKeyManageTitle = 'API Key管理'
+    },
+    handleApiKeyBind() {
+      this.apiKeyData = {}
+      this.apiKeyEditMode = true
       this.apiKeyBound = false
-      console.log('this.apiKeyData', this.apiKeyData)
+      this.showBindForm = true
+    },
+    handleApiKeyUpdate(row) {
+      this.apiKeyData = row
+      this.apiKeyBound = false
+      this.showBindForm = true
+      this.apiKeyEditMode = true
+    },
+    handleApiKeyAdd() {
+      this.apiKeyData = {}
+      this.apiKeyBound = false
+      this.showBindForm = true
+      this.apiKeyEditMode = true
+    },
+    handleApiKeyDelete(row) {
+      var Ids = (row.id && [row.id]) || this.ids
+
+      this.$confirm('是否确认删除编号为"' + Ids + '"的数据项?', '警告', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(function() {
+        return delBusPriceTriggerStrategyApikeyConfig({ 'ids': Ids })
+      }).then((response) => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.getBindApiKey()
+        } else {
+          this.msgError(response.msg)
+        }
+      }).catch(function() {
+      })
     },
     /** 展开或收起详情*/
     handleCollapseChange(activeNames) {
@@ -397,6 +584,11 @@ export default {
       this.open = false
       this.reset()
     },
+    // 返回按钮
+    closeApiManage() {
+      this.showApiKeyList = false
+      this.reset()
+    },
     // 表单重置
     reset() {
       this.form = {
@@ -449,6 +641,7 @@ export default {
       this.open = true
       this.title = '添加价格触发下单条件'
       this.isEdit = false
+      this.getBindApiKey()
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -509,6 +702,7 @@ export default {
             this.msgSuccess(response.msg)
             this.showBindForm = false
             this.apiKeyBound = true
+            this.getBindApiKey()
             this.getList()
           } else {
             this.msgError(response.msg)
@@ -524,6 +718,12 @@ export default {
             this.msgError(response.msg)
           }
         })
+      }
+    },
+    cancelBindApiKey() {
+      this.showBindForm = false
+      if (this.apiKeyEditMode) {
+        this.apiKeyBound = true
       }
     },
     // 根据状态，显示不同的状态样式
@@ -547,6 +747,48 @@ export default {
         return 'sell-side'
       }
       return '' // 其他状态，不添加样式
+    },
+    formatUTCTime(isoString) {
+      const date = new Date(isoString)
+      const utcString = date.toISOString() // 获取 UTC 时间的 ISO 字符串
+
+      // 提取年月日时分秒
+      const year = utcString.slice(0, 4)
+      const month = utcString.slice(5, 7)
+      const day = utcString.slice(8, 10)
+      const hour = utcString.slice(11, 13)
+      const minute = utcString.slice(14, 16)
+      const second = utcString.slice(17, 19)
+
+      return `${year}-${month}-${day}  ${hour}:${minute}:${second}`
+    },
+    formatFees(fee) {
+      if (fee === null || fee === undefined || fee === '') {
+        return '0.00000000' // 处理 null、undefined 或空字符串的情况
+      }
+
+      const num = Number(fee)
+
+      if (isNaN(num)) {
+        console.error('费用格式错误:', fee)
+        return fee // 如果转换失败，返回原始值或一个错误提示
+      }
+
+      return num.toFixed(8)
+    },
+    formatSide(side) {
+      if (side === '1') {
+        return 'long'
+      } else {
+        return 'short'
+      }
+    },
+    formatRole(role) {
+      if (role === '1') {
+        return 'maker'
+      } else if (role === '2') {
+        return 'taker'
+      }
     }
 
   }
@@ -555,15 +797,19 @@ export default {
 
 <style scoped>
 .status-paused {
+  background-color: #ffffff;
   color: #d00000;
 }
 .status-running {
+  background-color: #ffffff;
   color: #008000;
 }
 .status-expired {
+  background-color: #ffffff;
   color: #7e7e7e;
 }
 .status-created {
+  background-color: #ffffff;
   color: #050505;
 }
 
