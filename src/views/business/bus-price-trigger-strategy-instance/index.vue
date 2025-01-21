@@ -450,9 +450,9 @@ export default {
       try {
         checkApiKeyHealth(testConnectionParams).then(response => {
           console.log(response)
-          this.apikeyTestResult = response.data.isHealth
+          this.apikeyTestResult = response.data
           if (response.code === 200) {
-            if (response.data.isHealth) {
+            if (response.data) {
               this.$message.success('连接成功！')
             } else {
               this.$message.success('连接失败！')
