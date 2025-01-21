@@ -258,6 +258,7 @@ import editor from '@/views/dashboard/editor/index.vue'
 import { listBusServerInfo } from '@/api/business/bus-server-info'
 import '@/api/tools/cm-setting.js'
 import * as YAML from 'yaml-ast-parser'
+import toml from 'toml'
 import RecursiveForm from '@/components/CodeMirrorInput/RecursiveForm.vue'
 import { listBusStrategyConfigSchemaByInstanceId } from '@/api/business/bus-strategy-config-schema'
 
@@ -440,6 +441,187 @@ export default {
 
       return -1 // 如果无法找到，返回无效值
     },
+    /** 解析toml配置，动态生成表单*/
+    // handleTomlChange() {
+    //   try {
+    //     const lines = this.form.schema.schemaText.split('\n')
+    //     const comments = {}
+    //     let currentPath = ''
+    //     console.log('lines', lines)
+    //
+    //     // 解析 TOML 节点
+    //     lines.forEach((line, index) => {
+    //       const trimmedLine = line.trim()
+    //
+    //       if (trimmedLine.startsWith('#')) {
+    //         // 提取注释
+    //         const comment = trimmedLine.substring(1).trim()
+    //         // 查找下一个非空非注释行，提取key
+    //         for (let i = index + 1; i < lines.length; i++) {
+    //           const nextLine = lines[i].trim()
+    //           if (nextLine.length > 0 && !nextLine.startsWith('#')) {
+    //             const keyMatch = nextLine.match(/^([a-zA-Z0-9_.-]+)\s*=/)
+    //             if (keyMatch) {
+    //               comments[currentPath ? `${currentPath}.${keyMatch[1]}` : keyMatch[1]] = comment
+    //               break
+    //             } else if (nextLine.startsWith('[')) {
+    //               const pathMatch = nextLine.match(/\[(.*?)\]/)
+    //               if (pathMatch) {
+    //                 currentPath = pathMatch[1]
+    //                 if (currentPath.includes('.')) {
+    //                   currentPath = currentPath.replaceAll('"', '')
+    //                 }
+    //               }
+    //               break
+    //             }
+    //           }
+    //         }
+    //       }
+    //     })
+    //     console.log('comments', comments)
+    //     const parsedTOML = toml.parse(this.form.schema.schemaText)
+    //     console.log('parsedTOML', parsedTOML)
+    //
+    //     const addCommentsToResult = (node, path = '') => {
+    //       console.log('node', node)
+    //       console.log('path', path)
+    //       if (typeof node === 'object' && node !== null) {
+    //         if (Array.isArray(node)) {
+    //           console.log('this node is array')
+    //           return node.map((item, index) => addCommentsToResult(item, path ? `${path}[${index}]` : `[${index}]`))
+    //         } else {
+    //           console.log('this node is not array')
+    //           const result = {}
+    //           for (const key in node) {
+    //             console.log('key', key)
+    //             if (Object.prototype.hasOwnProperty.call(node, key)) {
+    //               console.log('Object.prototype.hasOwnProperty.call is true')
+    //               const currentPath = path ? `${path}.${key}` : key
+    //               console.log('currentPath', currentPath)
+    //               console.log('comments[currentPath]', currentPath)
+    //               result[key] = {
+    //                 value: addCommentsToResult(node[key], currentPath),
+    //                 label: comments[currentPath] || key
+    //               }
+    //             }
+    //           }
+    //           return result
+    //         }
+    //       } else {
+    //         console.log('path', [path.split('.').pop()])
+    //         console.log('comments[path.split(\'.\').pop()', comments[path.split('.').pop()])
+    //
+    //         return { value: node, label: comments[path.split('.').pop()] || (path ? path.split('.').pop() : '') }
+    //       }
+    //     }
+    //
+    //     const result = addCommentsToResult(parsedTOML)
+    //     console.log('form.schema.schemaText', result)
+    //     this.$set(this.form.schema, 'parsedData', result)
+    //   } catch (e) {
+    //     console.error('TOML 解析出错:', e)
+    //     return null
+    //   }
+    // },
+
+    handleTomlChange() {
+      try {
+        const lines = this.form.schema.schemaText.split('\n')
+        const comments = {}
+        let currentSection = ''
+
+        // 解析 TOML 注释并记录路径
+        lines.forEach((line, index) => {
+          const trimmedLine = line.trim()
+
+          if (trimmedLine.startsWith('#')) {
+            const comment = trimmedLine.substring(1).trim()
+            for (let i = index + 1; i < lines.length; i++) {
+              const nextLine = lines[i].trim()
+              if (nextLine.length > 0 && !nextLine.startsWith('#')) {
+                const keyMatch = nextLine.match(/^([a-zA-Z0-9_.-]+)\s*=/)
+                if (keyMatch) {
+                  const fullPath = currentSection
+                    ? `${currentSection}.${keyMatch[1]}`
+                    : keyMatch[1]
+                  comments[fullPath] = comment
+                  break
+                } else if (nextLine.startsWith('[')) {
+                  const sectionMatch = nextLine.match(/\[(.*?)\]/)
+                  if (sectionMatch) {
+                    currentSection = sectionMatch[1].replace(/"/g, '')
+                  }
+                  break
+                }
+              }
+            }
+          }
+
+          // 检测 section 的切换
+          if (trimmedLine.startsWith('[')) {
+            const sectionMatch = trimmedLine.match(/\[(.*?)\]/)
+            if (sectionMatch) {
+              currentSection = sectionMatch[1].replace(/"/g, '')
+            }
+          }
+        })
+
+        console.log('Parsed comments:', comments)
+
+        // 解析 TOML
+        const parsedTOML = toml.parse(this.form.schema.schemaText)
+        console.log('Parsed TOML:', parsedTOML)
+
+        // 转换为目标格式
+        const addCommentsToResult = (node, path = '') => {
+          if (typeof node === 'object' && node !== null) {
+            const result = {}
+
+            // 如果是数组
+            if (Array.isArray(node)) {
+              return node.map((item, index) =>
+                addCommentsToResult(item, path ? `${path}[${index}]` : `[${index}]`)
+              )
+            }
+
+            for (const key in node) {
+              if (Object.prototype.hasOwnProperty.call(node, key)) {
+                const fullPath = path ? `${path}.${key}` : key
+
+                // 如果是对象，递归处理
+                if (typeof node[key] === 'object' && node[key] !== null) {
+                  result[key] = {
+                    value: addCommentsToResult(node[key], fullPath), // 对嵌套值递归
+                    label: comments[fullPath] || key // 根据路径获取注释
+                  }
+                } else {
+                  result[key] = {
+                    value: node[key], // 直接赋值为 value
+                    label: comments[fullPath] || key // 默认label是key
+                  }
+                }
+              }
+            }
+
+            return result
+          } else {
+            return {
+              value: node,
+              label: comments[path] || path.split('.').pop() || '' // 添加注释信息
+            }
+          }
+        }
+
+        const result = addCommentsToResult(parsedTOML)
+        console.log('Final Parsed Data:', result)
+
+        // 更新表单数据
+        this.$set(this.form.schema, 'parsedData', result)
+      } catch (e) {
+        console.error('TOML Parsing Error:', e)
+        return null
+      }
+    },
     // 提取上一行注释的工具方法
     getPreviousComment(lines, currentLineIndex) {
       if (currentLineIndex <= 0 || currentLineIndex >= lines.length) return '' // 无效行索引
@@ -543,38 +725,88 @@ export default {
       console.log('row', row)
       getBusStrategyInstance(id).then(response => {
         this.form = response.data
-        this.handleYamlChange()
+        if (response.data.schema.schemaType === 'yaml') {
+          this.handleYamlChange()
+        } else if (response.data.schema.schemaType === 'toml') {
+          this.handleTomlChange()
+        }
       })
       this.open = true
       this.title = '修改策略实例配置'
       this.isEdit = true
     },
+
+    rebuildYaml(data, indentLevel = 0) {
+      if (typeof data !== 'object' || data === null) return data
+
+      const indent = '  '.repeat(indentLevel) // 用于控制嵌套时的缩进
+      let yaml = ''
+
+      Object.entries(data).forEach(([key, { value, label: comment }]) => {
+        if (comment) {
+          yaml += `${indent}# ${comment}\n` // 插入注释
+        }
+
+        if (typeof value === 'object' && value !== null) {
+          // 递归处理嵌套对象
+          yaml += `${indent}${key}:\n${this.rebuildYaml(value, indentLevel + 1)}`
+        } else {
+          // 简单键值对
+          yaml += `${indent}${key}: ${value}\n`
+        }
+      })
+      return yaml
+    },
+
+    rebuildToml(data, path = '') {
+      if (typeof data !== 'object' || data === null) return data
+
+      let toml = ''
+
+      Object.entries(data).forEach(([key, { value, label: comment }]) => {
+        const currentPath = path ? `${path}.${key}` : key
+
+        if (typeof value === 'object' && value !== null) {
+          // 处理嵌套对象（TOML 中称为表格）
+          if (!Array.isArray(value)) {
+            // 如果不是数组，则创建表格
+            toml += `\n[${currentPath}]\n`
+            toml += this.rebuildToml(value, currentPath) // 递归调用
+          } else {
+            // 处理数组
+            if (comment) {
+              toml += `# ${comment}\n`
+            }
+            toml += `${currentPath} = ${JSON.stringify(value)}\n`
+          }
+        } else {
+          // 处理简单键值对
+          if (comment) {
+            toml += `# ${comment}\n` // 插入注释
+          }
+          if (typeof value === 'string') {
+            toml += `${key} = "${value}"\n` // 字符串需要用引号包裹
+          } else if (typeof value === 'number') {
+            toml += `${key} = ${value}\n` // 数字直接输出
+          } else if (typeof value === 'boolean') {
+            toml += `${key} = ${value}\n` // 布尔值直接输出
+          } else if (value === null) {
+            toml += `${key} = ""\n`
+          }
+        }
+      })
+
+      return toml
+    },
     /** 提交按钮 */
     submitForm: function() {
-      const rebuildYaml = (data, indentLevel = 0) => {
-        if (typeof data !== 'object' || data === null) return data
-
-        const indent = '  '.repeat(indentLevel) // 用于控制嵌套时的缩进
-        let yaml = ''
-
-        Object.entries(data).forEach(([key, { value, label: comment }]) => {
-          if (comment) {
-            yaml += `${indent}# ${comment}\n` // 插入注释
-          }
-
-          if (typeof value === 'object' && value !== null) {
-            // 递归处理嵌套对象
-            yaml += `${indent}${key}:\n${rebuildYaml(value, indentLevel + 1)}`
-          } else {
-            // 简单键值对
-            yaml += `${indent}${key}: ${value}\n`
-          }
-        })
-        return yaml
-      }
-
       // 使用递归函数生成 YAML 字符串
-      const updatedYaml = rebuildYaml(this.form.schema.parsedData)
+      let updatedSchema = ''
+      if (this.form.schema.schemaType === 'yaml') {
+        updatedSchema = this.rebuildYaml(this.form.schema.parsedData)
+      } else if (this.form.schema.schemaType === 'toml') {
+        updatedSchema = this.rebuildToml(this.form.schema.parsedData)
+      }
 
       this.$refs['form'].validate(valid => {
         if (valid) {
@@ -586,7 +818,7 @@ export default {
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            this.$set(this.form.schema, 'schemaText', updatedYaml)
+            this.$set(this.form.schema, 'schemaText', updatedSchema)
 
             if (this.form.id !== undefined) {
               updateBusStrategyInstance(this.form).then(response => {
@@ -680,12 +912,19 @@ export default {
     getConfigSchema(strategyId) {
       listBusStrategyConfigSchemaByInstanceId(strategyId).then(response => {
         this.$set(this.form.schema, 'schemaText', response.data.list[0].schemaText)
+        this.$set(this.form.schema, 'schemaType', response.data.list[0].schemaType)
         console.log('response.data.list[0].schemaText', response.data.list[0].schemaText)
         console.log('this.form.schema', this.form.schema)
 
         this.$nextTick(() => {
           console.log('this.form.schema after update:', this.form.schema)
-          this.handleYamlChange() // 在这里调用，确保数据已经更新
+          if (this.form.schema.schemaType === 'yaml') {
+            console.log('parse yaml')
+            this.handleYamlChange()
+          } else if (this.form.schema.schemaType === 'toml') {
+            console.log('parse toml')
+            this.handleTomlChange()
+          }
         })
       })
     },
