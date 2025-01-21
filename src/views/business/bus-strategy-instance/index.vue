@@ -36,17 +36,42 @@
               @click="handleAdd"
             >新增实例
             </el-button>
+
+            <el-button
+              type="primary"
+              size="mini"
+              icon="el-icon-files"
+              @click="toggleBulkMode"
+            >批量操作
+            </el-button>
           </el-col>
+        </el-row>
+        <el-row v-if="isBulkMode" class="bulk-toolbar">
+          <el-button size="mini" @click="selectAll">全选</el-button>
+          <el-button size="mini" @click="clearSelection">取消全选</el-button>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="startSelectedInstances"
+          >批量启动</el-button>
+          <el-button size="mini" @click="toggleBulkMode">退出批量操作</el-button>
         </el-row>
         <div class="card-container" @scroll="handleScroll">
           <el-row :gutter="50">
             <el-col v-for="item in busStrategyInstanceList" :key="item.id" :span="8">
+              <div class="card-header">
+                <el-checkbox
+                  v-if="isBulkMode"
+                  v-model="selectedItems"
+                  :label="item.id"
+                  :value="item.id"
+                />
+              </div>
               <el-card
-                :header="item.instanceName"
-                class="custom-card clickable-card"
-                shadow="always"
-                @click.native="handleCardClick(item)"
+                :class="{ clickable: !isBulkMode }"
+                @click.native="isBulkMode ? null : handleCardClick(item)"
               >
+
                 <div class="card-status" :class="statusClass(item.status)" />
                 <div class="card-content">
                   <div class="info-row">
@@ -221,7 +246,7 @@
 
 <script>
 import {
-  addBusStrategyInstance,
+  addBusStrategyInstance, batchStartBusStrategyInstance,
   delBusStrategyInstance,
   getBusStrategyInstance,
   listBusStrategyInstance,
@@ -308,7 +333,9 @@ export default {
       rules: { strategyId: [{ required: true, message: '策略id不能为空', trigger: 'blur' }],
         instanceName: [{ required: true, message: '策略实例名称不能为空', trigger: 'blur' }],
         type: [{ required: true, message: '实例类型不能为空', trigger: 'blur' }]
-      }
+      },
+      isBulkMode: false,
+      selectedItems: []
     }
   },
   computed: {
@@ -325,6 +352,30 @@ export default {
     })
   },
   methods: {
+    // 批量启动实例
+    toggleBulkMode() {
+      this.isBulkMode = !this.isBulkMode
+      this.selectedItems = [] // 重置选择
+    },
+    selectAll() {
+      console.log('selectAll: ', this.busStrategyInstanceList)
+      this.selectedItems = this.busStrategyInstanceList.map(item => item.id)
+      console.log('after selectAll: ', this.selectedItems)
+    },
+    clearSelection() {
+      this.selectedItems = []
+    },
+    startSelectedInstances() {
+      if (this.selectedItems.length === 0) {
+        this.$message.warning('请选择要启动的实例！')
+        return
+      }
+      // 批量启动 API 请求
+      console.log('启动实例：', this.selectedItems)
+      this.batchSubmitStartForm()
+      // 提交逻辑
+    },
+
     handleYamlChange() {
       try {
         const parsedAst = YAML.load(this.form.schema.schemaText) // 将 YAML 解析为 AST
@@ -685,10 +736,29 @@ export default {
         }
       })
     },
-    /** 启用服务器 */
+    /** 启用策略实例 */
     submitStartForm(row) {
       console.log('start server with id:', row.id)
       startBusStrategyInstance(row.id).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.open = false
+          this.queryParams.pageIndex = 1
+          this.getList()
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+
+    /** 批量启用策略实例 */
+    batchSubmitStartForm() {
+      console.log('selected items:', this.selectedItems)
+      const batchStartParams = {
+        ids: this.selectedItems.map(id => parseInt(id, 10))
+      }
+      console.log('batchStartParams', batchStartParams)
+      batchStartBusStrategyInstance(batchStartParams).then(response => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
           this.open = false
