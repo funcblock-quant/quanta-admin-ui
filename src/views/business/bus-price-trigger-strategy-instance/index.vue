@@ -1,72 +1,114 @@
 <template>
   <BasicLayout>
     <template #wrapper>
-      <el-card class="box-card">
-        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px" class="query-form">
-          <el-form-item label="状态" prop="status">
-            <el-select
-              v-model="queryParams.status"
-              placeholder="请输入注册策略交易类型"
-              clearable
-              size="small"
-            >
-              <el-option
-                v-for="status in strategyStatus"
-                :key="status.value"
-                :label="status.label"
-                :value="status.value"
+      <div v-if="apiKeyBound === null" />
+      <div v-else-if="!apiKeyBound && !showBindForm">
+        <el-card class="box-card">
+          <h1>您尚未绑定 API Key</h1>
+          <p>请绑定 API Key 后继续使用。</p>
+          <el-button type="primary" @click="showBindForm = true">去绑定</el-button>
+        </el-card>
+      </div>
+      <div v-else-if="!apiKeyBound && showBindForm">
+        <el-card class="box-card">
+          <h1>绑定 API Key</h1>
+          <el-form ref="apiKeyForm" :model="apiKeyData" label-width="120px">
+            <el-form-item label="API Key" prop="apiKey" :rules="[{ required: true, message: '请输入 API Key', trigger: 'blur' }]">
+              <el-input v-model="apiKeyData.apiKey" placeholder="请输入 API Key" style="width: 600px" />
+            </el-form-item>
+            <el-form-item label="Username" prop="username" :rules="[{ required: true, message: '请输入 Username', trigger: 'blur' }]">
+              <el-input v-model="apiKeyData.username" placeholder="请输入 Username" style="width: 600px" />
+            </el-form-item>
+            <el-form-item label="password" prop="password" :rules="[{ required: true, message: '请输入 Password', trigger: 'blur' }]">
+              <el-input
+                v-model="apiKeyData.password"
+                placeholder="请输入 Password"
+                style="width: 600px"
+                :type="passwordVisible ? 'text' : 'password'"
+                show-password
               />
-            </el-select>
-          </el-form-item>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="bindApiKey">绑定</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
+      <div v-else>
+        <el-card class="box-card">
+          <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px" class="query-form">
+            <el-form-item label="状态" prop="status">
+              <el-select
+                v-model="queryParams.status"
+                placeholder="请输入注册策略交易类型"
+                clearable
+                size="small"
+              >
+                <el-option
+                  v-for="status in strategyStatus"
+                  :key="status.value"
+                  :label="status.label"
+                  :value="status.value"
+                />
+              </el-select>
+            </el-form-item>
 
-          <div class="button-group">  <el-form-item>
-            <el-button type="primary" icon="el-icon-search" size="mini" class="mr-10" @click="handleQuery">搜索</el-button>
-            <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-          </el-form-item>
-          </div>
+            <div class="button-group">  <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" class="mr-10" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
+            </div>
 
-          <el-form-item class="add-button"> <el-button
-            v-permisaction="['business:busPriceTriggerStrategyInstance:add']"
-            type="primary"
-            icon="el-icon-plus"
-            size="mini"
-            @click="handleAdd"
-          >新建规则
-          </el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
+            <el-form-item class="add-button">
+              <el-button
+                v-permisaction="['business:busPriceTriggerStrategyInstance:add']"
+                type="primary"
+                icon="el-icon-plus"
+                size="mini"
+                @click="handleAdd"
+              >新建规则
+              </el-button>
+              <el-button
+                type="primary"
+                icon="el-icon-s-tools"
+                size="mini"
+                @click="handleApiKeyUpdate"
+              >更新API-Key
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
 
-      <el-card v-for="item in busPriceTriggerStrategyInstanceList" :key="item.id" class="box-card">
-        <div class="main-data">
-          <div class="data-item">
-            <span class="label">交易币种：</span>
-            <span class="value">{{ item.symbol }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">买卖方向：</span>
-            <span class="value" :class="sideClass(item.side)">{{ sideFormat(item.side) }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">开仓价格：</span>
-            <span class="value">{{ item.openPrice }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">平仓价格：</span>
-            <span class="value">{{ item.closePrice }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">开仓数量：</span>
-            <span class="value">{{ item.amount }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">停止时间：</span>
-            <span class="value">{{ parseTime(item.closeTime) }}</span>
-          </div>
-          <div class="data-item">
-            <span class="label">状态：</span>
-            <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
-          </div>
+        <el-card v-for="item in busPriceTriggerStrategyInstanceList" :key="item.id" class="box-card">
+          <div class="main-data">
+            <div class="data-item">
+              <span class="label">交易币种：</span>
+              <span class="value">{{ item.symbol }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">买卖方向：</span>
+              <span class="value" :class="sideClass(item.side)">{{ sideFormat(item.side) }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">开仓价格：</span>
+              <span class="value">{{ item.openPrice }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">平仓价格：</span>
+              <span class="value">{{ item.closePrice }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">开仓数量：</span>
+              <span class="value">{{ item.amount }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">停止时间：</span>
+              <span class="value">{{ parseTime(item.closeTime) }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">状态：</span>
+              <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
+            </div>
           <!--          <div class="mt-10">-->
           <!--            <el-button-->
           <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
@@ -85,85 +127,89 @@
           <!--              <el-button type="text" size="mini">删除</el-button>-->
           <!--            </el-popconfirm>-->
           <!--          </div>-->
-        </div>
+          </div>
 
-        <el-collapse v-model="activeNames">
-          <el-collapse-item :name="item.id">
-            <template slot="title">详情</template>
-            <div v-if="item.loadingDetails">
-              <el-loading text="加载中..." />
-            </div>
-            <div v-else ref="detailLog" class="detail-log">
-              <div v-for="(detail, index) in displayedDetails(item.details)" :key="index" class="log-item">
-                <span v-for="(formattedDetail, key) in detail" :key="key" class="detail-line">
-                  {{ formattedDetail }}
-                </span>
+          <el-collapse v-model="activeNames" @change="handleCollapseChange">
+            <el-collapse-item :name="item.id">
+              <template slot="title">详情</template>
+              <div v-if="item.loadingDetails">
+                <el-loading text="加载中..." />
               </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </el-card>
+              <div v-else ref="detailLog" class="detail-log">
+                <div v-for="(detail, index) in displayedDetails(item.details)" :key="index" class="log-item">
+                  <span v-for="(formattedDetail, key) in detail" :key="key" class="detail-line">
+                    {{ formattedDetail }}
+                  </span>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </el-card>
 
-      <!-- 添加或修改对话框 -->
-      <el-dialog :title="title" :visible.sync="open" width="500px">
-        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-          <el-form-item label="交易币种" prop="symbol">
-            <el-input
-              v-model="form.symbol"
-              placeholder="交易币种"
-            />
-          </el-form-item>
-          <el-form-item label="开仓价格" prop="openPrice">
-            <el-input
-              v-model="form.openPrice"
-              placeholder="开仓价格"
-            />
-          </el-form-item>
-          <el-form-item label="平仓价格" prop="closePrice">
-            <el-input
-              v-model="form.closePrice"
-              placeholder="平仓价格"
-            />
-          </el-form-item>
-          <el-form-item label="开仓数量" prop="amount">
-            <el-input
-              v-model="form.amount"
-              placeholder="开仓数量"
-            />
-          </el-form-item>
-          <el-form-item label="买卖方向" prop="side">
-            <el-select
-              v-model="form.side"
-              placeholder="买卖方向"
-            >
-              <el-option
-                v-for="side in sideDict"
-                :key="side.value"
-                :label="side.label"
-                :value="side.value"
+        <!-- 添加或修改对话框 -->
+        <el-dialog :title="title" :visible.sync="open" width="500px">
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+            <el-form-item label="交易币种" prop="symbol">
+              <el-input
+                v-model="form.symbol"
+                placeholder="交易币种"
               />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="停止时间" prop="closeTime">
-            <el-date-picker
-              v-model="form.closeTime"
-              type="datetime"
-              placeholder="选择日期"
-            />
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </el-dialog>
-    </template>
+            </el-form-item>
+            <el-form-item label="开仓价格" prop="openPrice">
+              <el-input
+                v-model="form.openPrice"
+                placeholder="开仓价格"
+              />
+            </el-form-item>
+            <el-form-item label="平仓价格" prop="closePrice">
+              <el-input
+                v-model="form.closePrice"
+                placeholder="平仓价格"
+              />
+            </el-form-item>
+            <el-form-item label="开仓数量" prop="amount">
+              <el-input
+                v-model="form.amount"
+                placeholder="开仓数量"
+              />
+            </el-form-item>
+            <el-form-item label="买卖方向" prop="side">
+              <el-select
+                v-model="form.side"
+                placeholder="买卖方向"
+              >
+                <el-option
+                  v-for="side in sideDict"
+                  :key="side.value"
+                  :label="side.label"
+                  :value="side.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="停止时间" prop="closeTime">
+              <el-date-picker
+                v-model="form.closeTime"
+                type="datetime"
+                placeholder="选择日期"
+              />
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="submitForm">确 定</el-button>
+            <el-button @click="cancel">取 消</el-button>
+          </div>
+        </el-dialog>
+      </div></template>
   </BasicLayout>
 </template>
 
 <script>
 import { addBusPriceTriggerStrategyInstance, getBusPriceTriggerStrategyInstance, listBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyInstance } from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
+import {
+  addBusPriceTriggerStrategyApikeyConfig,
+  listBusPriceTriggerStrategyApikeyConfig, updateBusPriceTriggerStrategyApikeyConfig
+} from '@/api/business/bus-price-trigger-strategy-apikey-config'
 
 export default {
   name: 'BusPriceTriggerStrategyInstance',
@@ -190,7 +236,7 @@ export default {
       typeOptions: [],
       busPriceTriggerStrategyInstanceList: [],
       expandRowKeys: [],
-
+      passwordVisible: false, // 控制密码可见性
       // 关系表类型
       strategyStatus: [
         { label: '已创建', value: 'created' },
@@ -218,7 +264,15 @@ export default {
       },
       detailFields: ['id', 'exchangeName', 'monitoredOpenedNum', 'pnl'], // 需要显示的字段列表
       timers: {}, // 使用对象存储定时器，key 为 item.id
-      activeNames: [] // 用于控制 Collapse 组件的展开状态
+      activeNames: [], // 用于控制 Collapse 组件的展开状态
+      apiKeyBound: null,
+      apiKeyData: {
+        id: undefined,
+        apiKey: undefined,
+        username: undefined,
+        password: undefined
+      },
+      showBindForm: false
     }
   },
   computed: {
@@ -238,9 +292,29 @@ export default {
     }
   },
   created() {
-    this.getList()
+    // this.getList()
+    this.getBindApiKey()
   },
   methods: {
+    /** 获取用户绑定的apikey列表*/
+    getBindApiKey() {
+      const queryApiKeyParams = {
+        pageIndex: 1,
+        pageSize: 1,
+        id: 'desc'
+      }
+      listBusPriceTriggerStrategyApikeyConfig(queryApiKeyParams).then(response => {
+        this.total = response.data.count
+        if (this.total > 0) {
+          this.apiKeyBound = true
+          this.apiKeyData = response.data.list[0]
+          this.getList()
+        } else {
+          this.apiKeyBound = false
+          this.showBindForm = false
+        }
+      })
+    },
     /** 查询参数列表 */
     getList() {
       this.loading = true
@@ -254,20 +328,43 @@ export default {
         this.total = response.data.count
         this.loading = false
         this.activeNames = [] // 在列表加载完成后重置 activeNames
-        this.startTimers() // 数据加载完成后启动定时器
       })
     },
-    startTimers() {
-      console.log('startTimers called')
+    /** 更新apikey*/
+    handleApiKeyUpdate() {
+      this.showBindForm = true
+      this.apiKeyBound = false
+      console.log('this.apiKeyData', this.apiKeyData)
+    },
+    /** 展开或收起详情*/
+    handleCollapseChange(activeNames) {
       this.busPriceTriggerStrategyInstanceList.forEach(item => {
-        if (!this.timers[item.id]) { // 使用 timers 对象判断
-          console.log('creating timer for item:', item.id)
-          this.timers[item.id] = setInterval(() => { // 使用 timers 对象存储
+        if (activeNames.includes(item.id) && !this.timers[item.id]) {
+          // 展开且定时器不存在，则创建定时器
+          this.fetchDetails(item)
+          this.timers[item.id] = setInterval(() => {
             this.fetchDetails(item)
           }, 5000)
+          console.log('start timer for', item.id)
+        } else if (!activeNames.includes(item.id) && this.timers[item.id]) {
+          // 收起且定时器存在，则清除定时器
+          clearInterval(this.timers[item.id])
+          delete this.timers[item.id]
+          console.log('clear timer for', item.id)
         }
       })
     },
+    // startTimers() {
+    //   console.log('startTimers called')
+    //   this.busPriceTriggerStrategyInstanceList.forEach(item => {
+    //     if (!this.timers[item.id]) { // 使用 timers 对象判断
+    //       console.log('creating timer for item:', item.id)
+    //       this.timers[item.id] = setInterval(() => { // 使用 timers 对象存储
+    //         this.fetchDetails(item)
+    //       }, 5000)
+    //     }
+    //   })
+    // },
     /** 清除定时器，防止定时器还在请求*/
     clearTimer(id) {
       if (this.timers[id]) {
@@ -404,6 +501,31 @@ export default {
         }
       })
     },
+    /** 绑定apikey*/
+    bindApiKey() {
+      if (this.apiKeyData.id === undefined) {
+        addBusPriceTriggerStrategyApikeyConfig(this.apiKeyData).then(response => {
+          if (response.code === 200) {
+            this.msgSuccess(response.msg)
+            this.showBindForm = false
+            this.apiKeyBound = true
+            this.getList()
+          } else {
+            this.msgError(response.msg)
+          }
+        })
+      } else {
+        updateBusPriceTriggerStrategyApikeyConfig(this.apiKeyData).then(response => {
+          if (response.code === 200) {
+            this.msgSuccess(response.msg)
+            this.showBindForm = false
+            this.apiKeyBound = true
+          } else {
+            this.msgError(response.msg)
+          }
+        })
+      }
+    },
     // 根据状态，显示不同的状态样式
     statusClass(status) {
       if (status === 'stopped') { // 假设 0 代表暂停
@@ -425,30 +547,8 @@ export default {
         return 'sell-side'
       }
       return '' // 其他状态，不添加样式
-    },
-
-    /** 查看详情操作 */
-    handleExpand(row, expandedRows) {
-      const id = row.id
-
-      if (expandedRows.length) {
-        this.expandRowKeys = [id] // 设置当前展开的行key
-        if (!row.loadingDetails) {
-          row.loadingDetails = true
-          listBusPriceMonitorForOptionHedging(id).then(response => {
-            this.$set(row, 'details', response.data || [])
-            this.$set(row, 'detailsLoaded', true)
-            row.loadingDetails = false
-          }).catch(error => {
-            this.$message.error(`加载详情失败: ${error.message}`)
-            row.loadingDetails = false
-            this.expandRowKeys = [] // 请求失败，清空展开的行key
-          })
-        }
-      } else {
-        this.expandRowKeys = [] // 清空展开的行key
-      }
     }
+
   }
 }
 </script>
@@ -458,7 +558,7 @@ export default {
   color: #d00000;
 }
 .status-running {
-  color: green;
+  color: #008000;
 }
 .status-expired {
   color: #7e7e7e;
@@ -469,7 +569,7 @@ export default {
 
 .buy-side {
   background-color: #e9fad5;
-  color: #559600;
+  color: #008000;
 }
 
 .sell-side {

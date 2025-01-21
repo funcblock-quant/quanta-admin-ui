@@ -83,6 +83,10 @@
                     <span class="info-value">{{ item.strategyName || '-' }}</span>
                   </div>
                   <div class="info-row">
+                    <span class="info-title">实例名称:</span>
+                    <span class="info-value">{{ item.instanceName || '-' }}</span>
+                  </div>
+                  <div class="info-row">
                     <span class="info-title">启动时间:</span>
                     <span class="info-value">{{ item.startRunTime || '-' }}</span>
                   </div>
