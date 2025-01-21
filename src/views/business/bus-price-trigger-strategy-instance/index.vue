@@ -182,10 +182,17 @@
         <el-dialog :title="title" :visible.sync="open" width="500px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             <el-form-item label="交易币种" prop="symbol">
-              <el-input
+              <el-select
                 v-model="form.symbol"
                 placeholder="交易币种"
-              />
+              >
+                <el-option
+                  v-for="symb in symbolList"
+                  :key="symb.value"
+                  :label="symb.label"
+                  :value="symb.value"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="开仓价格" prop="openPrice">
               <el-input
@@ -356,6 +363,12 @@ export default {
       sideDict: [
         { label: '做多', value: 'long' },
         { label: '做空', value: 'short' }
+      ],
+      symbolList: [
+        { label: 'BTC/USDT', value: 'BTC/USDT' },
+        { label: 'ETH/USDT', value: 'ETH/USDT' },
+        { label: 'BTC/USDC', value: 'BTC/USDC' },
+        { label: 'ETH/USDC', value: 'ETH/USDC' }
       ],
       exchangeList: [
         { label: 'Gate.io', value: 'GateIo' }
