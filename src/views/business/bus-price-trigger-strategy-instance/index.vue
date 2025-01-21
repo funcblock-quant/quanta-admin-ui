@@ -455,7 +455,7 @@ export default {
             if (response.data) {
               this.$message.success('连接成功！')
             } else {
-              this.$message.success('连接失败！')
+              this.$message.error('连接失败！')
             }
           } else {
             this.$message.error('测试发生异常')
