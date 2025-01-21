@@ -30,7 +30,9 @@
             align="center"
             prop="userId"
             :show-overflow-tooltip="true"
-          /><el-table-column label="api key" align="center" prop="apiKey" :show-overflow-tooltip="true" /><el-table-column
+          />
+          <el-table-column label="api key" align="center" prop="apiKey" :show-overflow-tooltip="true" />
+          <el-table-column
             label="用户名"
             align="center"
             prop="username"
@@ -172,8 +174,7 @@ export default {
         this.busPriceTriggerStrategyApikeyConfigList = response.data.list
         this.total = response.data.count
         this.loading = false
-      }
-      )
+      })
     },
     // 取消按钮
     cancel() {

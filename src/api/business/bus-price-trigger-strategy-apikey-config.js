@@ -44,3 +44,11 @@ export function delBusPriceTriggerStrategyApikeyConfig(data) {
   })
 }
 
+// 检查api key是否正确
+export function checkApiKeyHealth(data) {
+  return request({
+    url: '/api/v1/checkApiKeyHealth',
+    method: 'POST',
+    data: data
+  })
+}
