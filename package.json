@@ -68,6 +68,7 @@
     "remixicon": "^2.5.0",
     "sass-resources-loader": "^2.0.3",
     "screenfull": "5.0.2",
+    "toml": "^3.0.0",
     "viser-vue": "^2.4.8",
     "vue": "2.6.11",
     "vue-codemirror": "^4.0.6",

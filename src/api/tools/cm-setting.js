@@ -11,3 +11,5 @@ import 'codemirror/mode/htmlmixed/htmlmixed.js'
 import 'codemirror/mode/javascript/javascript.js'
 // yaml模式
 import 'codemirror/mode/yaml/yaml'
+// toml 模式
+import 'codemirror/mode/toml/toml.js'

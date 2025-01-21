@@ -199,6 +199,12 @@
               <div slot="header">
                 <h5>策略配置模板信息</h5>
               </div>
+              <el-radio-group v-model="form.schema.schemaType" @change="handleFormatChange">
+                <el-row :gutter="20">
+                  <el-col :span="12"> <el-radio label="yaml">YAML</el-radio></el-col>
+                  <el-col :span="12"> <el-radio label="toml">TOML</el-radio></el-col>
+                </el-row>
+              </el-radio-group>
 
               <div>
                 <codemirror
@@ -221,6 +227,7 @@
 <script>
 
 import yaml from 'yaml'
+import toml from 'toml'
 import { addBusStrategyBaseInfo, delBusStrategyBaseInfo, getBusStrategyBaseInfo, listBusStrategyBaseInfo, updateBusStrategyBaseInfo } from '@/api/business/bus-strategy-base-info'
 import '@/api/tools/cm-setting.js'
 import { listBusStrategyConfigSchemaByInstanceId } from '@/api/business/bus-strategy-config-schema'
@@ -237,7 +244,7 @@ export default {
       yamlData: {}, // 解析后的 YAML 数据对象
       options: {
         line: true,
-        theme: '3024-day', // 主题
+        theme: 'monokai', // 主题
         tabSize: 4, // 制表符的宽度
         indentUnit: 2, // 一个块应该缩进多少个空格（无论这在编辑语言中意味着什么）。默认值为 2。
         firstLineNumber: 1, // 从哪个数字开始计算行数。默认值为 1。
@@ -288,7 +295,7 @@ export default {
       },
       form: {
         schema: {
-          schemaText: undefined,
+          schemaText: '',
           schemaType: 'yaml'
         }
       }
@@ -335,7 +342,7 @@ export default {
         owner: undefined,
         grpcEndpoint: undefined,
         schema: {
-          schemaText: undefined,
+          schemaText: '',
           schemaType: 'yaml'
         }
       }
@@ -356,8 +363,14 @@ export default {
     statusFormat(row) {
       return this.selectDictLabel(this.statusOptions, row.status)
     },
-    // 关系
-    // 文件
+    // 配置文件模版类型变更
+    handleFormatChange(value) {
+      if (value === 'yaml') {
+        this.options.mode = 'yaml'
+      } else if (value === 'toml') {
+        this.options.mode = 'toml'
+      }
+    },
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageIndex = 1
@@ -429,10 +442,8 @@ export default {
       // })
       return this.form.configurations.splice(index, 1)
     },
-    /** 提交按钮 */
-    submitForm: function() {
-      // yaml格式校验
-      let yamlValid = true // 添加一个标志变量，用于记录 YAML 校验结果
+    /** yaml格式校验*/
+    checkYaml() {
       let yamlErrorMessage = ''// 存储yaml错误信息
 
       try {
@@ -450,12 +461,43 @@ export default {
         } else {
           yamlErrorMessage = `YAML 格式错误：${err.message}`
         }
-        yamlValid = false // 设置标志变量为 false，表示 YAML 校验失败
       }
+      return yamlErrorMessage
+    },
+    /** toml格式校验*/
+    checkToml() {
+      let tomlErrorMessage = ''
+      try {
+        toml.parse(this.form.schema.schemaText)
+      } catch (err) {
+        console.error('Invalid TOML:', err)
+        console.error('Error message:', err.message)
+        if (err.line !== undefined && err.column !== undefined) { // 检查 line 和 column 属性
+          console.error('Error line:', err.line)
+          console.error('Error column:', err.column)
+          tomlErrorMessage = `TOML 格式错误：${err.message}，错误位置：第 ${err.line} 行，第 ${err.column} 列`
+        } else {
+          tomlErrorMessage = `TOML 格式错误：${err.message}`
+        }
+      }
+      return tomlErrorMessage
+    },
 
-      if (!yamlValid) {
-        this.$message.error(yamlErrorMessage) // 使用 Element UI 的 $message 组件显示错误信息
-        return // 中断提交流程
+    /** 提交按钮 */
+    submitForm: function() {
+      // yaml格式校验
+      if (this.form.schema.schemaType === 'yaml') {
+        const yamlErrorMessage = this.checkYaml()
+        if (yamlErrorMessage !== '') {
+          this.$message.error(yamlErrorMessage) // 使用 Element UI 的 $message 组件显示错误信息
+          return // 中断提交流程
+        }
+      } else if (this.form.schema.schemaType === 'toml') {
+        const tomlErrorMessage = this.checkToml()
+        if (tomlErrorMessage !== '') {
+          this.$message.error(tomlErrorMessage) // 使用 Element UI 的 $message 组件显示错误信息
+          return // 中断提交流程
+        }
       }
 
       this.$refs['form'].validate(valid => {
