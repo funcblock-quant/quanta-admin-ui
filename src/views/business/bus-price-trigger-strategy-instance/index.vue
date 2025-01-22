@@ -408,6 +408,7 @@ export default {
       },
       detailFields: ['id', 'exchangeName', 'monitoredOpenedNum', 'pnl'], // 需要显示的字段列表
       timers: {}, // 使用对象存储定时器，key 为 item.id
+      listTimers: {}, // 用来存储list的定时器
       activeNames: [], // 用于控制 Collapse 组件的展开状态
       apiKeyBound: null,
       apiKeyEditMode: false,
@@ -454,6 +455,20 @@ export default {
     // this.getList()
     this.getBindApiKey()
   },
+  beforeDestroy() {
+    console.log('beforeDestroy')
+    for (const key in this.timers) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (this.timers.hasOwnProperty(key)) { // 检查是否是对象自身的属性
+        const timer = this.timers[key]
+        if (typeof timer === 'number') { // 检查 timer 是否是有效的定时器 ID
+          clearInterval(timer) // 如果是setInterval，使用clearInterval
+          clearTimeout(timer)// 如果是setTimeout，使用clearTimeout
+        }
+      }
+    }
+    this.timer = {}
+  },
   methods: {
     /** 获取用户绑定的apikey列表*/
     getBindApiKey() {
@@ -468,6 +483,9 @@ export default {
           this.apiKeyBound = true
           this.apiKeyList = response.data.list
           this.getList()
+          this.timers['listKey'] = setInterval(() => {
+            this.getList()
+          }, 2000)
         } else {
           this.apiKeyBound = false
           this.showBindForm = false
@@ -516,7 +534,7 @@ export default {
         }))
         this.total = response.data.count
         this.loading = false
-        this.activeNames = [] // 在列表加载完成后重置 activeNames
+        // this.activeNames = [] // 在列表加载完成后重置 activeNames
       })
     },
     /** 更新apikey*/
