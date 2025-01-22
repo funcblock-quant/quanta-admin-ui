@@ -141,6 +141,14 @@
               <span class="label">状态：</span>
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
             </div>
+            <div class="data-item full-width">
+              <span class="label">总下单次数：</span>
+              <span class="value">{{ item.statistical.orderNum }}</span>
+            </div>
+            <div class="data-item full-width">
+              <span class="label">总盈亏：</span>
+              <span class="value">{{ item.statistical.totalPnl }}</span>
+            </div>
           <!--          <div class="mt-10">-->
           <!--            <el-button-->
           <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
@@ -911,5 +919,10 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+/* 新增样式 */
+.full-width {
+  flex-basis: 100%; /* 或 width: 100%; 占据一行 */
+  min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
 }
 </style>
