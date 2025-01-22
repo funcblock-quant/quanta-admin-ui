@@ -172,8 +172,8 @@
                   <div class="detail-line">
                     <span style="color: #457940; font-weight: bold;">[{{ detail.formattedCreatedAt }}]: </span>
                     <span> 交易所: <span style="font-weight: bold;">{{ detail.exchangeName }}</span></span>
-                    <span> 成交一笔 <span style="font-weight: bold;">{{ detail.symbol }}</span> <span style="font-weight: bold;">  价格: </span>${{ detail.originPrice }}  <span style="font-weight: bold;">  数量: </span> {{ detail.originQty }} </span>
-                    <span><span style="font-weight: bold;">  方向: </span> <span :class="detailSideClass(detail.side)">{{ detail.formattedSide }}</span></span>
+                    <span> 成交一笔 <span style="font-weight: bold;">{{ detail.symbol }}</span> <span style="font-weight: bold;">  价格:</span>${{ detail.originPrice }}  <span style="font-weight: bold;">  数量:</span> {{ detail.originQty }} </span>
+                    <span><span style="font-weight: bold;"> 方向: </span> <span :class="detailSideClass(detail.side)">{{ detail.formattedSide }}</span></span>
                     <span><span style="font-weight: bold;"> 手续费:</span> {{ detail.formattedFee }}{{ detail.feeAsset }}</span>
                     <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
                     <span><span style="font-weight: bold;"> pnl: </span> {{ detail.pnl }}</span>
