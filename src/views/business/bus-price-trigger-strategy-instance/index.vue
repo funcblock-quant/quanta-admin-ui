@@ -141,6 +141,14 @@
               <span class="label">状态：</span>
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
             </div>
+            <div class="data-item full-width">
+              <span class="label">总下单次数：</span>
+              <span class="value">{{ item.statistical.orderNum }}</span>
+            </div>
+            <div class="data-item full-width">
+              <span class="label">总盈亏：</span>
+              <span class="value">{{ item.statistical.totalPnl }}</span>
+            </div>
           <!--          <div class="mt-10">-->
           <!--            <el-button-->
           <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
@@ -169,9 +177,15 @@
               </div>
               <div v-else ref="detailLog" class="detail-log">
                 <div v-for="(detail, index) in displayedDetails(item.details)" :key="index" class="log-item">
-                  <span v-for="(formattedDetail, key) in detail" :key="key" class="detail-line">
-                    {{ formattedDetail }}
-                  </span>
+                  <div class="detail-line">
+                    <span style="color: #457940; font-weight: bold;">[{{ detail.formattedCreatedAt }}]: </span>
+                    <span> 交易所: <span style="font-weight: bold;">{{ detail.exchangeName }}</span></span>
+                    <span> 成交一笔 <span style="font-weight: bold;">{{ detail.symbol }}</span> <span style="font-weight: bold;">  价格:</span>${{ detail.originPrice }}  <span style="font-weight: bold;">  数量:</span> {{ detail.originQty }} </span>
+                    <span><span style="font-weight: bold;"> 方向: </span> <span :class="detailSideClass(detail.side)">{{ detail.formattedSide }}</span></span>
+                    <span><span style="font-weight: bold;"> 手续费:</span> {{ detail.formattedFee }}{{ detail.feeAsset }}</span>
+                    <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
+                    <span><span style="font-weight: bold;"> pnl: </span> {{ detail.pnl }}</span>
+                  </div>
                 </div>
               </div>
             </el-collapse-item>
@@ -325,6 +339,7 @@ import {
   addBusPriceTriggerStrategyApikeyConfig, checkApiKeyHealth, delBusPriceTriggerStrategyApikeyConfig,
   listBusPriceTriggerStrategyApikeyConfig, updateBusPriceTriggerStrategyApikeyConfig
 } from '@/api/business/bus-price-trigger-strategy-apikey-config'
+import moment from 'moment'
 
 export default {
   name: 'BusPriceTriggerStrategyInstance',
@@ -393,6 +408,7 @@ export default {
       },
       detailFields: ['id', 'exchangeName', 'monitoredOpenedNum', 'pnl'], // 需要显示的字段列表
       timers: {}, // 使用对象存储定时器，key 为 item.id
+      listTimers: {}, // 用来存储list的定时器
       activeNames: [], // 用于控制 Collapse 组件的展开状态
       apiKeyBound: null,
       apiKeyEditMode: false,
@@ -415,11 +431,22 @@ export default {
           return []
         }
         return details.map(detail => {
-          if (typeof detail !== 'object' || detail === null) { // 检查 detail 是否是对象且不为 null
-            return '' // 如果不是对象或为 null，则返回空对象，避免错误
+          if (typeof detail !== 'object' || detail === null) {
+            return ''
           }
-          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset } = detail // 解构需要的字段
-          return `Time: ${this.formatUTCTime(createdAt)} 交易所: ${exchangeName} 以 $${originPrice} 价格成交一笔数量为: ${originQty}的${symbol},手续费消耗: ${this.formatFees(fee)}${feeAsset}方向:${this.formatSide(side)}, 角色: ${this.formatRole(role)}, pnl: ${pnl}` // 构建格式化字符串
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset } = detail
+          return {
+            formattedCreatedAt: this.formatUTCTime(createdAt),
+            exchangeName: exchangeName ? exchangeName.trim() : '',
+            originPrice,
+            originQty,
+            symbol: symbol ? symbol.trim() : '',
+            formattedFee: this.formatFees(fee),
+            feeAsset,
+            formattedSide: this.formatSide(side),
+            formattedRole: this.formatRole(role),
+            pnl
+          }
         })
       }
     }
@@ -427,6 +454,20 @@ export default {
   created() {
     // this.getList()
     this.getBindApiKey()
+  },
+  beforeDestroy() {
+    console.log('beforeDestroy')
+    for (const key in this.timers) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (this.timers.hasOwnProperty(key)) { // 检查是否是对象自身的属性
+        const timer = this.timers[key]
+        if (typeof timer === 'number') { // 检查 timer 是否是有效的定时器 ID
+          clearInterval(timer) // 如果是setInterval，使用clearInterval
+          clearTimeout(timer)// 如果是setTimeout，使用clearTimeout
+        }
+      }
+    }
+    this.timer = {}
   },
   methods: {
     /** 获取用户绑定的apikey列表*/
@@ -442,6 +483,9 @@ export default {
           this.apiKeyBound = true
           this.apiKeyList = response.data.list
           this.getList()
+          this.timers['listKey'] = setInterval(() => {
+            this.getList()
+          }, 2000)
         } else {
           this.apiKeyBound = false
           this.showBindForm = false
@@ -490,7 +534,7 @@ export default {
         }))
         this.total = response.data.count
         this.loading = false
-        this.activeNames = [] // 在列表加载完成后重置 activeNames
+        // this.activeNames = [] // 在列表加载完成后重置 activeNames
       })
     },
     /** 更新apikey*/
@@ -761,19 +805,15 @@ export default {
       }
       return '' // 其他状态，不添加样式
     },
+    detailSideClass(side) {
+      if (side === '1') {
+        return 'buy-side'
+      } else {
+        return 'sell-side'
+      }
+    },
     formatUTCTime(isoString) {
-      const date = new Date(isoString)
-      const utcString = date.toISOString() // 获取 UTC 时间的 ISO 字符串
-
-      // 提取年月日时分秒
-      const year = utcString.slice(0, 4)
-      const month = utcString.slice(5, 7)
-      const day = utcString.slice(8, 10)
-      const hour = utcString.slice(11, 13)
-      const minute = utcString.slice(14, 16)
-      const second = utcString.slice(17, 19)
-
-      return `${year}-${month}-${day}  ${hour}:${minute}:${second}`
+      return moment(isoString).format('YYYY-MM-DD HH:mm:ss')
     },
     formatFees(fee) {
       if (fee === null || fee === undefined || fee === '') {
@@ -791,9 +831,9 @@ export default {
     },
     formatSide(side) {
       if (side === '1') {
-        return 'long'
+        return '做多'
       } else {
-        return 'short'
+        return '做空'
       }
     },
     formatRole(role) {
@@ -893,9 +933,14 @@ export default {
 
 .detail-line{
   display: inline-block;
-  white-space: nowrap;
+  white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+/* 新增样式 */
+.full-width {
+  flex-basis: 100%; /* 或 width: 100%; 占据一行 */
+  min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
 }
 </style>
