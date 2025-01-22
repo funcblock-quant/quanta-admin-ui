@@ -17,6 +17,8 @@
           v-model="item.value"
           class="form-input"
           :placeholder="item.label"
+          :type="getInputType(item.type)"
+          @input="handleInput(item)"
         >
       </div>
     </div>
@@ -30,6 +32,27 @@ export default {
     data: {
       type: Object,
       required: true
+    }
+  },
+  methods: {
+    getInputType(type) {
+      // 根据字段类型确定输入框类型
+      switch (type) {
+        case 'number':
+          return 'number'
+        case 'boolean':
+          return 'checkbox'
+        default:
+          return 'text' // 默认是字符串
+      }
+    },
+    handleInput(item) {
+      if (item.type === 'number') {
+        item.value = Number(item.value) // 强制转换为数字
+      } else if (item.type === 'boolean') {
+        item.value = Boolean(item.value) // 强制转换为布尔值
+      }
+      // 字符串和其他类型不需要特殊处理
     }
   }
 }

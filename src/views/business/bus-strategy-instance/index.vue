@@ -68,12 +68,14 @@
                 />
               </div>
               <el-card
-                :class="{ clickable: !isBulkMode }"
+                :header="item.instanceName"
+                :class="{ 'custom-card': !isBulkMode, 'clickable-card': !isBulkMode }"
+                shadow="always"
                 @click.native="isBulkMode ? null : handleCardClick(item)"
               >
 
-                <div class="card-status" :class="statusClass(item.status)" />
                 <div class="card-content">
+                  <div class="card-status" :class="statusClass(item.status)" />
                   <div class="info-row">
                     <span class="info-title">实例id:</span>
                     <span class="info-value">{{ item.id || '-' }}</span>
@@ -81,10 +83,6 @@
                   <div class="info-row">
                     <span class="info-title">策略:</span>
                     <span class="info-value">{{ item.strategyName || '-' }}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-title">实例名称:</span>
-                    <span class="info-value">{{ item.instanceName || '-' }}</span>
                   </div>
                   <div class="info-row">
                     <span class="info-title">启动时间:</span>
@@ -596,12 +594,14 @@ export default {
                 if (typeof node[key] === 'object' && node[key] !== null) {
                   result[key] = {
                     value: addCommentsToResult(node[key], fullPath), // 对嵌套值递归
-                    label: comments[fullPath] || key // 根据路径获取注释
+                    label: comments[fullPath] || key, // 根据路径获取注释
+                    type: Array.isArray(node[key]) ? 'array' : 'object'
                   }
                 } else {
                   result[key] = {
                     value: node[key], // 直接赋值为 value
-                    label: comments[fullPath] || key // 默认label是key
+                    label: comments[fullPath] || key, // 默认label是key
+                    type: typeof node[key] // 记录字段类型
                   }
                 }
               }
@@ -611,7 +611,8 @@ export default {
           } else {
             return {
               value: node,
-              label: comments[path] || path.split('.').pop() || '' // 添加注释信息
+              label: comments[path] || path.split('.').pop() || '', // 添加注释信息
+              type: typeof node // 添加类型信息
             }
           }
         }
@@ -763,12 +764,17 @@ export default {
     },
 
     rebuildToml(data, path = '') {
+      console.log('rebuildToml', data)
       if (typeof data !== 'object' || data === null) return data
 
       let toml = ''
 
       Object.entries(data).forEach(([key, { value, label: comment }]) => {
         const currentPath = path ? `${path}.${key}` : key
+
+        console.log('handle key', key)
+        console.log('handle value', value)
+        console.log('type of value', typeof value)
 
         if (typeof value === 'object' && value !== null) {
           // 处理嵌套对象（TOML 中称为表格）
@@ -781,7 +787,17 @@ export default {
             if (comment) {
               toml += `# ${comment}\n`
             }
-            toml += `${currentPath} = ${JSON.stringify(value)}\n`
+            console.log('遇到数组，处理数组', value)
+            // 如果数组中的元素是简单类型
+            if (value.every(item => typeof item.type === 'string' || typeof item.type === 'number' || typeof item.type === 'boolean')) {
+              toml += `${currentPath} = [${value.map(item => {
+                if (typeof item.type === 'string') {
+                  return `"${item.value}"` // 字符串使用引号
+                } else {
+                  return item.value // 数字和布尔值直接输出
+                }
+              }).join(', ')}]\n`
+            }
           }
         } else {
           // 处理简单键值对
@@ -800,6 +816,7 @@ export default {
         }
       })
 
+      console.log('final rebuildToml', toml)
       return toml
     },
     /** 提交按钮 */
@@ -926,7 +943,7 @@ export default {
             console.log('parse yaml')
             this.handleYamlChange()
           } else if (this.form.schema.schemaType === 'toml') {
-            console.log('parse toml')
+            console.log('parse toml', this.form.schema)
             this.handleTomlChange()
           }
         })
@@ -1026,9 +1043,6 @@ export default {
 </script>
 
 <style>
-  .custom-card {
-    margin-bottom: 20px; /* 添加卡片下方间隙 */
-  }
   .card-actions {
     display: flex;
     justify-content: space-between;
@@ -1107,6 +1121,7 @@ export default {
     width: 8px;
     height: 8px;
     border-radius: 100%; /* 圆形 */
+    z-index: 10; /* 确保在其他内容之上 */
   }
   .status-paused {
     background-color: #d00000;
