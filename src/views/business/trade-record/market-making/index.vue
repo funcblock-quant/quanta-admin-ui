@@ -336,7 +336,7 @@ export default {
         this.expandRowKeys = [id] // 设置当前展开的行key
         if (!row.loadingDetails) {
           row.loadingDetails = true
-          getGatemtMakerTradesByOrderId(id).then(response => {
+          getGatemtMakerTradesByOrderId(row.clientOrderId).then(response => {
             this.$set(row, 'details', response.data || [])
             this.$set(row, 'detailsLoaded', true)
             row.loadingDetails = false
