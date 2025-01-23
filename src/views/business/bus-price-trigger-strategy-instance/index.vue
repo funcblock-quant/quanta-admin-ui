@@ -414,7 +414,7 @@ export default {
       // 查询参数
       queryParams: {
         pageIndex: 1,
-        pageSize: 1000,
+        pageSize: 10000,
         closeTime: undefined,
         status: 'started',
         idOrder: 'desc'
@@ -497,7 +497,7 @@ export default {
     getBindApiKey() {
       const queryApiKeyParams = {
         pageIndex: 1,
-        pageSize: 100,
+        pageSize: 10000,
         id: 'desc'
       }
       listBusPriceTriggerStrategyApikeyConfig(queryApiKeyParams).then(response => {
@@ -643,7 +643,7 @@ export default {
     fetchDetails(item) {
       const queryDetailForm = {
         pageIndex: 1,
-        pageSize: 1000,
+        pageSize: 10000,
         idOrder: 'desc',
         strategyInstanceId: item.id
       }
