@@ -741,7 +741,7 @@ export default {
       }
       stopBusPriceTriggerStrategyInstance(stopRequest).then(response => {
         if (response.code === 200) {
-          this.message.success(response.msg)
+          this.msgSuccess(response.msg)
           this.getList()
           // 清除该记录的定时器
           clearInterval(this.timers[instanceId])
