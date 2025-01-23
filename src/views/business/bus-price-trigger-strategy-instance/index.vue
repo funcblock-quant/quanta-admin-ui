@@ -72,7 +72,7 @@
             <el-form-item label="状态" prop="status">
               <el-select
                 v-model="queryParams.status"
-                placeholder="请输入注册策略交易类型"
+                placeholder="请输入状态"
                 clearable
                 size="small"
               >
@@ -148,6 +148,23 @@
             <div class="data-item full-width">
               <span class="label">总盈亏：</span>
               <span class="value">{{ item.statistical.totalPnl }}</span>
+            </div>
+            <div class="data-item">
+              <el-popconfirm
+                class="delete-popconfirm"
+                title="确认要暂停吗?"
+                confirm-button-text="暂停"
+                @confirm="handleStopInstance(item.id)"
+              >
+                <el-button
+                  slot="reference"
+                  v-permisaction="['business:busPriceTriggerStrategyInstance:remove']"
+                  size="mini"
+                  type="text"
+                  icon="el-icon-delete"
+                >暂停
+                </el-button>
+              </el-popconfirm>
             </div>
           <!--          <div class="mt-10">-->
           <!--            <el-button-->
@@ -333,7 +350,13 @@
 </template>
 
 <script>
-import { addBusPriceTriggerStrategyInstance, getBusPriceTriggerStrategyInstance, listBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyInstance } from '@/api/business/bus-price-trigger-strategy-instance'
+import {
+  addBusPriceTriggerStrategyInstance,
+  getBusPriceTriggerStrategyInstance,
+  listBusPriceTriggerStrategyInstance,
+  stopBusPriceTriggerStrategyInstance,
+  updateBusPriceTriggerStrategyInstance
+} from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
 import {
   addBusPriceTriggerStrategyApikeyConfig, checkApiKeyHealth, delBusPriceTriggerStrategyApikeyConfig,
@@ -393,7 +416,7 @@ export default {
         pageIndex: 1,
         pageSize: 10,
         closeTime: undefined,
-        status: undefined,
+        status: 'started',
         idOrder: 'desc'
 
       },
@@ -712,6 +735,21 @@ export default {
         this.isEdit = true
       })
     },
+    handleStopInstance(instanceId) {
+      const stopRequest = {
+        id: instanceId
+      }
+      stopBusPriceTriggerStrategyInstance(stopRequest).then(response => {
+        if (response.code === 200) {
+          this.message.success(response.msg)
+          this.getList()
+          // 清除该记录的定时器
+          clearInterval(this.timers[instanceId])
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
     /** 提交按钮 */
     submitForm: function() {
       this.$refs['form'].validate(valid => {
@@ -940,7 +978,7 @@ export default {
 }
 /* 新增样式 */
 .full-width {
-  flex-basis: 100%; /* 或 width: 100%; 占据一行 */
+  flex-basis: 800%; /* 或 width: 100%; 占据一行 */
   min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
 }
 </style>
