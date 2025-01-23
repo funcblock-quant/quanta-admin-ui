@@ -44,3 +44,11 @@ export function delBusPriceTriggerStrategyInstance(data) {
   })
 }
 
+// 暂停BusPriceTriggerStrategyInstance
+export function stopBusPriceTriggerStrategyInstance(data) {
+  return request({
+    url: '/api/v1/stopTriggerInstance',
+    method: 'post',
+    data: data
+  })
+}
