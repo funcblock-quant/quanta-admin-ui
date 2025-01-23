@@ -149,7 +149,7 @@
               <span class="label">总盈亏：</span>
               <span class="value">{{ item.statistical.totalPnl }}</span>
             </div>
-            <div class="data-item">
+            <div v-if="item.status==='started'" class="data-item">
               <el-popconfirm
                 class="delete-popconfirm"
                 title="确认要暂停吗?"
