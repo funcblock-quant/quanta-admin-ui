@@ -72,7 +72,7 @@
             <el-form-item label="状态" prop="status">
               <el-select
                 v-model="queryParams.status"
-                placeholder="请输入注册策略交易类型"
+                placeholder="请输入状态"
                 clearable
                 size="small"
               >
@@ -152,9 +152,9 @@
             <div class="data-item">
               <el-popconfirm
                 class="delete-popconfirm"
-                title="确认要删除吗?"
-                confirm-button-text="删除"
-                @confirm="handleDeleteInstance(item.id)"
+                title="确认要暂停吗?"
+                confirm-button-text="暂停"
+                @confirm="handleStopInstance(item.id)"
               >
                 <el-button
                   slot="reference"
@@ -162,7 +162,7 @@
                   size="mini"
                   type="text"
                   icon="el-icon-delete"
-                >删除
+                >暂停
                 </el-button>
               </el-popconfirm>
             </div>
@@ -416,7 +416,7 @@ export default {
         pageIndex: 1,
         pageSize: 10,
         closeTime: undefined,
-        status: undefined,
+        status: 'started',
         idOrder: 'desc'
 
       },
@@ -735,7 +735,7 @@ export default {
         this.isEdit = true
       })
     },
-    handleDeleteInstance(instanceId) {
+    handleStopInstance(instanceId) {
       const stopRequest = {
         id: instanceId
       }
