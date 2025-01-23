@@ -414,7 +414,7 @@ export default {
       // 查询参数
       queryParams: {
         pageIndex: 1,
-        pageSize: 10,
+        pageSize: 1000,
         closeTime: undefined,
         status: 'started',
         idOrder: 'desc'
