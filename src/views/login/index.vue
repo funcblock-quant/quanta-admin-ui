@@ -29,8 +29,9 @@
       </div>
       <div class="login-border">
         <div class="login-main">
-          <div class="login-title">用户登录</div>
+
           <el-form
+            v-if="!show2FAInput"
             ref="loginForm"
             :model="loginForm"
             :rules="loginRules"
@@ -38,6 +39,7 @@
             autocomplete="on"
             label-position="left"
           >
+            <div class="login-title">用户登录</div>
             <el-form-item prop="username">
               <span class="svg-container">
                 <i class="el-icon-user" />
@@ -134,6 +136,24 @@
               <span v-else>登 录 中...</span>
             </el-button>
           </el-form>
+
+          <div v-if="show2FAInput" class="otp-container">
+            <div class="login-title">2FA认证</div>
+            <div class="otp-inputs">
+              <input
+                v-for="(n, index) in 6"
+                :key="index"
+                ref="inputs"
+                type="text"
+                maxlength="1"
+                class="otp-input"
+                @input="handleInput(index)"
+                @keydown="handleKeydown(index, $event)"
+                @paste="handlePaste"
+              >
+            </div>
+            <el-button :loading="loading" type="primary" @click.native.prevent="handle2FAVerification">验证</el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -150,33 +170,7 @@
       id="bottom_layer"
       class="s-bottom-layer s-isindex-wrap"
       style="visibility: visible; width: 100%"
-    >
-      <div class="s-bottom-layer-content">
-
-        <div class="lh">
-          <a class="text-color" href="https://beian.miit.gov.cn" target="_blank">
-            沪ICP备XXXXXXXXX号-1
-          </a>
-        </div>
-        <div class="open-content-info">
-          <div class="tip-hover-panel" style="top: -18px; right: -12px">
-            <div class="rest_info_tip">
-              <div class="tip-wrapper">
-                <div class="lh tip-item" style="display: none">
-                  <a
-                    class="text-color"
-                    href="https://beian.miit.gov.cn"
-                    target="_blank"
-                  >
-                    沪ICP备XXXXXXXXX号-1
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    />
   </div>
 </template>
 
@@ -218,7 +212,9 @@ export default {
       redirect: undefined,
       otherQuery: {},
       currentTime: null,
-      sysInfo: ''
+      sysInfo: '',
+      show2FAInput: false, // 控制 2FA 输入框的显示
+      otp: ['', '', '', '', '', '']
     }
   },
   watch: {
@@ -256,6 +252,26 @@ export default {
     // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
+    handleInput(index) {
+      this.otp[index] = event.target.value // 更新 otp 数组
+      if (this.otp[index].length === 1 && index < 5) {
+        this.$refs.inputs[index + 1].focus()
+      }
+    },
+    handleKeydown(index, event) {
+      if (event.key === 'Backspace' && this.otp[index] === '' && index > 0) {
+        this.$refs.inputs[index - 1].focus()
+      }
+    },
+    handlePaste(event) {
+      const pasteData = event.clipboardData.getData('text')
+      if (/^\d+$/.test(pasteData) && pasteData.length === 6) {
+        this.otp = pasteData.split('')
+        for (let i = 0; i < 6; i++) {
+          this.$refs.inputs[i].value = this.otp[i]
+        }
+      }
+    },
     getSystemSetting() {
       this.$store.dispatch('system/settingDetail').then((ret) => {
         this.sysInfo = ret
@@ -304,22 +320,66 @@ export default {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
           this.loading = true
+
           this.$store
             .dispatch('user/login', this.loginForm)
             .then(() => {
-              this.$router
-                .push({ path: this.redirect || '/', query: this.otherQuery })
-                .catch(() => {})
+              this.$router.push({ path: this.redirect || '/', query: this.otherQuery }).catch(() => {})
             })
-            .catch(() => {
+            .catch((error) => {
               this.loading = false
-              this.getCode()
+              if (error && error.msg === '请完成2FA认证') { // 检查后端返回的标识
+                console.log('need 2fa')
+                this.show2FAInput = true // 显示 2FA 输入框
+                this.loading = false
+              } else {
+                console.log('reload captcha')
+                this.getCode()
+              }
             })
         } else {
           console.log('error submit!!')
           return false
         }
       })
+    },
+    handle2FAVerification() {
+      this.loading = true
+      let code = ''
+      if (this.$refs.inputs) { // 确保 refs 存在
+        for (let i = 0; i < this.$refs.inputs.length; i++) {
+          if (this.$refs.inputs[i].value === '') {
+            this.$message.warning('请输入完整的验证码')
+            this.loading = false
+            return
+          }
+          code += this.$refs.inputs[i].value
+        }
+      }
+      console.log('2FA Code:', code)
+      const twoFaVerifyForm = {
+        username: this.loginForm.username,
+        code: code
+      }
+
+      // 验证逻辑
+      this.$store
+        .dispatch('user/login2FA', twoFaVerifyForm)
+        .then(() => {
+          this.$router.push({ path: this.redirect || '/', query: this.otherQuery }).catch(() => {})
+        })
+        .catch((error) => {
+          this.loading = false
+          if (error && error.msg === '请完成2FA认证') { // 检查后端返回的标识
+            console.log('need 2fa')
+            this.show2FAInput = true // 显示 2FA 输入框
+            this.loading = false
+          } else {
+            console.log('reload captcha')
+            this.getCode()
+          }
+        })
+      this.loading = false
     },
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
@@ -685,6 +745,31 @@ $light_gray: #eee;
     .login-border {
       width: 100%;
     }
+  }
+  .otp-container {
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+    align-items: center; /* 水平居中 */
+    gap: 20px; /* 设置间距 */
+  }
+
+  .otp-inputs {
+    display: flex; /* 使输入框横向排列 */
+    gap: 10px; /* 输入框间距 */
+  }
+
+  .otp-input {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 20px;
+    border-radius: 5px; /* 添加圆角 */
+  }
+
+  /* 确保 el-button 居中 */
+  .el-button {
+    display: block;
   }
 }
 </style>

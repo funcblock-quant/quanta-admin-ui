@@ -133,3 +133,28 @@ export function getUserProfile() {
   })
 }
 
+// 获取绑定2fa的二维码
+export function get2FaCode() {
+  return request({
+    url: '/api/v1/user/2fa/code',
+    method: 'get'
+  })
+}
+
+// 绑定2fa验证
+export function verify2FaCode(data) {
+  return request({
+    url: '/api/v1/user/2fa/verify',
+    method: 'post',
+    data: data
+  })
+}
+
+// 解绑2fa验证
+export function unbind2FaVerify(data) {
+  return request({
+    url: '/api/v1/user/2fa/unbind',
+    method: 'post',
+    data: data
+  })
+}

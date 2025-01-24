@@ -1,10 +1,11 @@
-import { login, logout, getInfo, refreshtoken } from '@/api/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { login, logout, getInfo, refreshtoken, login2FAVerify } from '@/api/user'
+import { getToken, setToken, removeToken, getTempToken, setTempToken, removeTempToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 import storage from '@/utils/storage'
 
 const state = {
   token: getToken(),
+  tempToken: getTempToken(),
   name: '',
   avatar: '',
   introduction: '',
@@ -16,6 +17,9 @@ const state = {
 const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
+  },
+  SET_TEMP_TOKEN: (state, token) => {
+    state.tempToken = token
   },
   SET_INTRODUCTION: (state, introduction) => {
     state.introduction = introduction
@@ -46,6 +50,26 @@ const actions = {
         const { token } = response
         commit('SET_TOKEN', token)
         setToken(token)
+        resolve()
+      }).catch(error => {
+        console.log('error', error)
+        const { tempToken } = error
+        commit('SET_TEMP_TOKEN', tempToken)
+        setTempToken(tempToken)
+        // console.log('temp_token', temp_token)
+        reject(error)
+      })
+    })
+  },
+
+  // 2FA verify login
+  login2FA({ commit }, userInfo) {
+    return new Promise((resolve, reject) => {
+      login2FAVerify(userInfo).then(response => {
+        const { token } = response
+        commit('SET_TOKEN', token)
+        setToken(token)
+        removeTempToken()
         resolve()
       }).catch(error => {
         reject(error)
