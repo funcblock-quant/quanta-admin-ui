@@ -6,7 +6,7 @@ Vue.use(Router)
 /* Layout */
 import Layout from '@/layout'
 
-import StrategyInstanceDetails from '@/views/business/pages/strategy-instance-detail.vue'
+// import StrategyInstanceDetails from '@/views/business/pages/strategy-instance-detail.vue'
 
 /* Router Modules */
 // import componentsRouter from './modules/components'
@@ -110,25 +110,25 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user', noCache: true }
       }
     ]
-  },
-  {
-    path: '/strategy',
-    component: Layout,
-    redirect: '/strategy/details',
-    meta: { title: '策略详情', icon: 'documentation' },
-    children: [
-      {
-        path: 'details',
-        component: StrategyInstanceDetails,
-        name: 'StrategyInstanceDetails',
-        meta: {
-          title: '策略实例详情',
-          icon: 'detail',
-          noCache: true
-        }
-      }
-    ]
   }
+  // {
+  //   path: '/strategy',
+  //   component: Layout,
+  //   redirect: '/strategy/details',
+  //   meta: { title: '策略详情', icon: 'documentation' },
+  //   children: [
+  //     {
+  //       path: 'details',
+  //       component: StrategyInstanceDetails,
+  //       name: 'StrategyInstanceDetails',
+  //       meta: {
+  //         title: '策略实例详情',
+  //         icon: 'detail',
+  //         noCache: true
+  //       }
+  //     }
+  //   ]
+  // }
 
 ]
 
