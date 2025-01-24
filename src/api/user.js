@@ -9,6 +9,15 @@ export function login(data) {
   })
 }
 
+// 2fa验证
+export function login2FAVerify(data) {
+  return request({
+    url: '/api/v1/login2FAVerify',
+    method: 'post',
+    data
+  })
+}
+
 // logout 退出
 export function logout() {
   return request({

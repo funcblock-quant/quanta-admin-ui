@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
+import { getTempToken, getToken } from '@/utils/auth'
 
 // create an axios instance
 const service = axios.create({
@@ -20,6 +20,12 @@ service.interceptors.request.use(
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
       config.headers['Authorization'] = 'Bearer ' + getToken()
+      config.headers['Content-Type'] = 'application/json'
+    } else if (store.getters.tempToken) {
+      // let each request carry token
+      // ['X-Token'] is a custom headers key
+      // please modify it according to the actual situation
+      config.headers['Authorization'] = 'Bearer ' + getTempToken()
       config.headers['Content-Type'] = 'application/json'
     }
     return config
@@ -45,6 +51,7 @@ service.interceptors.response.use(
    */
   response => {
     const code = response.data.code
+    const msg = response.data.msg
     if (code === 401) {
       store.dispatch('user/resetToken')
       if (location.href.indexOf('login') !== -1) {
@@ -77,11 +84,22 @@ service.interceptors.response.use(
       })
       return false
     } else if (code === 400 || code === 403) {
-      Message({
-        message: response.data.msg,
-        type: 'error',
-        duration: 5 * 1000
-      })
+      if (msg === '请完成2FA认证') {
+        console.log('需要2FA验证，拦截请求并跳转')
+        // 将原始请求信息存储到某个地方，例如 localStorage 或 Vuex state
+        // 或者使用 Vuex：
+        // store.commit('SET_PENDING_REQUEST', response.config);
+        // 跳转到 2FA 验证页面
+        // window.location.href = '/2fa?username=' + response.config.data.username // 这里需要根据你的实际情况修改，如果data是json字符串的话，需要先parse
+        return Promise.reject({ code: code, msg: msg, tempToken: response.data.tempToken, expire: response.data.expire }) // 拦截请求，阻止后续处理
+      } else { // 其他 400/403 错误，显示错误信息
+        Message({
+          message: msg,
+          type: 'error',
+          duration: 5 * 1000
+        })
+        return Promise.reject({ code: code, msg: msg }) // reject错误，阻止后续处理
+      }
     } else if (code !== 200) {
       // Notification.error({
       //   title: response.data.msg
