@@ -253,7 +253,8 @@ export default {
       // 查询参数
       queryParams: {
         pageIndex: 1,
-        pageSize: 10
+        pageSize: 10,
+        idOrder: 'desc'
 
       },
       // 表单参数
