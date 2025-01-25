@@ -201,6 +201,7 @@
                     <span><span style="font-weight: bold;"> 方向: </span> <span :class="detailSideClass(detail.side)">{{ detail.formattedSide }}</span></span>
                     <span><span style="font-weight: bold;"> 手续费:</span> {{ detail.formattedFee }}{{ detail.feeAsset }}</span>
                     <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
+                    <span><span style="font-weight: bold;"> 状态:</span> {{ detail.status }}</span>
                     <span><span style="font-weight: bold;"> pnl: </span> {{ detail.pnl }}</span>
                   </div>
                 </div>
