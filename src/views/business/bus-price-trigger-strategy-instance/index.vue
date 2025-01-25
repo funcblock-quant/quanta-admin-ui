@@ -458,7 +458,7 @@ export default {
           if (typeof detail !== 'object' || detail === null) {
             return ''
           }
-          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset } = detail
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status } = detail
           return {
             formattedCreatedAt: this.formatUTCTime(createdAt),
             exchangeName: exchangeName ? exchangeName.trim() : '',
@@ -469,7 +469,8 @@ export default {
             feeAsset,
             formattedSide: this.formatSide(side),
             formattedRole: this.formatRole(role),
-            pnl
+            pnl,
+            status
           }
         })
       }
