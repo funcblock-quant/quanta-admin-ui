@@ -69,10 +69,25 @@
       <div v-else>
         <el-card class="box-card">
           <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px" class="query-form">
+            <el-form-item label="API Key" prop="status">
+              <el-select
+                v-model="queryParams.apiConfig"
+                placeholder="请选择API Key"
+                clearable
+                size="small"
+              >
+                <el-option
+                  v-for="apiKey in apiKeyList"
+                  :key="apiKey.id"
+                  :label="apiKey.accountName"
+                  :value="apiKey.id"
+                />
+              </el-select>
+            </el-form-item>
             <el-form-item label="状态" prop="status">
               <el-select
                 v-model="queryParams.status"
-                placeholder="请输入状态"
+                placeholder="请选择状态"
                 clearable
                 size="small"
               >
@@ -286,7 +301,7 @@
 
         <!-- api-key list -->
         <el-dialog :title="apiKeyManageTitle" :visible.sync="showApiKeyList" width="1200px">
-          <el-table v-loading="loading" :data="apiKeyList">
+          <el-table :data="apiKeyList">
             <el-table-column
               label="API Key"
               align="center"
@@ -364,6 +379,7 @@ import {
   listBusPriceTriggerStrategyApikeyConfig, updateBusPriceTriggerStrategyApikeyConfig
 } from '@/api/business/bus-price-trigger-strategy-apikey-config'
 import moment from 'moment'
+import { getInfo } from '@/api/user'
 
 export default {
   name: 'BusPriceTriggerStrategyInstance',
@@ -387,6 +403,8 @@ export default {
       // 是否显示弹出层
       open: false,
       isEdit: false,
+      // 用户角色
+      roleKey: '',
       // 类型数据字典
       typeOptions: [],
       busPriceTriggerStrategyInstanceList: [],
@@ -418,6 +436,7 @@ export default {
         pageSize: 10000,
         closeTime: undefined,
         status: 'started',
+        apiConfig: '',
         idOrder: 'desc'
 
       },
@@ -458,7 +477,7 @@ export default {
           if (typeof detail !== 'object' || detail === null) {
             return ''
           }
-          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset } = detail
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status } = detail
           return {
             formattedCreatedAt: this.formatUTCTime(createdAt),
             exchangeName: exchangeName ? exchangeName.trim() : '',
@@ -469,7 +488,8 @@ export default {
             feeAsset,
             formattedSide: this.formatSide(side),
             formattedRole: this.formatRole(role),
-            pnl
+            pnl,
+            status
           }
         })
       }
@@ -478,6 +498,7 @@ export default {
   created() {
     // this.getList()
     this.getBindApiKey()
+    this.getUserRole()
   },
   beforeDestroy() {
     console.log('beforeDestroy')
@@ -494,7 +515,14 @@ export default {
     this.timer = {}
   },
   methods: {
-    /** 获取用户绑定的apikey列表*/
+    getUserRole() {
+      this.role = ''
+      getInfo().then(response => {
+        this.roleKey = response.data.roles[0]
+        console.log('user role:', this.roleKey)
+      })
+    },
+    /** 获取用户绑定的apikey列表,只在刚进页面的时候使用*/
     getBindApiKey() {
       const queryApiKeyParams = {
         pageIndex: 1,
@@ -514,6 +542,17 @@ export default {
           this.apiKeyBound = false
           this.showBindForm = false
         }
+      })
+    },
+    getApiKeyList() {
+      const queryApiKeyParams = {
+        pageIndex: 1,
+        pageSize: 10000,
+        id: 'desc'
+      }
+      listBusPriceTriggerStrategyApikeyConfig(queryApiKeyParams).then(response => {
+        this.total = response.data.count
+        this.apiKeyList = response.data.list
       })
     },
     /** 测试 API key连通性*/
@@ -563,7 +602,7 @@ export default {
     },
     /** 更新apikey*/
     handleApiKeyManage() {
-      this.getBindApiKey()
+      this.getApiKeyList()
       this.showApiKeyList = true
       this.apiKeyManageTitle = 'API Key管理'
     },
@@ -597,7 +636,7 @@ export default {
       }).then((response) => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
-          this.getBindApiKey()
+          this.getApiKeyList()
         } else {
           this.msgError(response.msg)
         }
@@ -722,7 +761,7 @@ export default {
       this.open = true
       this.title = '添加价格触发下单条件'
       this.isEdit = false
-      this.getBindApiKey()
+      this.getApiKeyList()
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -798,7 +837,7 @@ export default {
             this.msgSuccess(response.msg)
             this.showBindForm = false
             this.apiKeyBound = true
-            this.getBindApiKey()
+            this.getApiKeyList()
             this.getList()
           } else {
             this.msgError(response.msg)
