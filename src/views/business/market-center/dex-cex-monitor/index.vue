@@ -46,6 +46,12 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="TokenMint"
+            align="center"
+            prop="tokenMint"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="交易所"
             align="center"
             prop="exchangeType"
@@ -58,11 +64,10 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="Slippage Bps"
+            label="Dex Type"
             align="center"
-            prop="slippageBps"
+            prop="dexType"
             :show-overflow-tooltip="true"
-            :formatter="formatSlippage"
           />
           <el-table-column
             label="Amm Pool"
@@ -71,28 +76,23 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="Base Token"
+            label="Slippage Bps"
             align="center"
-            prop="baseTokenMint"
+            prop="slippageBps"
             :show-overflow-tooltip="true"
+            :formatter="formatSlippage"
           />
           <el-table-column
-            label="Base Profit"
+            label="Dex Buy Profit"
             align="center"
-            prop="baseProfit"
+            prop="profitOfBuyOnDex"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
           <el-table-column
-            label="Quote Token"
+            label="Dex Sell Profit"
             align="center"
-            prop="quoteTokenMint"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="Quote Profit"
-            align="center"
-            prop="quoteProfit"
+            prop="profitOfSellOnDex"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
@@ -155,37 +155,30 @@
               </el-row>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
-                  <el-form-item label="Base Token地址" prop="baseTokenMint">
+                  <el-form-item label="Token 地址" prop="tokenMint">
                     <el-input
-                      v-model="batchForm.baseTokenMint"
+                      v-model="batchForm.tokenMint"
                       placeholder="请输入Base Token地址"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="1.5">
-                  <el-form-item label="Base Token精度" prop="baseTokenDecimals">
-                    <el-input
-                      v-model="batchForm.baseTokenDecimals"
-                      placeholder="请输入Base Token精度"
                     />
                   </el-form-item>
                 </el-col>
               </el-row>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
-                  <el-form-item label="Quote Token地址" prop="quoteTokenMint">
-                    <el-input
-                      v-model="batchForm.quoteTokenMint"
-                      placeholder="请输入Quote Token地址"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="1.5">
-                  <el-form-item label="Quote Token精度" prop="quoteTokenDecimals">
-                    <el-input
-                      v-model="batchForm.quoteTokenDecimals"
-                      placeholder="请输入Quote Token精度"
-                    />
+                  <el-form-item label="Dex Type" prop="dexType">
+                    <el-select
+                      v-model="batchForm.dexType"
+                      placeholder="请选择Dex类型"
+                      clearable
+                      size="small"
+                      style="width: 400px;"
+                    >
+                      <el-option
+                        v-for="dex in dexTypeList"
+                        :key="dex.key"
+                        :value="dex.label"
+                      />
+                    </el-select>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -309,19 +302,21 @@ export default {
       batchForm: {
         symbol: [],
         ammPool: undefined,
-        baseTokenMint: undefined,
-        quoteTokenMint: undefined,
-        baseTokenDecimals: undefined,
-        quoteTokenDecimals: undefined,
+        tokenMint: undefined,
         slippage: undefined,
         volume: undefined,
         exchangeType: undefined,
+        dexType: undefined,
         takerFee: undefined
       },
       exchangeType: [
         { key: 'Binance', value: 'Binance' },
         { key: 'OKX', value: 'OKX' },
         { key: 'GateIO', value: 'GateIO' }
+      ],
+      dexTypeList: [
+        { key: 'RAY_AMM', label: 'RAY_AMM' },
+        { key: 'RAY_CLMM', label: 'RAY_CLMM' }
       ],
 
       // 表单校验
