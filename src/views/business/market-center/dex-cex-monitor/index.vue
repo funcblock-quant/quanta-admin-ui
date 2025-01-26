@@ -411,6 +411,10 @@ export default {
 
         id: undefined
       }
+      this.batchForm = {
+        symbol: [],
+        slippage: undefined
+      }
       this.resetForm('form')
     },
     getImgList: function() {
@@ -455,15 +459,15 @@ export default {
     submitBatchForm() {
       const symbolsArray = [this.batchForm.symbols]
 
-      this.batchForm.takerFee = Number(this.batchForm.takerFee)
-      this.batchForm.volume = Number(this.batchForm.volume)
-      this.batchForm.slippage = (this.batchForm.slippage * 100).toString()
-      console.log('this.batchForm.takerFee', this.batchForm.takerFee)
-      // 构造请求数据
-      this.batchForm.symbolsArray = symbolsArray
+      const requestData = { ...this.batchForm }
+      requestData.takerFee = Number(requestData.takerFee)
+      requestData.volume = Number(requestData.volume)
+      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+
+      requestData.symbolsArray = symbolsArray
 
       // 批量请求
-      batchAddBusDexCexTriangularObserver(this.batchForm).then(res => {
+      batchAddBusDexCexTriangularObserver(requestData).then(res => {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
           this.batchOpen = false
@@ -471,6 +475,9 @@ export default {
           this.getList()
         } else {
           this.msgError(res.msg)
+          this.batchOpen = false
+          this.batchForm = []
+          this.getList()
         }
       })
     },
