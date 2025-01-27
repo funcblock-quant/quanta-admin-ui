@@ -141,7 +141,7 @@
             </el-card>
             <el-card class="fused-card" shadow="never">
               <div slot="header">
-                <h5>AMM监控配置</h5>
+                <h5>AMM配置</h5>
               </div>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
@@ -200,7 +200,7 @@
             </el-card>
             <el-card class="fused-card" shadow="never">
               <div slot="header">
-                <h5>Amber监控配置</h5>
+                <h5>Amber配置</h5>
               </div>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
@@ -223,10 +223,10 @@
                 </el-col>
               </el-row>
               <el-row :gutter="20" class="mb8">
-                <el-form-item label="Volume" prop="volume">
+                <el-form-item label="SOL Amount" prop="volume">
                   <el-input
                     v-model="batchForm.volume"
-                    placeholder="请输入交易volume"
+                    placeholder="请输入交易SOL Amount"
                   />
                 </el-form-item>
               </el-row>
