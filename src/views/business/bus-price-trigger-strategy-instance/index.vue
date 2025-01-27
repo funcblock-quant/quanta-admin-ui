@@ -157,7 +157,7 @@
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
             </div>
             <div class="data-item full-width">
-              <span class="label">Account Name：</span>
+              <span class="label">API Key：</span>
               <span class="value">{{ item.apiConfigData.accountName }}</span>
             </div>
             <div class="data-item full-width">
