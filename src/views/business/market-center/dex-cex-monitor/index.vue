@@ -531,7 +531,7 @@ export default {
         return '' // 或者其他默认值，例如 0
       }
       const slippage = Number(cellValue)
-      return slippage.toFixed(6).toString() + row.quoteToken // 保留四位小数，根据需要调整
+      return slippage.toFixed(6).toString() + ' ' + row.quoteToken // 保留四位小数，根据需要调整
     }
   }
 }
