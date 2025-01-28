@@ -40,9 +40,15 @@
 
         <el-table v-loading="loading" :data="busDexCexTriangularObserverList">
           <el-table-column
-            label="观察币种"
+            label="BaseToken"
             align="center"
-            prop="symbol"
+            prop="baseToken"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="QuoteToken"
+            align="center"
+            prop="quoteToken"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -81,6 +87,12 @@
             prop="slippageBps"
             :show-overflow-tooltip="true"
             :formatter="formatSlippage"
+          />
+          <el-table-column
+            label="Sol Amount"
+            align="center"
+            prop="volume"
+            :show-overflow-tooltip="true"
           />
           <el-table-column
             label="Dex Buy Profit"
@@ -132,10 +144,16 @@
               <div slot="header">
                 <h5>策略基础信息</h5>
               </div>
-              <el-form-item label="观察币种列表" prop="symbols">
+              <el-form-item label="Base Token" prop="baseToken">
                 <el-input
-                  v-model="batchForm.symbols"
-                  placeholder="请输入交易币种"
+                  v-model="batchForm.baseToken"
+                  placeholder="请输入Base Token"
+                />
+              </el-form-item>
+              <el-form-item label="Quote Token" prop="quoteToken">
+                <el-input
+                  v-model="batchForm.quoteToken"
+                  placeholder="请输入Quote Token"
                 />
               </el-form-item>
             </el-card>
@@ -300,7 +318,9 @@ export default {
       form: {
       },
       batchForm: {
-        symbol: [],
+        symbols: [],
+        baseToken: [],
+        quoteToken: undefined,
         ammPool: undefined,
         tokenMint: undefined,
         slippage: undefined,
@@ -321,12 +341,9 @@ export default {
 
       // 表单校验
       rules: {
-        symbols: [{ required: true, message: '至少指定一个观察币种', trigger: 'blur' }],
+        baseToken: [{ required: true, message: '至少指定一个Base Token', trigger: 'blur' }],
+        quoteToken: [{ required: true, message: '至少指定一个Quote Token', trigger: 'blur' }],
         ammPool: [{ required: true, message: 'ammPool不能为空', trigger: 'blur' }],
-        baseTokenMint: [{ required: true, message: 'base token的地址不能为空', trigger: 'blur' }],
-        baseTokenDecimals: [{ required: true, message: 'base token的精度不能为空', trigger: 'blur' }],
-        quoteTokenMint: [{ required: true, message: 'quote token的地址不能为空', trigger: 'blur' }],
-        quoteTokenDecimals: [{ required: true, message: 'quote token的精度不能为空', trigger: 'blur' }],
         slippage: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
         volume: [{ required: true, message: '请设置交易金额', trigger: 'blur' }],
         takerFee: [{ required: true, message: '请设置交易所taker手续费', trigger: 'blur' }],
@@ -457,14 +474,14 @@ export default {
     },
     // 提交批量添加
     submitBatchForm() {
-      const symbolsArray = [this.batchForm.symbols]
+      const baseTokenArray = [this.batchForm.baseToken]
 
       const requestData = { ...this.batchForm }
       requestData.takerFee = Number(requestData.takerFee)
       requestData.volume = Number(requestData.volume)
       requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
 
-      requestData.symbolsArray = symbolsArray
+      requestData.baseToken = baseTokenArray
 
       // 批量请求
       batchAddBusDexCexTriangularObserver(requestData).then(res => {
@@ -514,7 +531,7 @@ export default {
         return '' // 或者其他默认值，例如 0
       }
       const slippage = Number(cellValue)
-      return slippage.toFixed(6).toString() // 保留四位小数，根据需要调整
+      return slippage.toFixed(6).toString() + row.quoteToken // 保留四位小数，根据需要调整
     }
   }
 }
