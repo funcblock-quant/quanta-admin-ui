@@ -177,7 +177,6 @@
               >
                 <el-button
                   slot="reference"
-                  v-permisaction="['business:busPriceTriggerStrategyInstance:remove']"
                   size="mini"
                   type="text"
                   icon="el-icon-delete"
