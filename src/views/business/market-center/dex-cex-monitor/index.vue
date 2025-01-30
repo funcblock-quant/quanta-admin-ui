@@ -38,75 +38,118 @@
           </el-col>
         </el-row>
 
-        <el-table v-loading="loading" :data="busDexCexTriangularObserverList">
+        <el-table v-loading="loading" :data="busDexCexTriangularObserverList" class="table-container" style="width: 100%;">
           <el-table-column
             label="BaseToken"
+            width="100"
             align="center"
             prop="baseToken"
             :show-overflow-tooltip="true"
           />
           <el-table-column
             label="QuoteToken"
+            width="100"
             align="center"
             prop="quoteToken"
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="TokenMint"
-            align="center"
-            prop="tokenMint"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
             label="交易所"
             align="center"
+            width="100"
             prop="exchangeType"
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="交易所Taker Fee"
-            align="center"
-            prop="takerFee"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="Dex Type"
-            align="center"
-            prop="dexType"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="Amm Pool"
-            align="center"
-            prop="ammPoolId"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="Slippage Bps"
-            align="center"
-            prop="slippageBps"
-            :show-overflow-tooltip="true"
-            :formatter="formatSlippage"
-          />
-          <el-table-column
             label="Sol Amount"
+            width="100"
             align="center"
             prop="volume"
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="Dex Buy Price"
+            width="150"
+            align="center"
+            prop="dexBuyPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
+            label="Cex Sell Price"
+            width="150"
+            align="center"
+            prop="cexSellPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
             label="Dex Buy Profit"
+            width="150"
             align="center"
             prop="profitOfBuyOnDex"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
           <el-table-column
+            label="Dex Sell Price"
+            width="150"
+            align="center"
+            prop="dexSellPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
+            label="Cex Buy Price"
+            width="150"
+            align="center"
+            prop="cexBuyPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
             label="Dex Sell Profit"
+            width="150"
             align="center"
             prop="profitOfSellOnDex"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
+          />
+          <el-table-column
+            label="交易所Taker Fee"
+            width="100"
+            align="center"
+            prop="takerFee"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="TokenMint"
+            width="150"
+            align="center"
+            prop="tokenMint"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Dex Type"
+            width="100"
+            align="center"
+            prop="dexType"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Amm Pool"
+            width="150"
+            align="center"
+            prop="ammPoolId"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Slippage Bps"
+            width="100"
+            align="center"
+            prop="slippageBps"
+            :show-overflow-tooltip="true"
+            :formatter="formatSlippage"
           />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
@@ -536,3 +579,15 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.table-container {
+  overflow-x: auto; /* 添加水平滚动条 */
+}
+
+/* 表头和内容对齐 */
+.table-container th,
+.table-container td {
+  text-align: center; /* 设置文字居中 */
+}
+</style>
