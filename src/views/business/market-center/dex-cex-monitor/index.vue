@@ -61,7 +61,7 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="Sol Amount"
+            label="Sol交易数量"
             width="100"
             align="center"
             prop="volume"
@@ -80,6 +80,14 @@
             width="150"
             align="center"
             prop="cexSellPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
+            label="Dex买入价差"
+            width="150"
+            align="center"
+            prop="dexBuyDiffPrice"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
@@ -104,6 +112,14 @@
             width="150"
             align="center"
             prop="cexBuyPrice"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
+          />
+          <el-table-column
+            label="Dex卖出价差"
+            width="150"
+            align="center"
+            prop="dexSellDiffPrice"
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
