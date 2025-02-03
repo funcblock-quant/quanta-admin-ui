@@ -69,21 +69,6 @@
       <div v-else>
         <el-card class="box-card">
           <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px" class="query-form">
-            <el-form-item label="User Id" prop="status">
-              <el-select
-                v-model="queryParams.createBy"
-                placeholder="请选择用户Id"
-                clearable
-                size="small"
-              >
-                <el-option
-                  v-for="user in uniqueUserIdList"
-                  :key="user.userId"
-                  :label="user.username"
-                  :value="user.userId"
-                />
-              </el-select>
-            </el-form-item>
             <el-form-item label="API Key" prop="status">
               <el-select
                 v-model="queryParams.apiConfig"
@@ -144,12 +129,8 @@
         <el-card v-for="item in busPriceTriggerStrategyInstanceList" :key="item.id" class="box-card">
           <div class="main-data">
             <div class="data-item">
-              <span class="label">User Id：</span>
-              <span class="value">{{ item.userInfo.userId }}</span>
-            </div>
-            <div class="data-item">
-              <span class="label">User Name：</span>
-              <span class="value">{{ item.userInfo.username }}</span>
+              <span class="label">Exchange User Id：</span>
+              <span class="value">{{ item.exchangeUserId }}</span>
             </div>
             <div class="data-item full-width">
               <span class="label">API Key：</span>
@@ -252,8 +233,8 @@
         </el-card>
 
         <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-dialog :title="title" :visible.sync="open" width="600px">
+          <el-form ref="form" :model="form" :rules="rules" label-width="150px">
             <el-form-item label="交易币种" prop="symbol">
               <el-select
                 v-model="form.symbol"
@@ -317,6 +298,12 @@
                   :value="apikey.id"
                 />
               </el-select>
+            </el-form-item>
+            <el-form-item label="Exchange User Id" prop="exchangeUserId">
+              <el-input
+                v-model="form.exchangeUserId"
+                placeholder="交易所userId"
+              />
             </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
@@ -394,7 +381,7 @@
 <script>
 import {
   addBusPriceTriggerStrategyInstance,
-  getBusPriceTriggerStrategyInstance, getTriggerUserList,
+  getBusPriceTriggerStrategyInstance,
   listBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance,
   updateBusPriceTriggerStrategyInstance
@@ -464,7 +451,8 @@ export default {
         status: 'started',
         apiConfig: '',
         idOrder: 'desc',
-        createBy: ''
+        createBy: '',
+        exchangeUserId: ''
 
       },
       // 联通性测试
@@ -490,11 +478,6 @@ export default {
         exchange: undefined
       },
       apiKeyList: [],
-      uniqueUserIdList: {
-        userId: undefined,
-        username: undefined,
-        nickname: undefined
-      },
       showBindForm: false,
       showApiKeyList: false
     }
@@ -531,7 +514,6 @@ export default {
     // this.getList()
     this.getBindApiKey()
     this.getUserRole()
-    this.getUserIds()
   },
   beforeDestroy() {
     console.log('beforeDestroy')
@@ -553,12 +535,6 @@ export default {
       getInfo().then(response => {
         this.roleKey = response.data.roles[0]
         console.log('user role:', this.roleKey)
-      })
-    },
-    getUserIds() {
-      this.role = ''
-      getTriggerUserList().then(response => {
-        this.uniqueUserIdList = response.data
       })
     },
     /** 获取用户绑定的apikey列表,只在刚进页面的时候使用*/
