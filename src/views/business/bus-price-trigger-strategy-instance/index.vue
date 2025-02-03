@@ -77,10 +77,10 @@
                 size="small"
               >
                 <el-option
-                  v-for="userId in uniqueUserIdList"
-                  :key="userId"
-                  :label="userId"
-                  :value="userId"
+                  v-for="user in uniqueUserIdList"
+                  :key="user.userId"
+                  :label="user.username"
+                  :value="user.userId"
                 />
               </el-select>
             </el-form-item>
@@ -146,6 +146,10 @@
             <div class="data-item">
               <span class="label">User Id：</span>
               <span class="value">{{ item.userInfo.userId }}</span>
+            </div>
+            <div class="data-item">
+              <span class="label">User Name：</span>
+              <span class="value">{{ item.userInfo.username }}</span>
             </div>
             <div class="data-item full-width">
               <span class="label">API Key：</span>
@@ -390,7 +394,7 @@
 <script>
 import {
   addBusPriceTriggerStrategyInstance,
-  getBusPriceTriggerStrategyInstance,
+  getBusPriceTriggerStrategyInstance, getTriggerUserList,
   listBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance,
   updateBusPriceTriggerStrategyInstance
@@ -486,7 +490,11 @@ export default {
         exchange: undefined
       },
       apiKeyList: [],
-      uniqueUserIdList: [],
+      uniqueUserIdList: {
+        userId: undefined,
+        username: undefined,
+        nickname: undefined
+      },
       showBindForm: false,
       showApiKeyList: false
     }
@@ -523,6 +531,7 @@ export default {
     // this.getList()
     this.getBindApiKey()
     this.getUserRole()
+    this.getUserIds()
   },
   beforeDestroy() {
     console.log('beforeDestroy')
@@ -546,6 +555,12 @@ export default {
         console.log('user role:', this.roleKey)
       })
     },
+    getUserIds() {
+      this.role = ''
+      getTriggerUserList().then(response => {
+        this.uniqueUserIdList = response.data
+      })
+    },
     /** 获取用户绑定的apikey列表,只在刚进页面的时候使用*/
     getBindApiKey() {
       const queryApiKeyParams = {
@@ -558,8 +573,6 @@ export default {
         if (this.total > 0) {
           this.apiKeyBound = true
           this.apiKeyList = response.data.list
-          const uniqueUserIds = new Set(response.data.list.map(item => item.userId))
-          this.uniqueUserIdList = Array.from(uniqueUserIds)
           this.getList()
           this.timers['listKey'] = setInterval(() => {
             this.getList()

@@ -52,3 +52,10 @@ export function stopBusPriceTriggerStrategyInstance(data) {
     data: data
   })
 }
+
+export function getTriggerUserList() {
+  return request({
+    url: '/api/v1/getTriggerUserList',
+    method: 'get'
+  })
+}
