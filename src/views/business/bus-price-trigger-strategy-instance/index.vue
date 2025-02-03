@@ -69,6 +69,21 @@
       <div v-else>
         <el-card class="box-card">
           <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="80px" class="query-form">
+            <el-form-item label="User Id" prop="status">
+              <el-select
+                v-model="queryParams.createBy"
+                placeholder="请选择用户Id"
+                clearable
+                size="small"
+              >
+                <el-option
+                  v-for="userId in uniqueUserIdList"
+                  :key="userId"
+                  :label="userId"
+                  :value="userId"
+                />
+              </el-select>
+            </el-form-item>
             <el-form-item label="API Key" prop="status">
               <el-select
                 v-model="queryParams.apiConfig"
@@ -129,6 +144,14 @@
         <el-card v-for="item in busPriceTriggerStrategyInstanceList" :key="item.id" class="box-card">
           <div class="main-data">
             <div class="data-item">
+              <span class="label">User Id：</span>
+              <span class="value">{{ item.userInfo.userId }}</span>
+            </div>
+            <div class="data-item full-width">
+              <span class="label">API Key：</span>
+              <span class="value">{{ item.apiConfigData.accountName }}</span>
+            </div>
+            <div class="data-item">
               <span class="label">交易币种：</span>
               <span class="value">{{ item.symbol }}</span>
             </div>
@@ -155,10 +178,6 @@
             <div class="data-item">
               <span class="label">状态：</span>
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
-            </div>
-            <div class="data-item full-width">
-              <span class="label">API Key：</span>
-              <span class="value">{{ item.apiConfigData.accountName }}</span>
             </div>
             <div class="data-item full-width">
               <span class="label">总下单次数：</span>
@@ -440,7 +459,8 @@ export default {
         closeTime: undefined,
         status: 'started',
         apiConfig: '',
-        idOrder: 'desc'
+        idOrder: 'desc',
+        createBy: ''
 
       },
       // 联通性测试
@@ -466,6 +486,7 @@ export default {
         exchange: undefined
       },
       apiKeyList: [],
+      uniqueUserIdList: [],
       showBindForm: false,
       showApiKeyList: false
     }
@@ -537,6 +558,8 @@ export default {
         if (this.total > 0) {
           this.apiKeyBound = true
           this.apiKeyList = response.data.list
+          const uniqueUserIds = new Set(response.data.list.map(item => item.userId))
+          this.uniqueUserIdList = Array.from(uniqueUserIds)
           this.getList()
           this.timers['listKey'] = setInterval(() => {
             this.getList()
