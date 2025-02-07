@@ -7,7 +7,7 @@
           <el-form-item label="交易对" prop="symbols">
             <el-select
               v-model="queryParams.symbol"
-              placeholder="请选择交易对(多选)"
+              placeholder="请选择交易对"
               clearable
               size="small"
               style="width: 400px;"
@@ -43,9 +43,14 @@
             label="BaseToken"
             width="100"
             align="center"
-            prop="baseToken"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template slot-scope="scope">
+              <router-link :to="{name:'BusDexCexMonitorDetail', params: {observerId: scope.row.observerId}}" class="link-type">
+                <span>{{ scope.row.baseToken }}</span>
+              </router-link>
+            </template>
+          </el-table-column>
           <el-table-column
             label="QuoteToken"
             width="100"
