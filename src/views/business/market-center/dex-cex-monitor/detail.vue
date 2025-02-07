@@ -107,7 +107,7 @@ export default {
         this.chart = echarts.init(chartElement)
         this.getChart(this.observerId)
       }
-    }, 100) // 延迟100毫秒再进行初始化
+    }, 1000) // 延迟100毫秒再进行初始化
   },
   beforeDestroy() {
     this.clearTimer() // 组件销毁前清除定时器
