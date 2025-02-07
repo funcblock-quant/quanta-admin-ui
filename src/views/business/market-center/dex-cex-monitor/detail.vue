@@ -27,15 +27,15 @@
 
       <el-card>
         <el-descriptions v-loading="loading" title="实时价差信息" column="4">
-          <el-descriptions-item label="Dex Buy Price">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Cex Sell Price">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex买入价差">{{ formatProfit(busDexCexTriangularObserver.dexBuyDiffPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex Buy Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfBuyOnDex) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex Buy Price">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Cex Sell Price">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex买入价差">{{ formatProfit(busDexCexTriangularObserver.dexBuyDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex Buy Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfBuyOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
 
-          <el-descriptions-item label="Dex Sell Price">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Cex Buy Price">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex卖出价差">{{ formatProfit(busDexCexTriangularObserver.dexSellDiffPrice) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex Sell Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfSellOnDex) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex Sell Price">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Cex Buy Price">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex卖出价差">{{ formatProfit(busDexCexTriangularObserver.dexSellDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex Sell Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfSellOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
       <el-card class="box-card">
@@ -122,6 +122,7 @@ export default {
       getBusDexCexTriangularObserver(id).then(response => {
         if (response.code === 200) { // 检查响应状态码
           this.busDexCexTriangularObserver = response.data
+          this.observerId = response.data.observerId
           console.log('this.busDexCexTriangularObserver', this.busDexCexTriangularObserver)
           this.total = response.data.count
         } else {
@@ -328,12 +329,12 @@ export default {
       const slippage = Number(cellValue) / 100
       return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
     },
-    formatProfit(row, column, cellValue, index) {
+    formatProfit(cellValue, quoteToken) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
         return '' // 或者其他默认值，例如 0
       }
       const slippage = Number(cellValue)
-      return slippage.toFixed(6).toString() + ' ' + row.quoteToken // 保留四位小数，根据需要调整
+      return slippage.toFixed(6).toString() + ' ' + quoteToken // 保留四位小数，根据需要调整
     }
   }
 }
