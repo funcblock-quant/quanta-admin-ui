@@ -90,8 +90,9 @@ export default {
   },
   created() {
     const observerId = this.$route.params && this.$route.params.observerId
+    const id = this.$route.params && this.$route.params.id
     this.observerId = observerId
-    this.getObserverDetail(observerId)
+    this.getObserverDetail(id)
     this.startTimer()
   },
   mounted() {
