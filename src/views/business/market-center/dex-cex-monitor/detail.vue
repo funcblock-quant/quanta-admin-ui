@@ -85,13 +85,15 @@ export default {
       ],
       chart: null,
       chartData: {},
-      observerId: ''
+      observerId: '',
+      id: undefined // 详情id
     }
   },
   created() {
     const observerId = this.$route.params && this.$route.params.observerId
     const id = this.$route.params && this.$route.params.id
     this.observerId = observerId
+    this.id = id
     this.getObserverDetail(id)
     this.startTimer()
   },
@@ -103,7 +105,7 @@ export default {
       const chartElement = document.getElementById('chart')
       if (chartElement) {
         this.chart = echarts.init(chartElement)
-        this.getChart(this.observerId)
+        this.getChart(this.id)
       }
     }, 100) // 延迟100毫秒再进行初始化
   },
@@ -115,9 +117,9 @@ export default {
 
   methods: {
     /** 查询参数列表 */
-    getObserverDetail(observerId) {
+    getObserverDetail(id) {
       this.loading = true
-      getBusDexCexTriangularObserver(observerId).then(response => {
+      getBusDexCexTriangularObserver(id).then(response => {
         if (response.code === 200) { // 检查响应状态码
           this.busDexCexTriangularObserver = response.data
           console.log('this.busDexCexTriangularObserver', this.busDexCexTriangularObserver)
@@ -277,7 +279,7 @@ export default {
         clearInterval(this.timer) // 如果定时器已存在，先清除
       }
       this.timer = setInterval(() => {
-        this.getObserverDetail(this.observerId)
+        this.getObserverDetail(this.id)
       }, 5000) // 每 5 秒刷新一次
     },
     clearTimer() {
