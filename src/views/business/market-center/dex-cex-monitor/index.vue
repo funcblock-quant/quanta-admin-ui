@@ -46,7 +46,7 @@
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              <router-link :to="{name:'BusDexCexMonitorDetail', params: {observerId: scope.row.observerId}}" class="link-type">
+              <router-link :to="{name:'BusDexCexMonitorDetail', params: {id:scope.row.id, observerId: scope.row.observerId}}" class="link-type">
                 <span>{{ scope.row.baseToken }}</span>
               </router-link>
             </template>
