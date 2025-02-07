@@ -228,7 +228,7 @@
                   </div>
                   <div v-else class="error-message">
                     <span style="color: #457940; font-weight: bold;">[{{ detail.formattedCreatedAt }}]: </span>
-                    <span><span style="font-weight: bold;"> 交易所ID: </span> {{ detail.orderId }}</span>
+                    <span><span style="font-weight: bold;"> 交易所订单ID: </span> {{ detail.orderId }}</span>
                     <span><span style="font-weight: bold;"> 发生异常: </span> {{ detail.errMsg }}</span>
                   </div>
                 </div>
