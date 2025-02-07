@@ -216,7 +216,7 @@
               </div>
               <div v-else ref="detailLog" class="detail-log">
                 <div v-for="(detail, index) in displayedDetails(item.details)" :key="index" class="log-item">
-                  <div class="detail-line">
+                  <div v-if="!detail.errMsg" class="detail-line">
                     <span style="color: #457940; font-weight: bold;">[{{ detail.formattedCreatedAt }}]: </span>
                     <span> 交易所: <span style="font-weight: bold;">{{ detail.exchangeName }}</span></span>
                     <span> 成交一笔 <span style="font-weight: bold;">{{ detail.symbol }}</span> <span style="font-weight: bold;">  价格:</span>${{ detail.originPrice }}  <span style="font-weight: bold;">  数量:</span> {{ detail.originQty }} </span>
@@ -225,6 +225,11 @@
                     <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
                     <span><span style="font-weight: bold;"> 状态:</span> {{ detail.status }}</span>
                     <span><span style="font-weight: bold;"> pnl: </span> {{ detail.pnl }}</span>
+                  </div>
+                  <div v-else class="error-message">
+                    <span style="color: #457940; font-weight: bold;">[{{ detail.formattedCreatedAt }}]: </span>
+                    <span><span style="font-weight: bold;"> 交易所ID: </span> {{ detail.orderId }}</span>
+                    <span><span style="font-weight: bold;"> 发生异常: </span> {{ detail.errMsg }}</span>
                   </div>
                 </div>
               </div>
@@ -492,7 +497,7 @@ export default {
           if (typeof detail !== 'object' || detail === null) {
             return ''
           }
-          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status } = detail
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status, errMsg, orderId } = detail
           return {
             formattedCreatedAt: this.formatUTCTime(createdAt),
             exchangeName: exchangeName ? exchangeName.trim() : '',
@@ -504,7 +509,9 @@ export default {
             formattedSide: this.formatSide(side),
             formattedRole: this.formatRole(role),
             pnl,
-            status
+            status,
+            errMsg,
+            orderId
           }
         })
       }
@@ -1035,5 +1042,9 @@ export default {
 .full-width {
   flex-basis: 800%; /* 或 width: 100%; 占据一行 */
   min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
+}
+.error-message {
+  color: red;
+  font-weight: bold;
 }
 </style>
