@@ -105,7 +105,7 @@ export default {
       const chartElement = document.getElementById('chart')
       if (chartElement) {
         this.chart = echarts.init(chartElement)
-        this.getChart(this.id)
+        this.getChart(this.observerId)
       }
     }, 100) // 延迟100毫秒再进行初始化
   },
