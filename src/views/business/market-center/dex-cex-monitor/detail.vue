@@ -77,15 +77,141 @@ export default {
       // 关系表类型
       busDexCexTriangularObserver: undefined,
 
-      exchangeType: [
-        { key: 'Binance', value: 'Binance' },
-        { key: 'OKX', value: 'OKX' },
-        { key: 'GateIO', value: 'GateIO' }
-      ],
-      dexTypeList: [
-        { key: 'RAY_AMM', label: 'RAY_AMM' },
-        { key: 'RAY_CLMM', label: 'RAY_CLMM' }
-      ],
+      chartDataDemo: {
+        cexBuyPriceChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '21'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '20'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '22'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '21.212'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '20.121'
+          }
+        ],
+        cexSellPriceChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '21'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '20'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '22'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '21.212'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '20.121'
+          }
+        ],
+        dexBuyPriceChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '21'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '20'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '22'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '21.212'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '20.121'
+          }
+        ],
+        dexSellPriceChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '21'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '20'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '22'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '21.212'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '20.121'
+          }
+        ],
+        dexSellPriceSpreadChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '-0.21'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '-0.31'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '-0.23'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '-0.21'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '-0.21'
+          }
+        ],
+        dexBuyPriceSpreadChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: '2.12'
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: '2.22'
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: '1.9772'
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: '2.128'
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: '3.121'
+          }
+        ]
+      },
+
       chart: null,
       chart2: null,
       chartData: {},
@@ -146,16 +272,22 @@ export default {
       const chartRequest = {
         observerId: observerId
       }
-      getDexCexHistoryChart(chartRequest).then(response => {
-        if (response.code === 200) {
-          this.processData(response.data)
-          this.updateChart()
-          this.loading = false
-        } else {
-          this.msgError(response.msg)
-          this.loading = false
-        }
-      })
+      console.log('node_env', process.env.NODE_ENV)
+      if (process.env.NODE_ENV === 'development') {
+        this.processData(this.chartDataDemo)
+        this.updateChart()
+      } else {
+        getDexCexHistoryChart(chartRequest).then(response => {
+          if (response.code === 200) {
+            this.processData(response.data)
+            this.updateChart()
+            this.loading = false
+          } else {
+            this.msgError(response.msg)
+            this.loading = false
+          }
+        })
+      }
     },
 
     // 解析后端数据
@@ -179,11 +311,18 @@ export default {
       return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
     },
 
-    getPriceSpreadYAxisRange(values) {
+    getPriceSpreadYAxisRange(values, baseRange) {
       if (values.length === 0) return { min: 0, max: 1 }
+
       const min = Math.min(...values)
       const max = Math.max(...values)
-      return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
+
+      // 根据基准范围调整当前范围
+      const range = baseRange.max - baseRange.min
+      const adjustedMin = Math.floor(min - (range * 0.05))
+      const adjustedMax = Math.ceil(max + (range * 0.05))
+
+      return { min: adjustedMin, max: adjustedMax }
     },
 
     formatXAxis(timestamp) {
@@ -196,7 +335,7 @@ export default {
     },
     updateChart() {
       const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread])
+      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread], dexBuyPriceRange)
 
       const option = {
         title: {
@@ -250,7 +389,7 @@ export default {
       }
 
       const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
-      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread])
+      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread], dexSellPriceRange)
 
       const option2 = {
         title: {
@@ -268,8 +407,8 @@ export default {
           data: this.chartData.xAxis
         },
         yAxis: [
-          { type: 'value', name: '价格', min: dexSellPriceRange.min, max: dexSellPriceRange.max },
-          { type: 'value', name: '价差', min: dexSellPriceSpreadRange.min, max: dexSellPriceSpreadRange.max }
+          { type: 'value', name: '价格', min: dexSellPriceRange.min, max: dexSellPriceRange.max, alignTicks: true },
+          { type: 'value', name: '价差', min: dexSellPriceSpreadRange.min, max: dexSellPriceSpreadRange.max, alignTicks: true }
         ],
         series: [
           {
