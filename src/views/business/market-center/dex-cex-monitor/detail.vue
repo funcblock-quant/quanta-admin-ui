@@ -180,16 +180,10 @@ export default {
     },
 
     getPriceSpreadYAxisRange(values) {
-      if (values.length === 0) return { min: -1, max: 1 }
-
+      if (values.length === 0) return { min: 0, max: 1 }
       const min = Math.min(...values)
       const max = Math.max(...values)
-
-      // 取 min 和 max 的绝对值中较大的一个
-      const absMax = Math.max(Math.abs(min), Math.abs(max))
-
-      // 以 0 为中心，向两侧扩展
-      return { min: -Math.ceil(absMax * 1.05), max: Math.ceil(absMax * 1.05) }
+      return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
     },
 
     formatXAxis(timestamp) {
