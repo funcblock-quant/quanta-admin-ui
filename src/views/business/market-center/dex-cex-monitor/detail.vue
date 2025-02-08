@@ -353,8 +353,30 @@ export default {
           data: this.chartData.xAxis
         },
         yAxis: [
-          { type: 'value', name: '价格', min: dexBuyPriceRange.min, max: dexBuyPriceRange.max, alignTicks: true },
-          { type: 'value', name: '价差', min: dexBuyPriceSpreadRange.min, max: dexBuyPriceSpreadRange.max, alignTicks: true }
+          {
+            type: 'value',
+            name: '价格',
+            min: dexBuyPriceRange.min,
+            max: dexBuyPriceRange.max,
+            alignTicks: true,
+            axisLabel: {
+              formatter: function(value) {
+                return value.toFixed(4) // 保留4位小数
+              }
+            }
+          },
+          {
+            type: 'value',
+            name: '价差',
+            min: dexBuyPriceSpreadRange.min,
+            max: dexBuyPriceSpreadRange.max,
+            alignTicks: true,
+            axisLabel: {
+              formatter: function(value) {
+                return value.toFixed(6) // 保留6位小数
+              }
+            }
+          }
         ],
         series: [
           {
