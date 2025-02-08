@@ -39,7 +39,10 @@
         </el-descriptions>
       </el-card>
       <el-card v-loading="loading" class="box-card">
-        <div id="chart" style="width: 600px; height: 400px;" />
+        <div class="chart-grid">
+          <div id="chart" class="chart-box" />
+          <div id="chart2" class="chart-box" />
+        </div>
       </el-card>
     </template>
   </BasicLayout>
@@ -84,6 +87,7 @@ export default {
         { key: 'RAY_CLMM', label: 'RAY_CLMM' }
       ],
       chart: null,
+      chart2: null,
       chartData: {},
       observerId: '',
       id: undefined // 详情id
@@ -103,8 +107,10 @@ export default {
     // 延迟初始化
     setTimeout(() => {
       const chartElement = document.getElementById('chart')
+      const chart2Element = document.getElementById('chart2')
       if (chartElement) {
         this.chart = echarts.init(chartElement)
+        this.chart2 = echarts.init(chart2Element)
         this.getChart(this.observerId)
       }
     }, 500) // 延迟500毫秒再进行初始化
@@ -174,10 +180,16 @@ export default {
     },
 
     getPriceSpreadYAxisRange(values) {
-      if (values.length === 0) return { min: 0, max: 1 }
+      if (values.length === 0) return { min: -1, max: 1 }
+
       const min = Math.min(...values)
       const max = Math.max(...values)
-      return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
+
+      // 取 min 和 max 的绝对值中较大的一个
+      const absMax = Math.max(Math.abs(min), Math.abs(max))
+
+      // 以 0 为中心，向两侧扩展
+      return { min: -Math.ceil(absMax * 1.05), max: Math.ceil(absMax * 1.05) }
     },
 
     formatXAxis(timestamp) {
@@ -189,13 +201,13 @@ export default {
       return `${hours}:${minutes}`
     },
     updateChart() {
-      const priceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const priceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread])
+      const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
+      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread])
 
       const option = {
         title: {
           text: 'Dex买入价格走势与价差变化',
-          left: 'left',
+          left: 'center',
           textStyle: { fontSize: 16, fontWeight: 'bold' }
         },
         tooltip: { trigger: 'axis' },
@@ -208,8 +220,8 @@ export default {
           data: this.chartData.xAxis
         },
         yAxis: [
-          { type: 'value', name: '价格', min: priceRange.min, max: priceRange.max },
-          { type: 'value', name: '价差', min: priceSpreadRange.min, max: priceSpreadRange.max }
+          { type: 'value', name: '价格', min: dexBuyPriceRange.min, max: dexBuyPriceRange.max },
+          { type: 'value', name: '价差', min: dexBuyPriceSpreadRange.min, max: dexBuyPriceSpreadRange.max }
         ],
         series: [
           {
@@ -243,51 +255,62 @@ export default {
         grid: { left: '10%', right: '10%', containLabel: true } // 让左右 Y 轴对齐
       }
 
-      // const option2 = {
-      //   title: {
-      //     text: 'Dex卖出价格走势与价差变化',
-      //     left: 'left',
-      //     textStyle: { fontSize: 16, fontWeight: 'bold' }
-      //   },
-      //   tooltip: { trigger: 'axis' },
-      //   legend: {
-      //     bottom: 0,
-      //     data: ['DEX卖出价格', 'CEX买入价格', '价差']
-      //   },
-      //   xAxis: {
-      //     type: 'category',
-      //     data: this.chartData.xAxis
-      //   },
-      //   yAxis: [
-      //     { type: 'value', name: '价格', min: priceRange.min, max: priceRange.max },
-      //     { type: 'value', name: '价差', min: priceSpreadRange.min, max: priceSpreadRange.max }
-      //   ],
-      //   series: [
-      //     {
-      //       name: 'DEX卖出价格',
-      //       type: 'line',
-      //       yAxisIndex: 0,
-      //       data: this.chartData.dexSellPrices,
-      //       itemStyle: { color: '#8884d8' }
-      //     },
-      //     {
-      //       name: 'CEX买入价格',
-      //       type: 'line',
-      //       yAxisIndex: 0,
-      //       data: this.chartData.cexBuyPrices,
-      //       itemStyle: { color: '#82ca9d' }
-      //     },
-      //     {
-      //       name: '价差',
-      //       type: 'line',
-      //       yAxisIndex: 1,
-      //       data: this.chartData.dexSellSpread,
-      //       itemStyle: { color: '#ff8042' }
-      //     }
-      //   ]
-      // }
+      const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
+      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread])
+
+      const option2 = {
+        title: {
+          text: 'Dex卖出价格走势与价差变化',
+          left: 'center',
+          textStyle: { fontSize: 16, fontWeight: 'bold' }
+        },
+        tooltip: { trigger: 'axis' },
+        legend: {
+          bottom: 0,
+          data: ['DEX卖出价格', 'CEX买入价格', '价差']
+        },
+        xAxis: {
+          type: 'category',
+          data: this.chartData.xAxis
+        },
+        yAxis: [
+          { type: 'value', name: '价格', min: dexSellPriceRange.min, max: dexSellPriceRange.max },
+          { type: 'value', name: '价差', min: dexSellPriceSpreadRange.min, max: dexSellPriceSpreadRange.max }
+        ],
+        series: [
+          {
+            name: 'DEX卖出价格',
+            type: 'line',
+            yAxisIndex: 0,
+            data: this.chartData.dexSellPrices,
+            itemStyle: { color: '#8884d8' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
+          },
+          {
+            name: 'CEX买入价格',
+            type: 'line',
+            yAxisIndex: 0,
+            data: this.chartData.cexBuyPrices,
+            itemStyle: { color: '#82ca9d' },
+            smooth: true,
+            symbol: 'none' // 去掉数据点
+          },
+          {
+            name: '价差',
+            type: 'line',
+            yAxisIndex: 1,
+            data: this.chartData.dexSellSpread,
+            itemStyle: { color: '#ff8042' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
+          }
+        ],
+        grid: { left: '10%', right: '10%', containLabel: true } // 让左右 Y 轴对齐
+      }
 
       this.chart.setOption(option)
+      this.chart2.setOption(option2)
     },
     startTimer() {
       if (this.timer) {
@@ -385,5 +408,14 @@ export default {
 .table-container th,
 .table-container td {
   text-align: center; /* 设置文字居中 */
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 让两个 chart 各占 50% */
+  gap: 20px; /* 中间留 20px 空隙 */
+  width: 100%;
+}
+.chart-box {
+  height: 400px;
 }
 </style>
