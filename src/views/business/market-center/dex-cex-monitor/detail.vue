@@ -27,19 +27,22 @@
 
       <el-card>
         <el-descriptions v-loading="loading" title="实时价差信息" column="4">
-          <el-descriptions-item label="Dex Buy Price">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
-          <el-descriptions-item label="Cex Sell Price">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex买入价格">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Cex卖出价格">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex买入价差">{{ formatProfit(busDexCexTriangularObserver.dexBuyDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex Buy Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfBuyOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex买入价差持续时间">{{ formatDuration(busDexCexTriangularObserver.dexBuyDiffDuration) }}</el-descriptions-item>
 
-          <el-descriptions-item label="Dex Sell Price">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
-          <el-descriptions-item label="Cex Buy Price">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex卖出价格">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Cex买入价格">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex卖出价差">{{ formatProfit(busDexCexTriangularObserver.dexSellDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
-          <el-descriptions-item label="Dex Sell Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfSellOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="Dex卖出价差持续时间">{{ formatDuration(busDexCexTriangularObserver.dexSellDiffDuration) }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
-      <el-card class="box-card">
-        <div id="chart" style="width: 600px; height: 400px;" />
+      <el-card v-loading="loading" class="box-card">
+        <div class="chart-grid">
+          <div id="chart" class="chart-box" />
+          <div id="chart2" class="chart-box" />
+        </div>
       </el-card>
     </template>
   </BasicLayout>
@@ -84,6 +87,7 @@ export default {
         { key: 'RAY_CLMM', label: 'RAY_CLMM' }
       ],
       chart: null,
+      chart2: null,
       chartData: {},
       observerId: '',
       id: undefined // 详情id
@@ -103,11 +107,13 @@ export default {
     // 延迟初始化
     setTimeout(() => {
       const chartElement = document.getElementById('chart')
+      const chart2Element = document.getElementById('chart2')
       if (chartElement) {
         this.chart = echarts.init(chartElement)
+        this.chart2 = echarts.init(chart2Element)
         this.getChart(this.observerId)
       }
-    }, 1000) // 延迟100毫秒再进行初始化
+    }, 500) // 延迟500毫秒再进行初始化
   },
   beforeDestroy() {
     this.clearTimer() // 组件销毁前清除定时器
@@ -166,11 +172,24 @@ export default {
       console.log('this.chartData', this.chartData)
     },
 
-    getYAxisRange(values) {
+    getPriceYAxisRange(values) {
       if (values.length === 0) return { min: 0, max: 1 }
       const min = Math.min(...values)
       const max = Math.max(...values)
       return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
+    },
+
+    getPriceSpreadYAxisRange(values) {
+      if (values.length === 0) return { min: -1, max: 1 }
+
+      const min = Math.min(...values)
+      const max = Math.max(...values)
+
+      // 取 min 和 max 的绝对值中较大的一个
+      const absMax = Math.max(Math.abs(min), Math.abs(max))
+
+      // 以 0 为中心，向两侧扩展
+      return { min: -Math.ceil(absMax * 1.05), max: Math.ceil(absMax * 1.05) }
     },
 
     formatXAxis(timestamp) {
@@ -182,13 +201,13 @@ export default {
       return `${hours}:${minutes}`
     },
     updateChart() {
-      const priceRange = this.getYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const priceSpreadRange = this.getYAxisRange([...this.chartData.dexBuySpread])
+      const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
+      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread])
 
       const option = {
         title: {
           text: 'Dex买入价格走势与价差变化',
-          left: 'left',
+          left: 'center',
           textStyle: { fontSize: 16, fontWeight: 'bold' }
         },
         tooltip: { trigger: 'axis' },
@@ -201,8 +220,8 @@ export default {
           data: this.chartData.xAxis
         },
         yAxis: [
-          { type: 'value', name: '价格', min: priceRange.min, max: priceRange.max },
-          { type: 'value', name: '价差', min: priceSpreadRange.min, max: priceSpreadRange.max }
+          { type: 'value', name: '价格', min: dexBuyPriceRange.min, max: dexBuyPriceRange.max },
+          { type: 'value', name: '价差', min: dexBuyPriceSpreadRange.min, max: dexBuyPriceSpreadRange.max }
         ],
         series: [
           {
@@ -210,70 +229,88 @@ export default {
             type: 'line',
             yAxisIndex: 0,
             data: this.chartData.dexBuyPrices,
-            itemStyle: { color: '#8884d8' }
+            itemStyle: { color: '#8884d8' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
           },
           {
             name: 'CEX卖出价格',
             type: 'line',
             yAxisIndex: 0,
             data: this.chartData.cexSellPrices,
-            itemStyle: { color: '#82ca9d' }
+            itemStyle: { color: '#82ca9d' },
+            smooth: true,
+            symbol: 'none' // 去掉数据点
           },
           {
             name: '价差',
             type: 'line',
             yAxisIndex: 1,
             data: this.chartData.dexBuySpread,
-            itemStyle: { color: '#ff8042' }
+            itemStyle: { color: '#ff8042' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
           }
-        ]
+        ],
+        grid: { left: '10%', right: '10%', containLabel: true } // 让左右 Y 轴对齐
       }
 
-      // const option2 = {
-      //   title: {
-      //     text: 'Dex卖出价格走势与价差变化',
-      //     left: 'left',
-      //     textStyle: { fontSize: 16, fontWeight: 'bold' }
-      //   },
-      //   tooltip: { trigger: 'axis' },
-      //   legend: {
-      //     bottom: 0,
-      //     data: ['DEX卖出价格', 'CEX买入价格', '价差']
-      //   },
-      //   xAxis: {
-      //     type: 'category',
-      //     data: this.chartData.xAxis
-      //   },
-      //   yAxis: [
-      //     { type: 'value', name: '价格', min: priceRange.min, max: priceRange.max },
-      //     { type: 'value', name: '价差', min: priceSpreadRange.min, max: priceSpreadRange.max }
-      //   ],
-      //   series: [
-      //     {
-      //       name: 'DEX卖出价格',
-      //       type: 'line',
-      //       yAxisIndex: 0,
-      //       data: this.chartData.dexSellPrices,
-      //       itemStyle: { color: '#8884d8' }
-      //     },
-      //     {
-      //       name: 'CEX买入价格',
-      //       type: 'line',
-      //       yAxisIndex: 0,
-      //       data: this.chartData.cexBuyPrices,
-      //       itemStyle: { color: '#82ca9d' }
-      //     },
-      //     {
-      //       name: '价差',
-      //       type: 'line',
-      //       yAxisIndex: 1,
-      //       data: this.chartData.dexSellSpread,
-      //       itemStyle: { color: '#ff8042' }
-      //     }
-      //   ]
-      // }
+      const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
+      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread])
+
+      const option2 = {
+        title: {
+          text: 'Dex卖出价格走势与价差变化',
+          left: 'center',
+          textStyle: { fontSize: 16, fontWeight: 'bold' }
+        },
+        tooltip: { trigger: 'axis' },
+        legend: {
+          bottom: 0,
+          data: ['DEX卖出价格', 'CEX买入价格', '价差']
+        },
+        xAxis: {
+          type: 'category',
+          data: this.chartData.xAxis
+        },
+        yAxis: [
+          { type: 'value', name: '价格', min: dexSellPriceRange.min, max: dexSellPriceRange.max },
+          { type: 'value', name: '价差', min: dexSellPriceSpreadRange.min, max: dexSellPriceSpreadRange.max }
+        ],
+        series: [
+          {
+            name: 'DEX卖出价格',
+            type: 'line',
+            yAxisIndex: 0,
+            data: this.chartData.dexSellPrices,
+            itemStyle: { color: '#8884d8' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
+          },
+          {
+            name: 'CEX买入价格',
+            type: 'line',
+            yAxisIndex: 0,
+            data: this.chartData.cexBuyPrices,
+            itemStyle: { color: '#82ca9d' },
+            smooth: true,
+            symbol: 'none' // 去掉数据点
+          },
+          {
+            name: '价差',
+            type: 'line',
+            yAxisIndex: 1,
+            data: this.chartData.dexSellSpread,
+            itemStyle: { color: '#ff8042' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
+          }
+        ],
+        grid: { left: '10%', right: '10%', containLabel: true } // 让左右 Y 轴对齐
+      }
 
       this.chart.setOption(option)
+      this.chart2.setOption(option2)
     },
     startTimer() {
       if (this.timer) {
@@ -281,6 +318,7 @@ export default {
       }
       this.timer = setInterval(() => {
         this.getObserverDetail(this.id)
+        this.getChart(this.observerId)
       }, 5000) // 每 5 秒刷新一次
     },
     clearTimer() {
@@ -335,6 +373,27 @@ export default {
       }
       const slippage = Number(cellValue)
       return slippage.toFixed(6).toString() + ' ' + quoteToken // 保留四位小数，根据需要调整
+    },
+    formatDuration(cellValue) {
+      if (cellValue === null || cellValue === undefined || cellValue === '') {
+        return '-' // 或者其他默认值
+      }
+      const durationSeconds = Number(cellValue)
+      if (durationSeconds < 60) {
+        // 展示单位为s
+        return durationSeconds + 's'
+      } else if (durationSeconds < 3600) {
+        // 1分钟到1小时之间，转换为“xx分 xx秒”
+        const minutes = Math.floor(durationSeconds / 60)
+        const seconds = durationSeconds % 60
+        return `${minutes}m ${seconds}s`
+      } else {
+        // 1小时及以上，转换为“xx小时 xx分 xx秒”
+        const hours = Math.floor(durationSeconds / 3600)
+        const minutes = Math.floor((durationSeconds % 3600) / 60)
+        const seconds = durationSeconds % 60
+        return `${hours}h ${minutes}m ${seconds}s`
+      }
     }
   }
 }
@@ -349,5 +408,14 @@ export default {
 .table-container th,
 .table-container td {
   text-align: center; /* 设置文字居中 */
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 让两个 chart 各占 50% */
+  gap: 20px; /* 中间留 20px 空隙 */
+  width: 100%;
+}
+.chart-box {
+  height: 400px;
 }
 </style>
