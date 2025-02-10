@@ -60,6 +60,14 @@ export function batchStartBusStrategyInstance(params) {
   })
 }
 
+export function batchStopBusStrategyInstance(params) {
+  return request({
+    url: '/api/v1/batchStopStrategyInstance',
+    method: 'post',
+    data: params
+  })
+}
+
 // 停用BusStrategyInstance
 export function stopBusStrategyInstance(id) {
   return request({

@@ -50,11 +50,14 @@
           <el-button size="mini" @click="selectAll">全选</el-button>
           <el-button size="mini" @click="clearSelection">取消全选</el-button>
           <el-button
-            type="primary"
             size="mini"
             @click="startSelectedInstances"
           >批量启动</el-button>
-          <el-button size="mini" @click="toggleBulkMode">退出批量操作</el-button>
+          <el-button
+            size="mini"
+            @click="stopSelectedInstances"
+          >批量暂停</el-button>
+          <el-button type="primary" size="mini" @click="toggleBulkMode">退出批量操作</el-button>
         </el-row>
         <div class="card-container" @scroll="handleScroll">
           <el-row :gutter="50">
@@ -248,7 +251,7 @@
 
 <script>
 import {
-  addBusStrategyInstance, batchStartBusStrategyInstance,
+  addBusStrategyInstance, batchStartBusStrategyInstance, batchStopBusStrategyInstance,
   delBusStrategyInstance,
   getBusStrategyInstance,
   listBusStrategyInstance,
@@ -377,6 +380,15 @@ export default {
       console.log('启动实例：', this.selectedItems)
       this.batchSubmitStartForm()
       // 提交逻辑
+    },
+    stopSelectedInstances() {
+      if (this.selectedItems.length === 0) {
+        this.$message.warning('请选择要暂停的实例！')
+        return
+      }
+      // 批量暂停 API 请求
+      console.log('启动实例：', this.selectedItems)
+      this.batchSubmitStartForm()
     },
 
     handleYamlChange() {
@@ -1019,6 +1031,24 @@ export default {
       }
       console.log('batchStartParams', batchStartParams)
       batchStartBusStrategyInstance(batchStartParams).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.open = false
+          this.queryParams.pageIndex = 1
+          this.getList()
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+    /** 批量暂停策略实例 */
+    batchSubmitStopForm() {
+      console.log('selected items:', this.selectedItems)
+      const batchStopParams = {
+        ids: this.selectedItems.map(id => parseInt(id, 10))
+      }
+      console.log('batchStopParams', batchStopParams)
+      batchStopBusStrategyInstance(batchStopParams).then(response => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
           this.open = false

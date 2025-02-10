@@ -4,6 +4,7 @@
       v-model="editableTabsValue"
       type="card"
       closable
+      @tab-click="handleTabChange"
     >
       <el-tab-pane
         v-for="item in visitedViews"
@@ -21,7 +22,7 @@ export default {
   name: 'TagsView',
   data() {
     return {
-      editableTabsValue: '1'
+      editableTabsValue: this.$route.path
     }
   },
   computed: {
@@ -59,6 +60,10 @@ export default {
     isAffix(tag) {
       return tag.meta && tag.meta.affix
     },
+    handleTabChange(tab) {
+      this.editableTabsValue = tab.name // 触发子组件的 `activated` 生命周期
+    },
+
     filterAffixTags(routes, basePath = '/') {
       let tags = []
       routes.forEach(route => {

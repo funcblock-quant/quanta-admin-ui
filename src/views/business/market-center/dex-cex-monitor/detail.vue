@@ -211,7 +211,9 @@ export default {
           }
         ]
       },
-
+      isBrowserTabVisible: true, // 浏览器当前标签页是否可见
+      isTabVisible: true, // 网站内当前标签页是否可见
+      isWindowFocused: true, // 当前窗口是否聚焦
       chart: null,
       chart2: null,
       chartData: {},
@@ -228,6 +230,8 @@ export default {
     this.startTimer()
   },
   mounted() {
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', this.handleVisibilityChange)
     window.addEventListener('focus', this.handleFocus)
     window.addEventListener('blur', this.handleBlur)
     // 延迟初始化
@@ -243,10 +247,20 @@ export default {
   },
   beforeDestroy() {
     this.clearTimer() // 组件销毁前清除定时器
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange)
     window.removeEventListener('focus', this.handleFocus)
     window.removeEventListener('blur', this.handleBlur)
   },
-
+  activated() {
+    console.log('详情页 激活，启动定时器')
+    this.isTabVisible = true
+    this.toggleRefreshTask()
+  },
+  deactivated() {
+    console.log('详情页 失活，清除定时器')
+    this.isTabVisible = false
+    this.toggleRefreshTask()
+  },
   methods: {
     /** 查询参数列表 */
     getObserverDetail(id) {
@@ -302,6 +316,31 @@ export default {
 
       this.chartData = { xAxis, cexBuyPrices, cexSellPrices, dexBuyPrices, dexSellPrices, dexSellSpread, dexBuySpread }
       console.log('this.chartData', this.chartData)
+    },
+
+    // 处理页面可见性变化
+    handleVisibilityChange() {
+      console.log('页面可见性变化')
+      this.isBrowserTabVisible = document.visibilityState === 'visible'
+      this.toggleRefreshTask()
+    },
+    handleFocus() {
+      console.log('页面获取焦点')
+      this.isWindowFocused = true
+    },
+    handleBlur() {
+      console.log('页面失去焦点')
+      this.isWindowFocused = false
+    },
+    // 根据条件切换定时任务
+    toggleRefreshTask() {
+      if (this.isBrowserTabVisible && this.isTabVisible) {
+        // 如果页面在当前标签页且网站内tab也在该标签页且窗口聚焦，启动定时任务
+        this.startTimer()
+      } else {
+        // 否则停止定时任务
+        this.clearTimer()
+      }
     },
 
     getPriceYAxisRange(values) {
@@ -503,14 +542,6 @@ export default {
         clearInterval(this.timer)
         this.timer = null
       }
-    },
-    handleFocus() {
-      console.log('页面获取焦点')
-      this.startTimer()
-    },
-    handleBlur() {
-      console.log('页面失去焦点')
-      this.clearTimer()
     },
     // 取消按钮
     cancel() {
