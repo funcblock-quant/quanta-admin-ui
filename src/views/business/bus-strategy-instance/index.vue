@@ -388,7 +388,7 @@ export default {
       }
       // 批量暂停 API 请求
       console.log('启动实例：', this.selectedItems)
-      this.batchSubmitStartForm()
+      this.batchSubmitStopForm()
     },
 
     handleYamlChange() {
