@@ -243,6 +243,8 @@
             <el-form-item label="交易币种" prop="symbol">
               <el-select
                 v-model="form.symbol"
+                filterable
+                allow-create
                 placeholder="交易币种"
               >
                 <el-option
@@ -443,6 +445,7 @@ export default {
         { label: 'BTC/USDT', value: 'BTC/USDT' },
         { label: 'ETH/USDT', value: 'ETH/USDT' },
         { label: 'DOGE/USDT', value: 'DOGE/USDT' },
+        { label: 'CHEEMS/USDT', value: 'CHEEMS/USDT' },
         { label: 'BTC/USDC', value: 'BTC/USDC' },
         { label: 'ETH/USDC', value: 'ETH/USDC' },
         { label: 'DOGE/USDC', value: 'DOGE/USDC' }
