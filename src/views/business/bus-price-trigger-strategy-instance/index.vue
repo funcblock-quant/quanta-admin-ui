@@ -445,6 +445,7 @@ export default {
         { label: 'BTC/USDT', value: 'BTC/USDT' },
         { label: 'ETH/USDT', value: 'ETH/USDT' },
         { label: 'DOGE/USDT', value: 'DOGE/USDT' },
+        { label: '1000CHEEMS/USDT', value: '1000CHEEMS/USDT' },
         { label: 'BTC/USDC', value: 'BTC/USDC' },
         { label: 'ETH/USDC', value: 'ETH/USDC' },
         { label: 'DOGE/USDC', value: 'DOGE/USDC' }
