@@ -243,6 +243,8 @@
             <el-form-item label="交易币种" prop="symbol">
               <el-select
                 v-model="form.symbol"
+                filterable
+                allow-create
                 placeholder="交易币种"
               >
                 <el-option
