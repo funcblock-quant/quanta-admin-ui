@@ -262,6 +262,14 @@ export default {
       if (event.key === 'Backspace' && this.otp[index] === '' && index > 0) {
         this.$refs.inputs[index - 1].focus()
       }
+      if (event.key === 'Enter') {
+        this.checkAndSubmit()
+      }
+    },
+    checkAndSubmit() {
+      if (this.otp.join('').length === 6) {
+        this.handle2FAVerification()
+      }
     },
     handlePaste(event) {
       const pasteData = event.clipboardData.getData('text')
