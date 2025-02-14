@@ -22,7 +22,6 @@
             <el-select
               v-model="queryParams.status"
               placeholder="请选择状态"
-              clearable
               size="small"
             >
               <el-option
@@ -336,7 +335,7 @@ export default {
       if (status === 'created') {
         return '已创建'
       } else if (status === 'stopped') {
-        return '已停止'
+        return '已暂停'
       } else if (status === 'expired') {
         return '已过期'
       } else if (status === 'started') {
