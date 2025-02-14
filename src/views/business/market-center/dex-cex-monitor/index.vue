@@ -40,14 +40,14 @@
 
         <el-table v-loading="loading" :data="busDexCexTriangularObserverList" class="table-container" style="width: 100%;">
           <el-table-column
-            label="BaseToken"
+            label="TargetToken"
             width="100"
             align="center"
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              <router-link :to="{name:'BusDexCexMonitorDetail', params: {id:scope.row.id, observerId: scope.row.observerId}}" class="link-type">
-                <span>{{ scope.row.baseToken }}</span>
+              <router-link :to="{name:'BusDexCexMonitorDetail', params: {id:scope.row.id, instanceId: scope.row.instanceId}}" class="link-type">
+                <span>{{ scope.row.targetToken }}</span>
               </router-link>
             </template>
           </el-table-column>
@@ -67,11 +67,46 @@
           />
           <el-table-column
             label="Sol交易数量"
-            width="100"
+            width="160"
             align="center"
             prop="volume"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template slot-scope="scope">
+              <div v-if="!scope.row.isEditing">
+                {{ scope.row.volume }}
+                <el-button
+                  icon="el-icon-edit"
+                  size="mini"
+                  type="text"
+                  @click="startEditing(scope.row)"
+                />
+              </div>
+
+              <div v-else class="edit-container">
+                <el-input
+                  v-model="scope.row.newVolume"
+                  size="mini"
+                  style="width: 60px"
+                />
+                <el-button
+                  icon="el-icon-check"
+                  size="mini"
+                  type="text"
+                  :disabled="scope.row.isUpdating"
+                  @click="confirmVolume(scope.row)"
+                />
+                <el-button
+                  icon="el-icon-close"
+                  size="mini"
+                  type="text"
+                  :disabled="scope.row.isUpdating"
+                  @click="cancelEditing(scope.row)"
+                />
+                <i v-if="scope.row.isUpdating" class="el-icon-loading" />
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column
             label="Dex Buy Price"
             width="150"
@@ -164,31 +199,56 @@
             prop="ammPoolId"
             :show-overflow-tooltip="true"
           />
-          <el-table-column
-            label="Slippage Bps"
-            width="100"
-            align="center"
-            prop="slippageBps"
-            :show-overflow-tooltip="true"
-            :formatter="formatSlippage"
-          />
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+
+          <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right" min-width="260">
             <template slot-scope="scope">
-              <el-popconfirm
-                class="delete-popconfirm"
-                title="确认要删除吗?"
-                confirm-button-text="删除"
-                @confirm="handleDelete(scope.row)"
-              >
+              <div class="action-buttons">
                 <el-button
-                  slot="reference"
-                  v-permisaction="['business:busDexCexMonitor:list']"
+                  v-if="!scope.row.isTrading"
                   size="mini"
+                  type="primary"
+                  icon="el-icon-caret-right"
+                  @click="openStartTradeDialog(scope.row)"
+                >启动交易</el-button>
+
+                <!-- 暂停交易 -->
+                <el-popconfirm
+                  v-if="scope.row.isTrading"
+                  title="确认暂停交易吗？"
+                  confirm-button-text="暂停"
+                  @confirm="pauseTrader(scope.row)"
+                >
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="danger"
+                    icon="el-icon-video-pause"
+                  >暂停交易</el-button>
+                </el-popconfirm>
+                <el-button
+                  v-if="scope.row.isTrading"
+                  slot="reference"
                   type="text"
-                  icon="el-icon-delete"
-                >删除
+                  size="mini"
+                  icon="el-icon-edit"
+                  @click="handleTradeParamsUpdate(scope.row)"
+                >修改交易参数
                 </el-button>
-              </el-popconfirm>
+                <el-popconfirm
+                  class="delete-popconfirm"
+                  title="确认要删除吗?"
+                  confirm-button-text="删除"
+                  @confirm="handleDelete(scope.row)"
+                >
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-delete"
+                  >删除
+                  </el-button>
+                </el-popconfirm>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -201,6 +261,68 @@
           @pagination="getList"
         />
 
+        <!-- 启动交易表单弹窗 -->
+        <el-dialog title="启动交易参数设置" :visible.sync="showStartDialog" width="600px">
+          <el-form :model="startTraderFormData" label-width="100px">
+            <el-row :gutter="20" class="mb8">
+              <el-form-item label="指定滑点BPS" prop="slippage">
+                <el-slider
+                  v-model="startTraderFormData.slippage"
+                  show-input
+                  step="0.01"
+                  :precision="2"
+                >
+                  <template slot="append">%</template>
+                </el-slider>
+              </el-form-item>
+            </el-row>
+            <el-form-item label="Min Profit">
+              <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
+            </el-form-item>
+            <el-form-item label="Priority Fee">
+              <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
+            </el-form-item>
+            <el-form-item label="Jito Fee">
+              <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="showStartDialog = false">取消</el-button>
+            <el-button type="primary" @click="confirmStartTrade">确定</el-button>
+          </div>
+        </el-dialog>
+
+        <!-- 修改交易表单弹窗 -->
+        <el-dialog title="修改交易参数设置" :visible.sync="showEditTraderDialog" width="600px">
+          <el-form :model="startTraderFormData" label-width="100px">
+            <el-row :gutter="20" class="mb8">
+              <el-form-item label="指定滑点BPS" prop="slippage">
+                <el-slider
+                  v-model="startTraderFormData.slippage"
+                  show-input
+                  step="0.01"
+                  :precision="2"
+                >
+                  <template slot="append">%</template>
+                </el-slider>
+              </el-form-item>
+            </el-row>
+            <el-form-item label="Min Profit">
+              <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
+            </el-form-item>
+            <el-form-item label="Priority Fee">
+              <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
+            </el-form-item>
+            <el-form-item label="Jito Fee">
+              <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="showEditTraderDialog = false">取消</el-button>
+            <el-button type="primary" @click="updateTraderParams">确定</el-button>
+          </div>
+        </el-dialog>
+
         <el-dialog :title="title" :visible.sync="batchOpen" width="800px">
           <el-form ref="batchForm" :model="batchForm" :rules="rules" label-width="150px">
 
@@ -208,10 +330,10 @@
               <div slot="header">
                 <h5>策略基础信息</h5>
               </div>
-              <el-form-item label="Base Token" prop="baseToken">
+              <el-form-item label="Target Token" prop="targetToken">
                 <el-input
-                  v-model="batchForm.baseToken"
-                  placeholder="请输入Base Token"
+                  v-model="batchForm.targetToken"
+                  placeholder="请输入Target Token"
                 />
               </el-form-item>
               <el-form-item label="Quote Token" prop="quoteToken">
@@ -263,20 +385,6 @@
                     </el-select>
                   </el-form-item>
                 </el-col>
-              </el-row>
-
-              <el-row :gutter="20" class="mb8">
-                <el-form-item label="指定滑点BPS" prop="slippage">
-                  <el-slider
-                    v-model="batchForm.slippage"
-                    show-input
-                    step="0.01"
-                    :precision="2"
-                  >
-                    <template slot="append">%</template>
-                  </el-slider>
-                </el-form-item>
-
               </el-row>
 
             </el-card>
@@ -335,9 +443,13 @@
 <script>
 import {
   batchAddBusDexCexTriangularObserver,
+  busDexCexTriangularStartTrader,
+  busDexCexTriangularStopTrader, busDexCexTriangularUpdateObserver,
+  busDexCexTriangularUpdateTrader,
   delBusDexCexTriangularObserver,
   getBusDexCexTriangularObserver,
-  listBusDexCexTriangularObserver, listBusDexCexTriangularSymbolList
+  listBusDexCexTriangularObserver,
+  listBusDexCexTriangularSymbolList
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -383,7 +495,7 @@ export default {
       },
       batchForm: {
         symbols: [],
-        baseToken: [],
+        targetToken: [],
         quoteToken: undefined,
         ammPool: undefined,
         tokenMint: undefined,
@@ -403,9 +515,20 @@ export default {
         { key: 'RAY_CLMM', label: 'RAY_CLMM' }
       ],
 
+      showStartDialog: false, // 控制启动trader表单弹窗显示
+      showEditTraderDialog: false, // 控制编辑trader参数的弹窗显示
+      currentRow: null, // 当前选中的行数据
+      startTraderFormData: {
+        minProfit: '',
+        slippage: '',
+        priorityFee: '',
+        jitoFee: ''
+      },
+      originalVolume: {}, // 记录原始值，方便取消恢复
+
       // 表单校验
       rules: {
-        baseToken: [{ required: true, message: '至少指定一个Base Token', trigger: 'blur' }],
+        targetToken: [{ required: true, message: '至少指定一个Target Token', trigger: 'blur' }],
         quoteToken: [{ required: true, message: '至少指定一个Quote Token', trigger: 'blur' }],
         ammPool: [{ required: true, message: 'ammPool不能为空', trigger: 'blur' }],
         slippage: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
@@ -538,14 +661,13 @@ export default {
     },
     // 提交批量添加
     submitBatchForm() {
-      const baseTokenArray = [this.batchForm.baseToken]
+      const targetTokenArray = [this.batchForm.targetToken]
 
       const requestData = { ...this.batchForm }
       requestData.takerFee = Number(requestData.takerFee)
       requestData.volume = Number(requestData.volume)
-      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
 
-      requestData.baseToken = baseTokenArray
+      requestData.targetToken = targetTokenArray
 
       // 批量请求
       batchAddBusDexCexTriangularObserver(requestData).then(res => {
@@ -562,6 +684,91 @@ export default {
         }
       })
     },
+
+    // 打开启动交易表单
+    openStartTradeDialog(row) {
+      this.currentRow = row
+      this.resetStartTraderFormData()
+      this.showStartDialog = true
+    },
+
+    // 打开修改交易参数表单
+    handleTradeParamsUpdate(row) {
+      console.log('this row', row)
+      this.startTraderFormData = {
+        minProfit: row.minProfit,
+        slippage: parseFloat(row.slippage) / 100,
+        priorityFee: row.priorityFee / 1_000_000_000,
+        jitoFee: row.jitoFee / 1_000_000_000
+      }
+      this.showEditTraderDialog = true
+    },
+
+    // 重置表单数据
+    resetStartTraderFormData() {
+      this.startTraderFormData = {
+        minProfit: '',
+        slippage: '',
+        priorityFee: '',
+        jitoFee: ''
+      }
+    },
+
+    // 确认启动交易
+    confirmStartTrade(row) {
+      console.log('启动交易:', row)
+      console.log('this.startTraderFormData', this.startTraderFormData)
+      const requestData = { ...this.startTraderFormData }
+      requestData.minProfit = Number(requestData.minProfit)
+      requestData.priorityFee = Number(requestData.priorityFee)
+      requestData.jitoFee = Number(requestData.jitoFee)
+      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+
+      busDexCexTriangularStartTrader(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.getList()
+        }
+        this.showStartDialog = false
+      })
+    },
+
+    // 确认更新交易参数
+    updateTraderParams() {
+      const requestData = { ...this.startTraderFormData }
+      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+
+      busDexCexTriangularUpdateTrader(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.getList()
+        }
+      })
+      this.showEditTraderDialog = false
+    },
+
+    // 暂停交易
+    pauseTrader(row) {
+      console.log('暂停交易:', row)
+      const requestData = {
+        instanceId: row.instanceId
+      }
+      busDexCexTriangularStopTrader(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.getList()
+        }
+      })
+    },
     /** 删除按钮操作 */
     handleDelete(row) {
       var Ids = row.id
@@ -571,7 +778,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(function() {
-        return delBusDexCexTriangularObserver({ 'ids': Ids, 'observerId': row.observerId })
+        return delBusDexCexTriangularObserver({ 'ids': Ids, 'instanceId': row.instanceId })
       }).then((response) => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
@@ -583,12 +790,50 @@ export default {
       }).catch(function() {
       })
     },
-    formatSlippage(row, column, cellValue, index) {
+    // 进入sol_amount的编辑模式
+    startEditing(row) {
+      this.originalVolume[row.id] = row.volume
+      this.clearTimer()
+      this.$set(row, 'isEditing', true)
+      this.$set(row, 'newVolume', row.volume)
+    },
+    confirmVolume(row) {
+      const newValue = Number(row.newVolume)
+      if (isNaN(newValue) || newValue <= 0) {
+        this.$message.error('请输入有效的数字')
+        return
+      }
+      row.isUpdating = true
+      const requestData = {
+        instanceId: row.instanceId,
+        solAmount: newValue
+      }
+      busDexCexTriangularUpdateObserver(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.getList()
+        }
+        row.isEditing = false
+        row.isUpdating = false
+        this.startTimer()
+      })
+    },
+    // 取消编辑
+    cancelEditing(row) {
+      row.volume = this.originalVolume[row.id]
+      row.isEditing = false
+      this.startTimer()
+    },
+
+    formatSlippage(cellValue) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
         return '' // 或者其他默认值，例如 0
       }
       const slippage = Number(cellValue) / 100
-      return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
+      return slippage.toFixed(2).toString() // 保留四位小数，根据需要调整
     },
     formatProfit(row, column, cellValue, index) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
@@ -610,5 +855,11 @@ export default {
 .table-container th,
 .table-container td {
   text-align: center; /* 设置文字居中 */
+}
+.action-buttons {
+  display: flex;
+  gap: 10px; /* 按钮之间的间距 */
+  white-space: nowrap; /* 防止按钮换行 */
+  align-items: center;
 }
 </style>
