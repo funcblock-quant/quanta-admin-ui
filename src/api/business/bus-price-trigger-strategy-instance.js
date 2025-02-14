@@ -52,3 +52,11 @@ export function stopBusPriceTriggerStrategyInstance(data) {
     data: data
   })
 }
+
+// 获取BusPriceTriggerStrategyInstance币种列表
+export function getSymbolList() {
+  return request({
+    url: '/api/v1/getSymbolList',
+    method: 'get'
+  })
+}

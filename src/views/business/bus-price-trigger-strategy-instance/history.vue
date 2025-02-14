@@ -22,6 +22,7 @@
             <el-select
               v-model="queryParams.status"
               placeholder="请选择状态"
+              clearable
               size="small"
             >
               <el-option
@@ -32,13 +33,27 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="交易币种" prop="symbol">
+            <el-select
+              v-model="queryParams.symbol"
+              placeholder="请选择交易币种"
+              clearable
+              size="small"
+            >
+              <el-option
+                v-for="symbol in symbolList"
+                :key="symbol.value"
+                :label="symbol.label"
+                :value="symbol.value"
+              />
+            </el-select>
+          </el-form-item>
 
           <div class="button-group">  <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" class="mr-10" @click="handleQuery">搜索</el-button>
             <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
           </el-form-item>
           </div>
-
         </el-form>
       </el-card>
 
@@ -146,7 +161,7 @@
 <script>
 import {
   addBusPriceTriggerStrategyInstance,
-  getBusPriceTriggerStrategyInstance,
+  getBusPriceTriggerStrategyInstance, getSymbolList,
   listBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance,
   updateBusPriceTriggerStrategyInstance
@@ -201,7 +216,6 @@ export default {
         { label: 'BTC/USDC', value: 'BTC/USDC' },
         { label: 'ETH/USDC', value: 'ETH/USDC' },
         { label: 'DOGE/USDC', value: 'DOGE/USDC' }
-
       ],
       exchangeList: [
         { label: 'Gate.io', value: 'GateIo' }
@@ -212,6 +226,7 @@ export default {
         pageSize: 10000,
         closeTime: undefined,
         status: 'stopped',
+        symbol: 'BTC/USDT',
         apiConfig: '',
         idOrder: 'desc',
         createBy: '',
@@ -271,8 +286,9 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.getSymbolList()
     this.getBindApiKey()
+    this.getList()
   },
   methods: {
     /** 测试 API key连通性*/
@@ -303,6 +319,15 @@ export default {
           this.apiKeyBound = true
           this.apiKeyList = response.data.list
         }
+      })
+    },
+    // 获取币种列表
+    getSymbolList() {
+      getSymbolList().then(response => {
+        this.symbolList = response.data.map(item => ({
+          label: item.symbol,
+          value: item.symbol
+        }))
       })
     },
     /** 展开或收起详情*/
