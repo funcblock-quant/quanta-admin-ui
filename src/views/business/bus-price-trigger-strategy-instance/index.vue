@@ -73,7 +73,6 @@
               <el-select
                 v-model="queryParams.apiConfig"
                 placeholder="请选择API Key"
-                clearable
                 size="small"
               >
                 <el-option
