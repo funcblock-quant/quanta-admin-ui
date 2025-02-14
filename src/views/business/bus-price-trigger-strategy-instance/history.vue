@@ -153,6 +153,7 @@ import {
 } from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
 import moment from 'moment'
+import { listBusPriceTriggerStrategyApikeyConfig } from '@/api/business/bus-price-trigger-strategy-apikey-config'
 
 export default {
   name: 'BusPriceTriggerStrategyInstanceHistory',
@@ -271,6 +272,7 @@ export default {
   },
   created() {
     this.getList()
+    this.getBindApiKey()
   },
   methods: {
     /** 测试 API key连通性*/
@@ -286,6 +288,21 @@ export default {
         }))
         this.total = response.data.count
         this.loading = false
+      })
+    },
+    /** 获取用户绑定的apikey列表,只在刚进页面的时候使用*/
+    getBindApiKey() {
+      const queryApiKeyParams = {
+        pageIndex: 1,
+        pageSize: 10000,
+        id: 'desc'
+      }
+      listBusPriceTriggerStrategyApikeyConfig(queryApiKeyParams).then(response => {
+        this.total = response.data.count
+        if (this.total > 0) {
+          this.apiKeyBound = true
+          this.apiKeyList = response.data.list
+        }
       })
     },
     /** 展开或收起详情*/
