@@ -226,15 +226,6 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item v-show="form.dataScope == 2" label="数据权限">
-              <el-tree
-                show-checkbox
-                default-expand-all
-                node-key="id"
-                empty-text="加载中，请稍后"
-                :props="defaultProps"
-              />
-            </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button type="primary" @click="submitDataScope">确 定</el-button>

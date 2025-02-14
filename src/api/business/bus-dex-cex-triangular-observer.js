@@ -60,3 +60,39 @@ export function listBusDexCexTriangularSymbolList() {
     method: 'get'
   })
 }
+
+// 启动交易
+export function busDexCexTriangularStartTrader(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularStartTrader',
+    method: 'post',
+    data: data
+  })
+}
+
+// 停止交易
+export function busDexCexTriangularStopTrader(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularStopTrader',
+    method: 'post',
+    data: data
+  })
+}
+
+// 更新observer
+export function busDexCexTriangularUpdateObserver(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularUpdateObserver',
+    method: 'put',
+    data: data
+  })
+}
+
+// 更新trader
+export function busDexCexTriangularUpdateTrader(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularUpdateTrader',
+    method: 'put',
+    data: data
+  })
+}

@@ -4,7 +4,7 @@
       <el-card class="box-card">
 
         <el-descriptions v-loading="loading" title="监控信息">
-          <el-descriptions-item label="BaseToken">{{ busDexCexTriangularObserver.baseToken }}</el-descriptions-item>
+          <el-descriptions-item label="TargetToken">{{ busDexCexTriangularObserver.baseToken }}</el-descriptions-item>
           <el-descriptions-item label="QuoteToken">{{ busDexCexTriangularObserver.quoteToken }}</el-descriptions-item>
           <el-descriptions-item label="交易所">{{ busDexCexTriangularObserver.exchangeType }}</el-descriptions-item>
           <el-descriptions-item label="Sol交易数量">{{ busDexCexTriangularObserver.volume }}</el-descriptions-item>
@@ -20,7 +20,7 @@
           <el-descriptions-item label="TokenMint">{{ busDexCexTriangularObserver.tokenMint }}</el-descriptions-item>
           <el-descriptions-item label="Dex Type">{{ busDexCexTriangularObserver.dexType }}</el-descriptions-item>
           <el-descriptions-item label="Amm Pool">{{ busDexCexTriangularObserver.ammPoolId }}</el-descriptions-item>
-          <el-descriptions-item label="Slippage Bps">{{ formatSlippage(busDexCexTriangularObserver.slippageBps) }}</el-descriptions-item>
+          <el-descriptions-item label="Slippage Bps">{{ formatSlippage(busDexCexTriangularObserver.slippage) }}</el-descriptions-item>
         </el-descriptions>
 
       </el-card>
@@ -217,14 +217,14 @@ export default {
       chart: null,
       chart2: null,
       chartData: {},
-      observerId: '',
+      instanceId: '',
       id: undefined // 详情id
     }
   },
   created() {
-    const observerId = this.$route.params && this.$route.params.observerId
+    const instanceId = this.$route.params && this.$route.params.instanceId
     const id = this.$route.params && this.$route.params.id
-    this.observerId = observerId
+    this.instanceId = instanceId
     this.id = id
     this.getObserverDetail(id)
     this.startTimer()
@@ -241,7 +241,7 @@ export default {
       if (chartElement) {
         this.chart = echarts.init(chartElement)
         this.chart2 = echarts.init(chart2Element)
-        this.getChart(this.observerId)
+        this.getChart(this.instanceId)
       }
     }, 500) // 延迟500毫秒再进行初始化
   },
@@ -268,7 +268,7 @@ export default {
       getBusDexCexTriangularObserver(id).then(response => {
         if (response.code === 200) { // 检查响应状态码
           this.busDexCexTriangularObserver = response.data
-          this.observerId = response.data.observerId
+          this.instanceId = response.data.instanceId
           console.log('this.busDexCexTriangularObserver', this.busDexCexTriangularObserver)
           this.total = response.data.count
         } else {
@@ -281,10 +281,10 @@ export default {
       })
     },
 
-    getChart(observerId) {
+    getChart(instanceId) {
       this.loading = true
       const chartRequest = {
-        observerId: observerId
+        instanceId: instanceId
       }
       console.log('node_env', process.env.NODE_ENV)
       if (process.env.NODE_ENV === 'development') {
@@ -534,7 +534,7 @@ export default {
       }
       this.timer = setInterval(() => {
         this.getObserverDetail(this.id)
-        this.getChart(this.observerId)
+        this.getChart(this.instanceId)
       }, 5000) // 每 5 秒刷新一次
     },
     clearTimer() {
