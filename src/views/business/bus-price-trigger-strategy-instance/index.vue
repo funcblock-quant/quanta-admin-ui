@@ -161,6 +161,10 @@
               <span class="value">{{ parseTime(item.closeTime) }}</span>
             </div>
             <div class="data-item">
+              <span class="label">创建时间：</span>
+              <span class="value">{{ parseTime(item.createdAt) }}</span>
+            </div>
+            <div class="data-item">
               <span class="label">状态：</span>
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
             </div>
@@ -433,9 +437,9 @@ export default {
       // 关系表类型
       strategyStatus: [
         { label: '已创建', value: 'created' },
-        { label: '运行中', value: 'started' },
-        { label: '已暂停', value: 'stopped' },
-        { label: '已过期', value: 'expired' }
+        { label: '运行中', value: 'started' }
+        // { label: '已暂停', value: 'stopped' },
+        // { label: '已过期', value: 'expired' }
       ],
       sideDict: [
         { label: '做多', value: 'long' },
@@ -744,6 +748,7 @@ export default {
         id: undefined,
         openPrice: undefined,
         closePrice: undefined,
+        execTimes: undefined,
         amount: undefined,
         side: undefined,
         symbol: undefined,
