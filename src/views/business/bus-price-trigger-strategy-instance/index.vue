@@ -98,6 +98,21 @@
                 />
               </el-select>
             </el-form-item>
+            <el-form-item label="交易币种" prop="symbol">
+              <el-select
+                v-model="queryParams.symbol"
+                placeholder="请选择交易币种"
+                clearable
+                size="small"
+              >
+                <el-option
+                  v-for="symbol in querySymbolList"
+                  :key="symbol.value"
+                  :label="symbol.label"
+                  :value="symbol.value"
+                />
+              </el-select>
+            </el-form-item>
 
             <div class="button-group">  <el-form-item>
               <el-button type="primary" icon="el-icon-search" size="mini" class="mr-10" @click="handleQuery">搜索</el-button>
@@ -391,7 +406,7 @@
 <script>
 import {
   addBusPriceTriggerStrategyInstance,
-  getBusPriceTriggerStrategyInstance,
+  getBusPriceTriggerStrategyInstance, getSymbolList,
   listBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance,
   updateBusPriceTriggerStrategyInstance
@@ -443,6 +458,10 @@ export default {
       sideDict: [
         { label: '做多', value: 'long' },
         { label: '做空', value: 'short' }
+      ],
+      querySymbolList: [
+        { label: 'BTC/USDT', value: 'BTC/USDT' },
+        { label: 'ETH/USDT', value: 'ETH/USDT' }
       ],
       symbolList: [
         { label: 'BTC/USDT', value: 'BTC/USDT' },
@@ -528,6 +547,7 @@ export default {
   },
   created() {
     // this.getList()
+    this.getSymbolList()
     this.getBindApiKey()
     this.getUserRole()
   },
@@ -573,6 +593,15 @@ export default {
           this.apiKeyBound = false
           this.showBindForm = false
         }
+      })
+    },
+    // 获取币种列表
+    getSymbolList() {
+      getSymbolList().then(response => {
+        this.querySymbolList = response.data.map(item => ({
+          label: item.symbol,
+          value: item.symbol
+        }))
       })
     },
     getApiKeyList() {
