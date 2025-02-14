@@ -284,7 +284,7 @@ export default {
     getChart(instanceId) {
       this.loading = true
       const chartRequest = {
-        instanceId: instanceId
+        observerId: instanceId
       }
       console.log('node_env', process.env.NODE_ENV)
       if (process.env.NODE_ENV === 'development') {
