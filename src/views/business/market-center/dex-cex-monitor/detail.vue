@@ -4,7 +4,7 @@
       <el-card class="box-card">
 
         <el-descriptions v-loading="loading" title="监控信息">
-          <el-descriptions-item label="TargetToken">{{ busDexCexTriangularObserver.baseToken }}</el-descriptions-item>
+          <el-descriptions-item label="TargetToken">{{ busDexCexTriangularObserver.targetToken }}</el-descriptions-item>
           <el-descriptions-item label="QuoteToken">{{ busDexCexTriangularObserver.quoteToken }}</el-descriptions-item>
           <el-descriptions-item label="交易所">{{ busDexCexTriangularObserver.exchangeType }}</el-descriptions-item>
           <el-descriptions-item label="Sol交易数量">{{ busDexCexTriangularObserver.volume }}</el-descriptions-item>
