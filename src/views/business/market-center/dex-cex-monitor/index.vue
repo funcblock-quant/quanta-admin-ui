@@ -519,6 +519,7 @@ export default {
       showEditTraderDialog: false, // 控制编辑trader参数的弹窗显示
       currentRow: null, // 当前选中的行数据
       startTraderFormData: {
+        instanceId: undefined,
         minProfit: '',
         slippage: '',
         priorityFee: '',
@@ -696,6 +697,7 @@ export default {
     handleTradeParamsUpdate(row) {
       console.log('this row', row)
       this.startTraderFormData = {
+        instanceId: row.instanceId,
         minProfit: row.minProfit,
         slippage: parseFloat(row.slippage) / 100,
         priorityFee: row.priorityFee / 1_000_000_000,
@@ -707,6 +709,7 @@ export default {
     // 重置表单数据
     resetStartTraderFormData() {
       this.startTraderFormData = {
+        instanceId: undefined,
         minProfit: '',
         slippage: '',
         priorityFee: '',
@@ -715,14 +718,14 @@ export default {
     },
 
     // 确认启动交易
-    confirmStartTrade(row) {
-      console.log('启动交易:', row)
-      console.log('this.startTraderFormData', this.startTraderFormData)
+    confirmStartTrade() {
       const requestData = { ...this.startTraderFormData }
+      requestData.instanceId = this.currentRow.instanceId
       requestData.minProfit = Number(requestData.minProfit)
       requestData.priorityFee = Number(requestData.priorityFee)
       requestData.jitoFee = Number(requestData.jitoFee)
       requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      console.log('this.requestData', requestData)
 
       busDexCexTriangularStartTrader(requestData).then(res => {
         if (res.code === 200) {
