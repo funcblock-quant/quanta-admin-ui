@@ -743,6 +743,9 @@ export default {
     updateTraderParams() {
       const requestData = { ...this.startTraderFormData }
       requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      requestData.minProfit = Number(requestData.minProfit)
+      requestData.priorityFee = Number(requestData.priorityFee)
+      requestData.jitoFee = Number(requestData.jitoFee)
 
       busDexCexTriangularUpdateTrader(requestData).then(res => {
         if (res.code === 200) {
