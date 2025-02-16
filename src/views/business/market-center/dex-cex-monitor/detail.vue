@@ -241,7 +241,7 @@ export default {
       if (chartElement) {
         this.chart = echarts.init(chartElement)
         this.chart2 = echarts.init(chart2Element)
-        this.getChart(this.instanceId)
+        this.getChart(this.id)
       }
     }, 500) // 延迟500毫秒再进行初始化
   },
@@ -281,10 +281,10 @@ export default {
       })
     },
 
-    getChart(instanceId) {
+    getChart(id) {
       this.loading = true
       const chartRequest = {
-        observerId: instanceId
+        id: id
       }
       console.log('node_env', process.env.NODE_ENV)
       if (process.env.NODE_ENV === 'development') {
@@ -534,7 +534,7 @@ export default {
       }
       this.timer = setInterval(() => {
         this.getObserverDetail(this.id)
-        this.getChart(this.instanceId)
+        this.getChart(this.id)
       }, 5000) // 每 5 秒刷新一次
     },
     clearTimer() {
