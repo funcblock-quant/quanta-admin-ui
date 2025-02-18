@@ -383,7 +383,8 @@
                       <el-option
                         v-for="dex in dexTypeList"
                         :key="dex.key"
-                        :value="dex.label"
+                        :value="dex.key"
+                        :label="dex.label"
                       />
                     </el-select>
                   </el-form-item>
