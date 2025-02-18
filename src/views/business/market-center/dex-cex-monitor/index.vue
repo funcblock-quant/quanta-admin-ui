@@ -390,6 +390,18 @@
                   </el-form-item>
                 </el-col>
               </el-row>
+              <el-row v-if="batchForm.dexType === 'RAY_CLMM'" :gutter="20" class="mb8">
+                <el-col :span="8">
+                  <el-form-item label="Max Array Size" prop="maxArraySize">
+                    <el-input
+                      v-model="batchForm.maxArraySize"
+                      placeholder="请输入maxArraySize"
+                      size="small"
+                      style="width: 400px;"
+                    />
+                  </el-form-item>
+                </el-col>
+              </el-row>
 
             </el-card>
             <el-card class="fused-card" shadow="never">
@@ -484,9 +496,6 @@ export default {
       busDexCexTriangularObserverList: [],
       // 观察币对列表
       symbolWatchList: [],
-      // 记录操作行
-      operationRow: undefined,
-      // 关系表类型
 
       // 查询参数
       queryParams: {
@@ -509,7 +518,8 @@ export default {
         volume: undefined,
         exchangeType: undefined,
         dexType: undefined,
-        takerFee: undefined
+        takerFee: undefined,
+        maxArraySize: undefined
       },
       exchangeType: [
         { key: 'Binance', value: 'Binance' },
@@ -547,7 +557,7 @@ export default {
   },
   computed: {
     minProfitLabel() {
-      return `Min Profit (${this.selectedRow?.quoteToken || 'USDT'})`
+      return `Min Profit (${this.currentRow?.quoteToken})`
     }
   },
   created() {
@@ -677,6 +687,7 @@ export default {
       const requestData = { ...this.batchForm }
       requestData.takerFee = Number(requestData.takerFee)
       requestData.volume = Number(requestData.volume)
+      requestData.maxArraySize = Number(requestData.maxArraySize)
 
       requestData.targetToken = targetTokenArray
 
@@ -706,6 +717,7 @@ export default {
     // 打开修改交易参数表单
     handleTradeParamsUpdate(row) {
       console.log('this row', row)
+      this.currentRow = row
       this.startTraderFormData = {
         instanceId: row.instanceId,
         minProfit: row.minProfit,
