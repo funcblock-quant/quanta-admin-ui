@@ -59,11 +59,19 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="交易所"
+            label="CEX"
             align="center"
             width="100"
             prop="exchangeType"
             :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Dex"
+            width="150"
+            align="center"
+            prop="dexType"
+            :show-overflow-tooltip="true"
+            :formatter="formatDexType"
           />
           <el-table-column
             label="Sol交易数量"
@@ -186,13 +194,6 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="Dex Type"
-            width="100"
-            align="center"
-            prop="dexType"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
             label="Amm Pool"
             width="150"
             align="center"
@@ -263,7 +264,7 @@
 
         <!-- 启动交易表单弹窗 -->
         <el-dialog title="启动交易参数设置" :visible.sync="showStartDialog" width="600px">
-          <el-form :model="startTraderFormData" label-width="100px">
+          <el-form :model="startTraderFormData" label-width="150px">
             <el-row :gutter="20" class="mb8">
               <el-form-item label="指定滑点BPS" prop="slippage">
                 <el-slider
@@ -271,18 +272,19 @@
                   show-input
                   step="0.01"
                   :precision="2"
+                  :max="5"
                 >
                   <template slot="append">%</template>
                 </el-slider>
               </el-form-item>
             </el-row>
-            <el-form-item label="Min Profit">
+            <el-form-item :label="minProfitLabel">
               <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
             </el-form-item>
-            <el-form-item label="Priority Fee">
+            <el-form-item label="Priority Fee(SOL)">
               <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
             </el-form-item>
-            <el-form-item label="Jito Fee">
+            <el-form-item label="Jito Fee(SOL)">
               <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
             </el-form-item>
           </el-form>
@@ -294,7 +296,7 @@
 
         <!-- 修改交易表单弹窗 -->
         <el-dialog title="修改交易参数设置" :visible.sync="showEditTraderDialog" width="600px">
-          <el-form :model="startTraderFormData" label-width="100px">
+          <el-form :model="startTraderFormData" label-width="150px">
             <el-row :gutter="20" class="mb8">
               <el-form-item label="指定滑点BPS" prop="slippage">
                 <el-slider
@@ -302,18 +304,19 @@
                   show-input
                   step="0.01"
                   :precision="2"
+                  :max="5"
                 >
                   <template slot="append">%</template>
                 </el-slider>
               </el-form-item>
             </el-row>
-            <el-form-item label="Min Profit">
+            <el-form-item :label="minProfitLabel">
               <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
             </el-form-item>
-            <el-form-item label="Priority Fee">
+            <el-form-item label="Priority Fee(SOL)">
               <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
             </el-form-item>
-            <el-form-item label="Jito Fee">
+            <el-form-item label="Jito Fee(SOL)">
               <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
             </el-form-item>
           </el-form>
@@ -345,14 +348,14 @@
             </el-card>
             <el-card class="fused-card" shadow="never">
               <div slot="header">
-                <h5>AMM配置</h5>
+                <h5>DEX配置</h5>
               </div>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
-                  <el-form-item label="AMM池合约地址" prop="ammPool">
+                  <el-form-item label="Market地址" prop="ammPool">
                     <el-input
                       v-model="batchForm.ammPool"
-                      placeholder="请输入AMM合约地址"
+                      placeholder="请输入Market地址"
                     />
                   </el-form-item>
                 </el-col>
@@ -480,6 +483,8 @@ export default {
       busDexCexTriangularObserverList: [],
       // 观察币对列表
       symbolWatchList: [],
+      // 记录操作行
+      operationRow: undefined,
       // 关系表类型
 
       // 查询参数
@@ -511,8 +516,8 @@ export default {
         { key: 'GateIO', value: 'GateIO' }
       ],
       dexTypeList: [
-        { key: 'RAY_AMM', label: 'RAY_AMM' },
-        { key: 'RAY_CLMM', label: 'RAY_CLMM' }
+        { key: 'RAY_AMM', label: 'Raydium Liquidity Pool V4' },
+        { key: 'RAY_CLMM', label: 'Raydium Centralized Liquidity' }
       ],
 
       showStartDialog: false, // 控制启动trader表单弹窗显示
@@ -539,6 +544,11 @@ export default {
       }
     }
   },
+  computed: {
+    minProfitLabel() {
+      return `Min Profit (${this.selectedRow?.quoteToken || 'USDT'})`
+    }
+  },
   created() {
     this.getList()
     this.getSymbolWatchList()
@@ -553,7 +563,6 @@ export default {
     window.removeEventListener('focus', this.handleFocus)
     window.removeEventListener('blur', this.handleBlur)
   },
-
   methods: {
     /** 查询参数列表 */
     getList() {
@@ -847,6 +856,10 @@ export default {
       }
       const slippage = Number(cellValue)
       return slippage.toFixed(6).toString() + ' ' + row.quoteToken // 保留四位小数，根据需要调整
+    },
+    formatDexType(row) {
+      const match = this.dexTypeList.find(item => item.key === row.dexType)
+      return match ? match.label : row.dexType // 如果匹配不到，就显示原始值
     }
   }
 }

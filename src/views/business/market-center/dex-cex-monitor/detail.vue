@@ -2,27 +2,25 @@
   <BasicLayout>
     <template #wrapper>
       <el-card class="box-card">
-
-        <el-descriptions v-loading="loading" title="监控信息">
+        <el-descriptions v-loading="loading" title="币种信息">
           <el-descriptions-item label="TargetToken">{{ busDexCexTriangularObserver.targetToken }}</el-descriptions-item>
           <el-descriptions-item label="QuoteToken">{{ busDexCexTriangularObserver.quoteToken }}</el-descriptions-item>
-          <el-descriptions-item label="交易所">{{ busDexCexTriangularObserver.exchangeType }}</el-descriptions-item>
           <el-descriptions-item label="Sol交易数量">{{ busDexCexTriangularObserver.volume }}</el-descriptions-item>
-          <!--          <el-descriptions-item label="Dex Buy Price">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Cex Sell Price">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Dex买入价差">{{ formatProfit(busDexCexTriangularObserver.dexBuyDiffPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Dex Buy Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfBuyOnDex) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Dex Sell Price">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Cex Buy Price">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Dex卖出价差">{{ formatProfit(busDexCexTriangularObserver.dexSellDiffPrice) }}</el-descriptions-item>-->
-          <!--          <el-descriptions-item label="Dex Sell Profit">{{ formatProfit(busDexCexTriangularObserver.profitOfSellOnDex) }}</el-descriptions-item>-->
-          <el-descriptions-item label="交易所Taker Fee">{{ busDexCexTriangularObserver.takerFee }}</el-descriptions-item>
-          <el-descriptions-item label="TokenMint">{{ busDexCexTriangularObserver.tokenMint }}</el-descriptions-item>
-          <el-descriptions-item label="Dex Type">{{ busDexCexTriangularObserver.dexType }}</el-descriptions-item>
-          <el-descriptions-item label="Amm Pool">{{ busDexCexTriangularObserver.ammPoolId }}</el-descriptions-item>
-          <el-descriptions-item label="Slippage Bps">{{ formatSlippage(busDexCexTriangularObserver.slippage) }}</el-descriptions-item>
         </el-descriptions>
+      </el-card>
+      <el-card class="box-card">
+        <el-descriptions v-loading="loading" title="CEX信息">
+          <el-descriptions-item label="CEX">{{ busDexCexTriangularObserver.exchangeType }}</el-descriptions-item>
+          <el-descriptions-item label="CEX Taker Fee">{{ busDexCexTriangularObserver.takerFee }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
 
+      <el-card class="box-card">
+        <el-descriptions v-loading="loading" title="DEX信息">
+          <el-descriptions-item label="Dex">{{ formatDexType(busDexCexTriangularObserver.dexType) }}</el-descriptions-item>
+          <el-descriptions-item label="TokenMint">{{ busDexCexTriangularObserver.tokenMint }}</el-descriptions-item>
+          <el-descriptions-item label="Market地址">{{ busDexCexTriangularObserver.ammPoolId }}</el-descriptions-item>
+        </el-descriptions>
       </el-card>
 
       <el-card>
@@ -211,6 +209,11 @@ export default {
           }
         ]
       },
+      dexTypeList: [
+        { key: 'RAY_AMM', label: 'Raydium Liquidity Pool V4' },
+        { key: 'RAY_CLMM', label: 'Raydium Centralized Liquidity' }
+      ],
+
       isBrowserTabVisible: true, // 浏览器当前标签页是否可见
       isTabVisible: true, // 网站内当前标签页是否可见
       isWindowFocused: true, // 当前窗口是否聚焦
@@ -602,6 +605,10 @@ export default {
         const seconds = durationSeconds % 60
         return `${hours}h ${minutes}m ${seconds}s`
       }
+    },
+    formatDexType(dexType) {
+      const match = this.dexTypeList.find(item => item.key === dexType)
+      return match ? match.label : dexType // 如果匹配不到，就显示原始值
     }
   }
 }
