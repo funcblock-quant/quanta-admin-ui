@@ -81,15 +81,15 @@ export default {
         cexBuyPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: 21
+            yAxis: 21.12
           },
           {
             xAxis: 1738990260,
-            yAxis: 20
+            yAxis: 20.34
           },
           {
             xAxis: 1738990320,
-            yAxis: 22
+            yAxis: 22.4
           },
           {
             xAxis: 1738990380,
@@ -103,59 +103,59 @@ export default {
         cexSellPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: 21
+            yAxis: 21.5
           },
           {
             xAxis: 1738990260,
-            yAxis: 20
+            yAxis: 21.2
           },
           {
             xAxis: 1738990320,
-            yAxis: 22
+            yAxis: 21.244
           },
           {
             xAxis: 1738990380,
-            yAxis: 21.212
+            yAxis: 21.214
           },
           {
             xAxis: 1738990440,
-            yAxis: 20.121
+            yAxis: 20.1212
           }
         ],
         dexBuyPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: 21
+            yAxis: 21.52
           },
           {
             xAxis: 1738990260,
-            yAxis: 20
+            yAxis: 20.84
           },
           {
             xAxis: 1738990320,
-            yAxis: 22
+            yAxis: 19.12
           },
           {
             xAxis: 1738990380,
-            yAxis: 21.212
+            yAxis: 21.24
           },
           {
             xAxis: 1738990440,
-            yAxis: 20.121
+            yAxis: 22.121
           }
         ],
         dexSellPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: 21
+            yAxis: 24.14
           },
           {
             xAxis: 1738990260,
-            yAxis: 20
+            yAxis: 23.1984
           },
           {
             xAxis: 1738990320,
-            yAxis: 22
+            yAxis: 21.9775
           },
           {
             xAxis: 1738990380,
@@ -208,6 +208,50 @@ export default {
           {
             xAxis: 1738990440,
             yAxis: 3.121
+          }
+        ],
+        dexSellProfitChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: -0.22
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: -0.21
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: -0.24
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: -0.25
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: -0.21
+          }
+        ],
+        dexBuyProfitChartPoints: [
+          {
+            xAxis: 1738990200,
+            yAxis: -0.21
+          },
+          {
+            xAxis: 1738990260,
+            yAxis: -0.31
+          },
+          {
+            xAxis: 1738990320,
+            yAxis: -0.11
+          },
+          {
+            xAxis: 1738990380,
+            yAxis: -0.22
+          },
+          {
+            xAxis: 1738990440,
+            yAxis: -0.41
           }
         ]
       },
@@ -318,8 +362,10 @@ export default {
       const dexSellPrices = data.dexSellPriceChartPoints.map((point) => point.yAxis) // 提取 DEX 卖出价格
       const dexSellSpread = data.dexSellPriceSpreadChartPoints.map((point) => point.yAxis) // 提取 DEX 卖出价差
       const dexBuySpread = data.dexBuyPriceSpreadChartPoints.map((point) => point.yAxis) // 提取 DEX 买入价差
+      const dexBuyProfit = data.dexBuyProfitChartPoints.map((point) => point.yAxis) // 提取 DEX 买入利润
+      const dexSellProfit = data.dexSellProfitChartPoints.map((point) => point.yAxis) // 提取 DEX 卖出利润
 
-      this.chartData = { xAxis, cexBuyPrices, cexSellPrices, dexBuyPrices, dexSellPrices, dexSellSpread, dexBuySpread }
+      this.chartData = { xAxis, cexBuyPrices, cexSellPrices, dexBuyPrices, dexSellPrices, dexSellSpread, dexBuySpread, dexBuyProfit, dexSellProfit }
       console.log('this.chartData', this.chartData)
     },
 
@@ -379,7 +425,7 @@ export default {
     },
     updateChart() {
       const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread], dexBuyPriceRange)
+      const dexBuyProfitRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuyProfit], dexBuyPriceRange)
 
       const option = {
         title: {
@@ -390,7 +436,8 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX买入价格', 'CEX卖出价格', '价差']
+          data: ['DEX买入价格', 'CEX卖出价格', '价差', '利润'],
+          selected: { '价差': false }
         },
         xAxis: {
           type: 'category',
@@ -404,20 +451,20 @@ export default {
             max: dexBuyPriceRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: function(value) {
-                return value.toFixed(4) // 保留4位小数
+              formatter: (value) => {
+                return this.formatPrice(value)
               }
             }
           },
           {
             type: 'value',
-            name: '价差',
-            min: dexBuyPriceSpreadRange.min,
-            max: dexBuyPriceSpreadRange.max,
+            name: '利润',
+            min: dexBuyProfitRange.min,
+            max: dexBuyProfitRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: function(value) {
-                return value.toFixed(6) // 保留6位小数
+              formatter: (value) => {
+                return this.formatPrice(value)
               }
             }
           }
@@ -449,13 +496,22 @@ export default {
             itemStyle: { color: '#ff8042' },
             symbol: 'none', // 去掉数据点
             smooth: true
+          },
+          {
+            name: '利润',
+            type: 'line',
+            yAxisIndex: 1,
+            data: this.chartData.dexBuyProfit,
+            itemStyle: { color: '#9f0101' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
           }
         ],
         grid: { left: '10%', right: '10%', containLabel: true } // 让左右 Y 轴对齐
       }
 
       const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
-      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread], dexSellPriceRange)
+      const dexSellProfitRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellProfit], dexSellPriceRange)
 
       const option2 = {
         title: {
@@ -466,7 +522,8 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX卖出价格', 'CEX买入价格', '价差']
+          data: ['DEX卖出价格', 'CEX买入价格', '价差', '利润'],
+          selected: { '价差': false }
         },
         xAxis: {
           type: 'category',
@@ -480,20 +537,20 @@ export default {
             max: dexSellPriceRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: function(value) {
-                return value.toFixed(6) // 保留6位小数
+              formatter: (value) => {
+                return this.formatPrice(value)
               }
             }
           },
           {
             type: 'value',
-            name: '价差',
-            min: dexSellPriceSpreadRange.min,
-            max: dexSellPriceSpreadRange.max,
+            name: '利润',
+            min: dexSellProfitRange.min,
+            max: dexSellProfitRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: function(value) {
-                return value.toFixed(6) // 保留6位小数
+              formatter: (value) => {
+                return this.formatPrice(value)
               }
             }
           }
@@ -523,6 +580,15 @@ export default {
             yAxisIndex: 1,
             data: this.chartData.dexSellSpread,
             itemStyle: { color: '#ff8042' },
+            symbol: 'none', // 去掉数据点
+            smooth: true
+          },
+          {
+            name: '利润',
+            type: 'line',
+            yAxisIndex: 1,
+            data: this.chartData.dexBuyProfit,
+            itemStyle: { color: '#9f0101' },
             symbol: 'none', // 去掉数据点
             smooth: true
           }
@@ -614,6 +680,41 @@ export default {
       }
 
       return Number(numStr).toFixed(leadingZeros + 6) + ' ' + quoteToken
+    },
+    formatPrice(value) {
+      if (value === null || value === undefined || value === '' || value === 0) {
+        return 0 // 或者其他默认值，例如 0
+      }
+      let numStr = value.toString()
+
+      // 处理科学计数法
+      if (numStr.includes('e')) {
+        const [base, exponent] = numStr.split('e').map(Number)
+        numStr = (base * Math.pow(10, exponent)).toFixed(20)
+      }
+
+      const [intPart, rawDecPart] = numStr.split('.')
+      const decPart = rawDecPart || ''
+
+      // 如果整数部分不为 0，直接保留 6 位小数
+      if (intPart !== '0' || intPart !== '-0') {
+        return Number(numStr).toFixed(6)
+      }
+
+      // 计算小数部分前导 0 的个数
+      let leadingZeros = 0
+      for (const char of decPart) {
+        if (char === '0') leadingZeros++
+        else break
+      }
+
+      // 获取 4 位有效数字
+      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 6)
+      if (leadingZeros > 3) {
+        return `0.0{${leadingZeros}}${significantDigits}`
+      }
+
+      return Number(numStr).toFixed(leadingZeros + 6)
     },
     formatDuration(cellValue) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
