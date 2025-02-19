@@ -406,7 +406,7 @@ export default {
       const min = Math.min(...values)
       const max = Math.max(...values)
       console.log(min, max)
-      const padding = (max - min) * 0.1
+      const padding = (max - min) * 0.5
       console.log('padding', padding)
       const adjustMin = min - padding
       const adjustMax = max + padding
@@ -426,7 +426,7 @@ export default {
     updateChart() {
       const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
       const dexBuyProfitRange = this.getProfitYAxisRange([...this.chartData.dexBuyProfit])
-      console.log('dexBuyProfitRange', dexBuyProfitRange)
+      console.log('dexBuyProfitRange', dexSellProfitRange)
 
       const option = {
         title: {
@@ -437,8 +437,7 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX买入价格', 'CEX卖出价格', '价差', '利润'],
-          selected: { '价差': false }
+          data: ['DEX买入价格', 'CEX卖出价格', '利润']
         },
         xAxis: {
           type: 'category',
@@ -489,15 +488,15 @@ export default {
             smooth: true,
             symbol: 'none' // 去掉数据点
           },
-          {
-            name: '价差',
-            type: 'line',
-            yAxisIndex: 1,
-            data: this.chartData.dexBuySpread,
-            itemStyle: { color: '#ff8042' },
-            symbol: 'none', // 去掉数据点
-            smooth: true
-          },
+          // {
+          //   name: '价差',
+          //   type: 'line',
+          //   yAxisIndex: 1,
+          //   data: this.chartData.dexBuySpread,
+          //   itemStyle: { color: '#ff8042' },
+          //   symbol: 'none', // 去掉数据点
+          //   smooth: true
+          // },
           {
             name: '利润',
             type: 'line',
@@ -513,7 +512,7 @@ export default {
 
       const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
       const dexSellProfitRange = this.getProfitYAxisRange([...this.chartData.dexSellProfit])
-
+      console.log('dexSellProfitRange', dexBuyProfitRange)
       const option2 = {
         title: {
           text: 'Dex卖出价格走势与价差变化',
@@ -523,8 +522,7 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX卖出价格', 'CEX买入价格', '价差', '利润'],
-          selected: { '价差': false }
+          data: ['DEX卖出价格', 'CEX买入价格', '利润']
         },
         xAxis: {
           type: 'category',
@@ -575,15 +573,15 @@ export default {
             smooth: true,
             symbol: 'none' // 去掉数据点
           },
-          {
-            name: '价差',
-            type: 'line',
-            yAxisIndex: 1,
-            data: this.chartData.dexSellSpread,
-            itemStyle: { color: '#ff8042' },
-            symbol: 'none', // 去掉数据点
-            smooth: true
-          },
+          // {
+          //   name: '价差',
+          //   type: 'line',
+          //   yAxisIndex: 1,
+          //   data: this.chartData.dexSellSpread,
+          //   itemStyle: { color: '#ff8042' },
+          //   symbol: 'none', // 去掉数据点
+          //   smooth: true
+          // },
           {
             name: '利润',
             type: 'line',
