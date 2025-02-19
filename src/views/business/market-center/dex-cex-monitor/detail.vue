@@ -406,7 +406,7 @@ export default {
       const min = Math.min(...values)
       const max = Math.max(...values)
       console.log(min, max)
-      const padding = (max - min) * 0.5
+      const padding = (max - min) * 2
       console.log('padding', padding)
       const adjustMin = min - padding
       const adjustMax = max + padding
