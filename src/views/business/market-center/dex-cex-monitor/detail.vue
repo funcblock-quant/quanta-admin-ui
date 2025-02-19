@@ -608,12 +608,12 @@ export default {
       }
 
       // 获取 4 位有效数字
-      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 4)
+      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 6)
       if (leadingZeros > 3) {
         return `0.0{${leadingZeros}}${significantDigits}` + ' ' + quoteToken
       }
 
-      return Number(numStr).toFixed(leadingZeros + 4) + ' ' + quoteToken
+      return Number(numStr).toFixed(leadingZeros + 6) + ' ' + quoteToken
     },
     formatDuration(cellValue) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
