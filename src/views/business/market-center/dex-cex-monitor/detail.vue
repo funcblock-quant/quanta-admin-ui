@@ -24,15 +24,17 @@
       </el-card>
 
       <el-card>
-        <el-descriptions v-loading="loading" title="实时价差信息" column="4">
+        <el-descriptions v-loading="loading" title="实时价差信息" column="5">
           <el-descriptions-item label="Dex买入价格">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Cex卖出价格">{{ formatProfit(busDexCexTriangularObserver.cexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex买入价差">{{ formatProfit(busDexCexTriangularObserver.dexBuyDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="利润">{{ formatProfit(busDexCexTriangularObserver.profitOfBuyOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex买入价差持续时间">{{ formatDuration(busDexCexTriangularObserver.dexBuyDiffDuration) }}</el-descriptions-item>
 
           <el-descriptions-item label="Dex卖出价格">{{ formatProfit(busDexCexTriangularObserver.dexSellPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Cex买入价格">{{ formatProfit(busDexCexTriangularObserver.cexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex卖出价差">{{ formatProfit(busDexCexTriangularObserver.dexSellDiffPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
+          <el-descriptions-item label="利润">{{ formatProfit(busDexCexTriangularObserver.profitOfSellOnDex, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
           <el-descriptions-item label="Dex卖出价差持续时间">{{ formatDuration(busDexCexTriangularObserver.dexSellDiffDuration) }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
@@ -579,11 +581,39 @@ export default {
       return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
     },
     formatProfit(cellValue, quoteToken) {
-      if (cellValue === null || cellValue === undefined || cellValue === '') {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
         return '' // 或者其他默认值，例如 0
       }
-      const slippage = Number(cellValue)
-      return slippage.toFixed(6).toString() + ' ' + quoteToken // 保留四位小数，根据需要调整
+      let numStr = cellValue.toString()
+
+      // 处理科学计数法
+      if (numStr.includes('e')) {
+        const [base, exponent] = numStr.split('e').map(Number)
+        numStr = (base * Math.pow(10, exponent)).toFixed(20)
+      }
+
+      const [intPart, rawDecPart] = numStr.split('.')
+      const decPart = rawDecPart || ''
+
+      // 如果整数部分不为 0，直接保留 6 位小数
+      if (intPart !== '0') {
+        return Number(numStr).toFixed(6) + ' ' + quoteToken
+      }
+
+      // 计算小数部分前导 0 的个数
+      let leadingZeros = 0
+      for (const char of decPart) {
+        if (char === '0') leadingZeros++
+        else break
+      }
+
+      // 获取 4 位有效数字
+      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 4)
+      if (leadingZeros > 3) {
+        return `0.0{${leadingZeros}}${significantDigits}` + ' ' + quoteToken
+      }
+
+      return Number(numStr).toFixed(leadingZeros + 4) + ' ' + quoteToken
     },
     formatDuration(cellValue) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {

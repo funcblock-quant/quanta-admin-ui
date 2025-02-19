@@ -66,7 +66,7 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="Dex"
+            label="DEX"
             width="150"
             align="center"
             prop="dexType"
@@ -75,7 +75,7 @@
           />
           <el-table-column
             label="Sol交易数量"
-            width="160"
+            width="120"
             align="center"
             prop="volume"
             :show-overflow-tooltip="true"
@@ -115,91 +115,75 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column
-            label="Dex Buy Price"
-            width="150"
-            align="center"
-            prop="dexBuyPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Cex Sell Price"
-            width="150"
-            align="center"
-            prop="cexSellPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Dex买入价差"
-            width="150"
-            align="center"
-            prop="dexBuyDiffPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Dex Buy Profit"
-            width="150"
-            align="center"
-            prop="profitOfBuyOnDex"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Dex Sell Price"
-            width="150"
-            align="center"
-            prop="dexSellPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Cex Buy Price"
-            width="150"
-            align="center"
-            prop="cexBuyPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Dex卖出价差"
-            width="150"
-            align="center"
-            prop="dexSellDiffPrice"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="Dex Sell Profit"
-            width="150"
-            align="center"
-            prop="profitOfSellOnDex"
-            :show-overflow-tooltip="true"
-            :formatter="formatProfit"
-          />
-          <el-table-column
-            label="交易所Taker Fee"
-            width="100"
-            align="center"
-            prop="takerFee"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="TokenMint"
-            width="150"
-            align="center"
-            prop="tokenMint"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="Amm Pool"
-            width="150"
-            align="center"
-            prop="ammPoolId"
-            :show-overflow-tooltip="true"
-          />
+          <el-table-column label="DEX买入CEX卖出" align="center">
+            <el-table-column
+              label="CEX卖价"
+              width="150"
+              align="center"
+              prop="cexSellPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="DEX买价"
+              width="150"
+              align="center"
+              prop="dexBuyPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="价差"
+              width="150"
+              align="center"
+              prop="dexBuyDiffPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="利润"
+              width="150"
+              align="center"
+              prop="profitOfBuyOnDex"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+          </el-table-column>
+
+          <el-table-column label="DEX卖出CEX买入" align="center">
+            <el-table-column
+              label="CEX买价"
+              width="150"
+              align="center"
+              prop="cexBuyPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="DEX卖价"
+              width="150"
+              align="center"
+              prop="dexSellPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="价差"
+              width="150"
+              align="center"
+              prop="dexSellDiffPrice"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+            <el-table-column
+              label="利润"
+              width="150"
+              align="center"
+              prop="profitOfSellOnDex"
+              :show-overflow-tooltip="true"
+              :formatter="formatProfit"
+            />
+          </el-table-column>
 
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right" min-width="260">
             <template slot-scope="scope">
@@ -864,11 +848,39 @@ export default {
       return slippage.toFixed(2).toString() // 保留四位小数，根据需要调整
     },
     formatProfit(row, column, cellValue, index) {
-      if (cellValue === null || cellValue === undefined || cellValue === '') {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
         return '' // 或者其他默认值，例如 0
       }
-      const slippage = Number(cellValue)
-      return slippage.toFixed(6).toString() + ' ' + row.quoteToken // 保留四位小数，根据需要调整
+      let numStr = cellValue.toString()
+
+      // 处理科学计数法
+      if (numStr.includes('e')) {
+        const [base, exponent] = numStr.split('e').map(Number)
+        numStr = (base * Math.pow(10, exponent)).toFixed(20)
+      }
+
+      const [intPart, rawDecPart] = numStr.split('.')
+      const decPart = rawDecPart || ''
+
+      // 如果整数部分不为 0，直接保留 6 位小数
+      if (intPart !== '0') {
+        return Number(numStr).toFixed(6) + ' ' + row.quoteToken
+      }
+
+      // 计算小数部分前导 0 的个数
+      let leadingZeros = 0
+      for (const char of decPart) {
+        if (char === '0') leadingZeros++
+        else break
+      }
+
+      // 获取 4 位有效数字
+      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 4)
+      if (leadingZeros > 3) {
+        return `0.0{${leadingZeros}}${significantDigits}` + ' ' + row.quoteToken
+      }
+
+      return Number(numStr).toFixed(leadingZeros + 4) + ' ' + row.quoteToken
     },
     formatDexType(row) {
       const match = this.dexTypeList.find(item => item.key === row.dexType)
