@@ -81,133 +81,133 @@ export default {
         cexBuyPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '21'
+            yAxis: 21
           },
           {
             xAxis: 1738990260,
-            yAxis: '20'
+            yAxis: 20
           },
           {
             xAxis: 1738990320,
-            yAxis: '22'
+            yAxis: 22
           },
           {
             xAxis: 1738990380,
-            yAxis: '21.212'
+            yAxis: 21.212
           },
           {
             xAxis: 1738990440,
-            yAxis: '20.121'
+            yAxis: 20.121
           }
         ],
         cexSellPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '21'
+            yAxis: 21
           },
           {
             xAxis: 1738990260,
-            yAxis: '20'
+            yAxis: 20
           },
           {
             xAxis: 1738990320,
-            yAxis: '22'
+            yAxis: 22
           },
           {
             xAxis: 1738990380,
-            yAxis: '21.212'
+            yAxis: 21.212
           },
           {
             xAxis: 1738990440,
-            yAxis: '20.121'
+            yAxis: 20.121
           }
         ],
         dexBuyPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '21'
+            yAxis: 21
           },
           {
             xAxis: 1738990260,
-            yAxis: '20'
+            yAxis: 20
           },
           {
             xAxis: 1738990320,
-            yAxis: '22'
+            yAxis: 22
           },
           {
             xAxis: 1738990380,
-            yAxis: '21.212'
+            yAxis: 21.212
           },
           {
             xAxis: 1738990440,
-            yAxis: '20.121'
+            yAxis: 20.121
           }
         ],
         dexSellPriceChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '21'
+            yAxis: 21
           },
           {
             xAxis: 1738990260,
-            yAxis: '20'
+            yAxis: 20
           },
           {
             xAxis: 1738990320,
-            yAxis: '22'
+            yAxis: 22
           },
           {
             xAxis: 1738990380,
-            yAxis: '21.212'
+            yAxis: 21.212
           },
           {
             xAxis: 1738990440,
-            yAxis: '20.121'
+            yAxis: 20.121
           }
         ],
         dexSellPriceSpreadChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '-0.21'
+            yAxis: -0.21
           },
           {
             xAxis: 1738990260,
-            yAxis: '-0.31'
+            yAxis: -0.31
           },
           {
             xAxis: 1738990320,
-            yAxis: '-0.23'
+            yAxis: -0.23
           },
           {
             xAxis: 1738990380,
-            yAxis: '-0.21'
+            yAxis: -0.21
           },
           {
             xAxis: 1738990440,
-            yAxis: '-0.21'
+            yAxis: -0.21
           }
         ],
         dexBuyPriceSpreadChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: '2.12'
+            yAxis: 2.12
           },
           {
             xAxis: 1738990260,
-            yAxis: '2.22'
+            yAxis: 2.22
           },
           {
             xAxis: 1738990320,
-            yAxis: '1.9772'
+            yAxis: 1.9772
           },
           {
             xAxis: 1738990380,
-            yAxis: '2.128'
+            yAxis: 2.128
           },
           {
             xAxis: 1738990440,
-            yAxis: '3.121'
+            yAxis: 3.121
           }
         ]
       },
