@@ -596,7 +596,7 @@ export default {
       const decPart = rawDecPart || ''
 
       // 如果整数部分不为 0，直接保留 6 位小数
-      if (intPart !== '0') {
+      if (intPart !== '0' || intPart !== '-0') {
         return Number(numStr).toFixed(6) + ' ' + quoteToken
       }
 
