@@ -863,7 +863,7 @@ export default {
       const decPart = rawDecPart || ''
 
       // 如果整数部分不为 0，直接保留 6 位小数
-      if (intPart !== '0' || intPart !== '-0') {
+      if (intPart !== '0') {
         return Number(numStr).toFixed(6) + ' ' + row.quoteToken
       }
 
@@ -877,7 +877,7 @@ export default {
       // 获取 4 位有效数字
       const significantDigits = decPart.slice(leadingZeros, leadingZeros + 6)
       if (leadingZeros > 3) {
-        return `0.0{${leadingZeros}}${significantDigits}` + ' ' + row.quoteToken
+        return `0.0{${leadingZeros - 1}}${significantDigits}` + ' ' + row.quoteToken
       }
 
       return Number(numStr).toFixed(leadingZeros + 6) + ' ' + row.quoteToken

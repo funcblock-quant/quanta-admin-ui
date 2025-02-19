@@ -169,23 +169,23 @@ export default {
         dexSellPriceSpreadChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: -0.21
+            yAxis: -0.00021
           },
           {
             xAxis: 1738990260,
-            yAxis: -0.31
+            yAxis: -0.00031
           },
           {
             xAxis: 1738990320,
-            yAxis: -0.23
+            yAxis: -0.00023
           },
           {
             xAxis: 1738990380,
-            yAxis: -0.21
+            yAxis: -0.000021
           },
           {
             xAxis: 1738990440,
-            yAxis: -0.21
+            yAxis: -0.000021
           }
         ],
         dexBuyPriceSpreadChartPoints: [
@@ -213,45 +213,45 @@ export default {
         dexSellProfitChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: -0.22
+            yAxis: -0.00022
           },
           {
             xAxis: 1738990260,
-            yAxis: -0.21
+            yAxis: -0.00021
           },
           {
             xAxis: 1738990320,
-            yAxis: -0.24
+            yAxis: -0.00024
           },
           {
             xAxis: 1738990380,
-            yAxis: -0.25
+            yAxis: -0.00025
           },
           {
             xAxis: 1738990440,
-            yAxis: -0.21
+            yAxis: -0.00021
           }
         ],
         dexBuyProfitChartPoints: [
           {
             xAxis: 1738990200,
-            yAxis: -0.21
+            yAxis: -0.00021
           },
           {
             xAxis: 1738990260,
-            yAxis: -0.31
+            yAxis: -0.00031
           },
           {
             xAxis: 1738990320,
-            yAxis: -0.11
+            yAxis: -0.00011
           },
           {
             xAxis: 1738990380,
-            yAxis: -0.22
+            yAxis: -0.00022
           },
           {
             xAxis: 1738990440,
-            yAxis: -0.41
+            yAxis: -0.0000041
           }
         ]
       },
@@ -398,21 +398,21 @@ export default {
       if (values.length === 0) return { min: 0, max: 1 }
       const min = Math.min(...values)
       const max = Math.max(...values)
-      return { min: Math.floor(min * 0.95), max: Math.ceil(max * 1.05) }
+      return { min: this.formatPrice(min * 0.95), max: this.formatPrice(max * 1.05) }
     },
 
-    getPriceSpreadYAxisRange(values, baseRange) {
+    getProfitYAxisRange(values) {
       if (values.length === 0) return { min: 0, max: 1 }
-
       const min = Math.min(...values)
       const max = Math.max(...values)
-
-      // 根据基准范围调整当前范围
-      const range = baseRange.max - baseRange.min
-      const adjustedMin = Math.floor(min - (range * 0.05))
-      const adjustedMax = Math.ceil(max + (range * 0.05))
-
-      return { min: adjustedMin, max: adjustedMax }
+      console.log(min, max)
+      const padding = (max - min) * 0.1
+      console.log('padding', padding)
+      const adjustMin = min - padding
+      const adjustMax = max + padding
+      console.log(adjustMin, adjustMax)
+      console.log(this.formatPrice(adjustMin), this.formatPrice(adjustMax))
+      return { min: this.formatPrice(adjustMin), max: this.formatPrice(adjustMax) }
     },
 
     formatXAxis(timestamp) {
@@ -425,7 +425,8 @@ export default {
     },
     updateChart() {
       const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const dexBuyProfitRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuyProfit], dexBuyPriceRange)
+      const dexBuyProfitRange = this.getProfitYAxisRange([...this.chartData.dexBuyProfit])
+      console.log('dexBuyProfitRange', dexBuyProfitRange)
 
       const option = {
         title: {
@@ -511,7 +512,7 @@ export default {
       }
 
       const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
-      const dexSellProfitRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellProfit], dexSellPriceRange)
+      const dexSellProfitRange = this.getProfitYAxisRange([...this.chartData.dexSellProfit])
 
       const option2 = {
         title: {
@@ -662,8 +663,8 @@ export default {
       const decPart = rawDecPart || ''
 
       // 如果整数部分不为 0，直接保留 6 位小数
-      if (intPart !== '0' || intPart !== '-0') {
-        return Number(numStr).toFixed(6) + ' ' + quoteToken
+      if (intPart !== '0') {
+        return Number(Number(numStr).toFixed(6)) + ' ' + quoteToken
       }
 
       // 计算小数部分前导 0 的个数
@@ -676,10 +677,10 @@ export default {
       // 获取 4 位有效数字
       const significantDigits = decPart.slice(leadingZeros, leadingZeros + 6)
       if (leadingZeros > 3) {
-        return `0.0{${leadingZeros}}${significantDigits}` + ' ' + quoteToken
+        return `0.0{${leadingZeros - 1}}${significantDigits}` + ' ' + quoteToken
       }
 
-      return Number(numStr).toFixed(leadingZeros + 6) + ' ' + quoteToken
+      return Number(Number(numStr).toFixed(leadingZeros + 6)) + ' ' + quoteToken
     },
     formatPrice(value) {
       if (value === null || value === undefined || value === '' || value === 0) {
@@ -697,8 +698,8 @@ export default {
       const decPart = rawDecPart || ''
 
       // 如果整数部分不为 0，直接保留 6 位小数
-      if (intPart !== '0' || intPart !== '-0') {
-        return Number(numStr).toFixed(6)
+      if (intPart !== '0') {
+        return Number(Number(numStr).toFixed(6))
       }
 
       // 计算小数部分前导 0 的个数
@@ -708,13 +709,7 @@ export default {
         else break
       }
 
-      // 获取 4 位有效数字
-      const significantDigits = decPart.slice(leadingZeros, leadingZeros + 6)
-      if (leadingZeros > 3) {
-        return `0.0{${leadingZeros}}${significantDigits}`
-      }
-
-      return Number(numStr).toFixed(leadingZeros + 6)
+      return Number(Number(numStr).toFixed(leadingZeros + 6))
     },
     formatDuration(cellValue) {
       if (cellValue === null || cellValue === undefined || cellValue === '') {
