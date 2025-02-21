@@ -59,6 +59,16 @@
                 <el-table-column prop="binanceLimitOrderAmount" label="币安市价单数量" />
                 <el-table-column prop="binanceMarketOrderExecutedQuantity" label="币安市价单成交数量" />
                 <el-table-column prop="binanceMarketOrderCummulativeQuoteQuantity" label="币安市场订单累计报价数量" />
+                <el-table-column
+                  v-if="props.row.details.some(item => item.binanceLimitOrderErr)"
+                  label="交易状态"
+                >
+                  <template #default="{ row }">
+                    <el-tooltip v-if="row.binanceLimitOrderErr" class="item" effect="dark" :content="row.binanceLimitOrderErr" placement="top">
+                      <span style="color: red; cursor: pointer;">交易失败</span>
+                    </el-tooltip>
+                  </template>
+                </el-table-column>
               </el-table>
             </template>
           </el-table-column>
