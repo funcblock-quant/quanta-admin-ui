@@ -102,6 +102,14 @@
                     v-permisaction="['business:busStrategyInstance:edit']"
                     size="mini"
                     type="text"
+                    icon="el-icon-info"
+                    @click.stop="handleView(item)"
+                  >详情
+                  </el-button>
+                  <el-button
+                    v-permisaction="['business:busStrategyInstance:edit']"
+                    size="mini"
+                    type="text"
                     icon="el-icon-edit"
                     :disabled="item.status === '1'"
                     @click.stop="handleUpdate(item)"
@@ -204,35 +212,12 @@
             </el-card>
             <!-- 分割线 -->
             <el-divider />
-            <!--            <el-card class="fused-card" shadow="never">-->
-            <!--              <div slot="header">-->
-            <!--                <h5>选择服务器</h5>-->
-            <!--                <el-form-item label="服务器" prop="serverIp">-->
-            <!--                  <el-select-->
-            <!--                    v-model="form.serverId"-->
-            <!--                    placeholder="请选择要部署的服务器"-->
-            <!--                  >-->
-            <!--                    <el-option-->
-            <!--                      v-for="server in serverList"-->
-            <!--                      :key="server.id"-->
-            <!--                      :value="`${server.id}`"-->
-            <!--                      :label="formatServerInfo(server)"-->
-            <!--                    />-->
-            <!--                  </el-select>-->
-            <!--                </el-form-item>-->
-            <!--              </div>-->
-            <!--            </el-card>-->
 
             <template>
               <el-card v-if="form.strategyId" class="fused-card" shadow="never">
                 <div slot="header">
                   <h5>策略配置参数</h5>
                 </div>
-                <!--                <codemirror-->
-                <!--                  ref="editor"-->
-                <!--                  v-model="form.schema.schemaText"-->
-                <!--                  :options="options"-->
-                <!--                />-->
                 <fieldset>
                   <RecursiveForm :data="form.schema.parsedData" />
                 </fieldset>
@@ -240,8 +225,77 @@
             </template>
           </el-form>
           <br>
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+
+          <el-button type="primary" :disabled="isView" @click="submitForm">确 定</el-button>
+          <el-button @click="handleDrawClose">取 消</el-button>
+        </el-drawer>
+
+        <el-drawer :title="title" :visible.sync="detailOpen">
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+            <el-card class="fused-card" shadow="never">
+              <div slot="header">
+                <h5>策略基础信息</h5>
+
+                <el-form-item label="策略" prop="strategyId">
+                  <el-select
+                    v-model="form.strategyId"
+                    placeholder="请选择策略"
+                    clearable
+                    size="small"
+                    :disabled="isView"
+                    @change="getConfigSchema(form.strategyId)"
+                  >
+                    <el-option
+                      v-for="strategy in strategyList"
+                      :key="strategy.key"
+                      :value="strategy.key"
+                      :label="strategy.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item label="策略实例名称" prop="instanceName">
+                  <el-input
+                    v-model="form.instanceName"
+                    placeholder="策略实例名称"
+                    :disabled="isView"
+                  />
+                </el-form-item>
+                <el-form-item label="实例类型" prop="type">
+                  <el-select
+                    v-model="form.type"
+                    placeholder="请选择实例类型"
+                    clearable
+                    :disabled="isView"
+                    size="small"
+                  >
+                    <el-option
+                      v-for="type in instanceTypeList"
+                      :key="type.key"
+                      :value="type.key"
+                      :label="type.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+              </div>
+            </el-card>
+            <!-- 分割线 -->
+            <el-divider />
+
+            <template>
+              <el-card v-if="form.strategyId" class="fused-card" shadow="never">
+                <div slot="header">
+                  <h5>策略配置参数</h5>
+                </div>
+                <fieldset>
+                  <RecursiveForm :data="form.schema.parsedData" :readonly="true" />
+                </fieldset>
+              </el-card>
+            </template>
+          </el-form>
+          <br>
+
         </el-drawer>
 
       </el-card>
@@ -309,7 +363,11 @@ export default {
       open: false,
       // 修改实例弹出层
       editOpen: false,
+      // 详情弹出层
+      detailOpen: false,
       isEdit: false,
+      // 是否为详情模式
+      isView: false,
       // 类型数据字典
       typeOptions: [],
       // 关系表类型
@@ -731,10 +789,29 @@ export default {
     handleDrawClose(done) {
       this.$confirm('关闭后表单数据会丢失，确认关闭？')
         .then(_ => {
+          this.open = false
           done()
         })
         .catch(_ => {})
     },
+    // 进入详情模式
+    handleView(row) {
+      this.reset()
+      const id = row.id
+      console.log('row', row)
+      getBusStrategyInstance(id).then(response => {
+        this.form = response.data
+        if (response.data.schema.schemaType === 'yaml') {
+          this.handleYamlChange()
+        } else if (response.data.schema.schemaType === 'toml') {
+          this.handleTomlChange()
+        }
+      })
+      this.detailOpen = true
+      this.isView = true
+      this.title = '策略实例详情'
+    },
+
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
