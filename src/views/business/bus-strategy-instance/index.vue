@@ -289,7 +289,7 @@
                   <h5>策略配置参数</h5>
                 </div>
                 <fieldset>
-                  <RecursiveForm :data="form.schema.parsedData" :readonly="true" />
+                  <RecursiveForm :data="form.schema.parsedData" :readonly="isView" />
                 </fieldset>
               </el-card>
             </template>
@@ -1177,8 +1177,9 @@ export default {
   }
 
   .card-container {
-    max-height: 800px;
+    height: 800px;
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 10px; /* 滚动条空间 */
     position: relative; /* 用于控制内部布局 */
   }
