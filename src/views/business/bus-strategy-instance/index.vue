@@ -407,6 +407,14 @@ export default {
       return editor
     }
   },
+  mounted() {
+    this.$nextTick(() => {
+      const container = this.$el.querySelector('.card-container')
+      console.log('clientHeight:', container.clientHeight) // 可见区域高度
+      console.log('scrollHeight:', container.scrollHeight) // 实际内容高度
+      console.log('scrollWidth:', container.scrollWidth) // 宽度
+    })
+  },
   created() {
     this.loadData() // 初始化加载第一页数据
     this.getStrategyList()
@@ -986,6 +994,8 @@ export default {
     },
     // 模拟加载数据的函数
     async loadData() {
+      console.log('isLoading', this.isLoading)
+      console.log('isNoMoreData', this.isNoMoreData)
       if (this.isLoading || this.isNoMoreData) {
         return
       }
@@ -1010,7 +1020,11 @@ export default {
     handleScroll(e) {
       console.log('滚动事件触发')
       const container = e.target
-      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 10) {
+      console.log('clientHeight:', container.clientHeight) // 可见区域高度
+      console.log('scrollHeight:', container.scrollHeight) // 实际内容高度
+      console.log('scrollTop:', container.scrollTop) // 顶部
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 30) {
+        console.log('滚动事件触发数据加载')
         this.loadData() // 触底加载更多数据
       }
     },
@@ -1177,7 +1191,7 @@ export default {
   }
 
   .card-container {
-    height: 800px;
+    height: 700px;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 10px; /* 滚动条空间 */
