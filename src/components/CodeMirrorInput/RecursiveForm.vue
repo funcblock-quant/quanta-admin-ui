@@ -32,6 +32,10 @@ export default {
     data: {
       type: Object,
       required: true
+    },
+    readonly: {
+      type: Boolean,
+      default: false // 默认为可编辑
     }
   },
   methods: {
@@ -47,6 +51,7 @@ export default {
       }
     },
     handleInput(item) {
+      if (this.readonly) return
       if (item.type === 'number') {
         item.value = Number(item.value) // 强制转换为数字
       } else if (item.type === 'boolean') {
