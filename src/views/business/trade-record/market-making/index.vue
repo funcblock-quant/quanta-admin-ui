@@ -52,19 +52,28 @@
               </div>
               <el-table v-else :data="props.row.details" style="width: 100%" border>
                 <el-table-column prop="clientOrderId" label="ClientOrderId" />
-                <el-table-column prop="binanceLimitOrderSide" label="币安限价单方向" />
+                <el-table-column prop="binanceLimitOrderSide" label="币安对冲单方向" />
                 <el-table-column prop="binanceLimitOrderPrice" label="币安限价单价格" />
                 <el-table-column prop="binanceLimitOrderAmount" label="币安限价单数量" />
-                <el-table-column prop="binanceLimitOrderSide" label="币安市价单方向" />
-                <el-table-column prop="binanceLimitOrderAmount" label="币安市价单数量" />
-                <el-table-column prop="binanceMarketOrderExecutedQuantity" label="币安市价单成交数量" />
-                <el-table-column prop="binanceMarketOrderCummulativeQuoteQuantity" label="币安市场订单累计报价数量" />
                 <el-table-column
                   v-if="props.row.details.some(item => item.binanceLimitOrderErr)"
-                  label="交易状态"
+                  label="限价单交易状态"
                 >
                   <template #default="{ row }">
                     <el-tooltip v-if="row.binanceLimitOrderErr" class="item" effect="dark" :content="row.binanceLimitOrderErr" placement="top">
+                      <span style="color: red; cursor: pointer;">交易失败</span>
+                    </el-tooltip>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="binanceMarketOrderAmount" label="币安市价单数量" />
+                <el-table-column prop="binanceMarketOrderExecutedQuantity" label="币安市价单成交数量" />
+                <el-table-column prop="binanceMarketOrderCummulativeQuoteQuantity" label="币安市场订单累计报价数量" />
+                <el-table-column
+                  v-if="props.row.details.some(item => item.binanceMarketOrderErr)"
+                  label="市价单交易状态"
+                >
+                  <template #default="{ row }">
+                    <el-tooltip v-if="row.binanceMarketOrderErr" class="item" effect="dark" :content="row.binanceMarketOrderErr" placement="top">
                       <span style="color: red; cursor: pointer;">交易失败</span>
                     </el-tooltip>
                   </template>
