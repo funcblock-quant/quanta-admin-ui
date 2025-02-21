@@ -5,7 +5,7 @@
       <div v-if="item && item.value && typeof item.value === 'object'" class="nested-field">
         <fieldset class="nested-fieldset">
           <legend>{{ item.label || key }}</legend>
-          <RecursiveForm :data="item.value" />
+          <RecursiveForm :data="item.value" :readonly="readonly" />
         </fieldset>
       </div>
 
@@ -17,6 +17,7 @@
           v-model="item.value"
           class="form-input"
           :placeholder="item.label"
+          :disabled="readonly"
           :type="getInputType(item.type)"
           @input="handleInput(item)"
         >
