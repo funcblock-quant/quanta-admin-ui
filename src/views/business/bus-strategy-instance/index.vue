@@ -1007,6 +1007,7 @@ export default {
           this.total = response.data.count
 
           this.loading = false
+          console.log('response.data.list.length:', response.data.list.length)
           if (!response.data.list.length || response.data.list.length < this.queryParams.pageSize) {
             this.isNoMoreData = true // 数据量小于页面大小，无更多数据
           }
