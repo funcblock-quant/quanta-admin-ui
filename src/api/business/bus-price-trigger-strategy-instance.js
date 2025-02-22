@@ -35,6 +35,24 @@ export function updateBusPriceTriggerStrategyInstance(data) {
   })
 }
 
+// 修改BusPriceTriggerStrategyInstance止盈参数
+export function updateBusPriceTriggerStrategyProfitTarget(data) {
+  return request({
+    url: '/api/v1/updateProfitTarget',
+    method: 'put',
+    data: data
+  })
+}
+
+// 修改BusPriceTriggerStrategyInstance执行次数
+export function updateBusPriceTriggerStrategyExecuteNum(data) {
+  return request({
+    url: '/api/v1/updateExecuteNum',
+    method: 'put',
+    data: data
+  })
+}
+
 // 删除BusPriceTriggerStrategyInstance
 export function delBusPriceTriggerStrategyInstance(data) {
   return request({
