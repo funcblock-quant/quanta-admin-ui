@@ -1,0 +1,62 @@
+name: Staging
+
+on:
+  push:
+    branches: [ price_trigger_new_features ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          cache: 'npm' # 缓存 npm 依赖
+
+      - name: install
+        run: npm ci # 使用 npm ci 进行干净安装
+
+      - name: install sass-migrator
+        run: npm install -g sass-migrator
+
+      - name: sass-migrator division **/*.scss
+        run: sass-migrator division **/*.scss
+
+      - name: Build
+        run: npm run build:staging
+
+      - name: List build directory contents
+        run: ls -la build
+
+      - name: Setup SSH Config for Jump Host
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY_STAGING_JUMP }}" > ~/.ssh/id_rsa_jump
+          chmod 600 ~/.ssh/id_rsa_jump
+          echo "${{ secrets.DEPLOY_KEY_STAGING }}" > ~/.ssh/id_rsa_staging
+          chmod 600 ~/.ssh/id_rsa_staging
+          cat >> ~/.ssh/config <<EOF
+          Host jump-host
+            HostName 57.180.62.181
+            User ec2-user
+            IdentityFile ~/.ssh/id_rsa_jump
+            StrictHostKeyChecking no
+
+          Host staging-server
+            HostName 172.31.47.52
+            User ec2-user
+            IdentityFile ~/.ssh/id_rsa_staging
+            ProxyJump jump-host
+            StrictHostKeyChecking no
+          EOF
+
+      - name: Rsync Frontend Files via Jump Host
+        run: |
+          rsync -avzr --delete --filter=':- .gitignore' -e "ssh -F ~/.ssh/config" dist/ staging-server:/data/quanta-admin-ui
+
+
