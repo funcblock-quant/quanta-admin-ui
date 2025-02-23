@@ -1,0 +1,45 @@
+name: Staging
+
+on:
+  push:
+    branches: [ price_trigger_new_features ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          cache: 'npm' # 缓存 npm 依赖
+
+      - name: install
+        run: npm ci # 使用 npm ci 进行干净安装
+
+      - name: install sass-migrator
+        run: npm install -g sass-migrator
+
+      - name: sass-migrator division **/*.scss
+        run: sass-migrator division **/*.scss
+
+      - name: Build
+        run: npm run build:stage
+
+      - name: List build directory contents
+        run: ls -la build
+
+      - name: rsync deployments
+        uses: burnett01/rsync-deployments@4.1
+        with:
+          switches: -avzr --delete --filter=':- .gitignore'
+          path: dist/*
+          remote_path: /data/quanta-admin-ui
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_key: ${{ secrets.DEPLOY_KEY_STAGING }}
+

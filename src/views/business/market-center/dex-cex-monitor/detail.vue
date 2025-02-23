@@ -401,6 +401,20 @@ export default {
       return { min: this.formatPrice(min * 0.95), max: this.formatPrice(max * 1.05) }
     },
 
+    getPriceSpreadYAxisRange(values, baseRange) {
+      if (values.length === 0) return { min: 0, max: 1 }
+
+      const min = Math.min(...values)
+      const max = Math.max(...values)
+
+      // 根据基准范围调整当前范围
+      const range = baseRange.max - baseRange.min
+      const adjustedMin = Math.floor(min - (range * 0.05))
+      const adjustedMax = Math.ceil(max + (range * 0.05))
+
+      return { min: adjustedMin, max: adjustedMax }
+    },
+
     getProfitYAxisRange(values) {
       if (values.length === 0) return { min: 0, max: 1 }
       const min = Math.min(...values)
@@ -425,8 +439,7 @@ export default {
     },
     updateChart() {
       const dexBuyPriceRange = this.getPriceYAxisRange([...this.chartData.dexBuyPrices, ...this.chartData.cexSellPrices])
-      const dexBuyProfitRange = this.getProfitYAxisRange([...this.chartData.dexBuyProfit])
-      console.log('dexBuyProfitRange', dexSellProfitRange)
+      const dexBuyPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexBuySpread], dexBuyPriceRange)
 
       const option = {
         title: {
@@ -437,7 +450,7 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX买入价格', 'CEX卖出价格', '利润']
+          data: ['DEX买入价格', 'CEX卖出价格', '价差']
         },
         xAxis: {
           type: 'category',
@@ -451,20 +464,20 @@ export default {
             max: dexBuyPriceRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: (value) => {
-                return this.formatPrice(value)
+              formatter: function(value) {
+                return value.toFixed(4) // 保留4位小数
               }
             }
           },
           {
             type: 'value',
-            name: '利润',
-            min: dexBuyProfitRange.min,
-            max: dexBuyProfitRange.max,
+            name: '价差',
+            min: dexBuyPriceSpreadRange.min,
+            max: dexBuyPriceSpreadRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: (value) => {
-                return this.formatPrice(value)
+              formatter: function(value) {
+                return value.toFixed(6) // 保留6位小数
               }
             }
           }
@@ -488,21 +501,12 @@ export default {
             smooth: true,
             symbol: 'none' // 去掉数据点
           },
-          // {
-          //   name: '价差',
-          //   type: 'line',
-          //   yAxisIndex: 1,
-          //   data: this.chartData.dexBuySpread,
-          //   itemStyle: { color: '#ff8042' },
-          //   symbol: 'none', // 去掉数据点
-          //   smooth: true
-          // },
           {
-            name: '利润',
+            name: '价差',
             type: 'line',
             yAxisIndex: 1,
-            data: this.chartData.dexBuyProfit,
-            itemStyle: { color: '#9f0101' },
+            data: this.chartData.dexBuySpread,
+            itemStyle: { color: '#ff8042' },
             symbol: 'none', // 去掉数据点
             smooth: true
           }
@@ -511,8 +515,8 @@ export default {
       }
 
       const dexSellPriceRange = this.getPriceYAxisRange([...this.chartData.dexSellPrices, ...this.chartData.cexBuyPrices])
-      const dexSellProfitRange = this.getProfitYAxisRange([...this.chartData.dexSellProfit])
-      console.log('dexSellProfitRange', dexBuyProfitRange)
+      const dexSellPriceSpreadRange = this.getPriceSpreadYAxisRange([...this.chartData.dexSellSpread], dexSellPriceRange)
+
       const option2 = {
         title: {
           text: 'Dex卖出价格走势与价差变化',
@@ -522,7 +526,7 @@ export default {
         tooltip: { trigger: 'axis' },
         legend: {
           bottom: 0,
-          data: ['DEX卖出价格', 'CEX买入价格', '利润']
+          data: ['DEX卖出价格', 'CEX买入价格', '价差']
         },
         xAxis: {
           type: 'category',
@@ -536,20 +540,20 @@ export default {
             max: dexSellPriceRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: (value) => {
-                return this.formatPrice(value)
+              formatter: function(value) {
+                return value.toFixed(6) // 保留6位小数
               }
             }
           },
           {
             type: 'value',
-            name: '利润',
-            min: dexSellProfitRange.min,
-            max: dexSellProfitRange.max,
+            name: '价差',
+            min: dexSellPriceSpreadRange.min,
+            max: dexSellPriceSpreadRange.max,
             alignTicks: true,
             axisLabel: {
-              formatter: (value) => {
-                return this.formatPrice(value)
+              formatter: function(value) {
+                return value.toFixed(6) // 保留6位小数
               }
             }
           }
@@ -573,21 +577,12 @@ export default {
             smooth: true,
             symbol: 'none' // 去掉数据点
           },
-          // {
-          //   name: '价差',
-          //   type: 'line',
-          //   yAxisIndex: 1,
-          //   data: this.chartData.dexSellSpread,
-          //   itemStyle: { color: '#ff8042' },
-          //   symbol: 'none', // 去掉数据点
-          //   smooth: true
-          // },
           {
-            name: '利润',
+            name: '价差',
             type: 'line',
             yAxisIndex: 1,
-            data: this.chartData.dexBuyProfit,
-            itemStyle: { color: '#9f0101' },
+            data: this.chartData.dexSellSpread,
+            itemStyle: { color: '#ff8042' },
             symbol: 'none', // 去掉数据点
             smooth: true
           }
