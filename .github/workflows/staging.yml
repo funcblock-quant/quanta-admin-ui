@@ -28,35 +28,18 @@ jobs:
         run: sass-migrator division **/*.scss
 
       - name: Build
-        run: npm run build:staging
+        run: npm run build:stage
 
       - name: List build directory contents
         run: ls -la build
 
-      - name: Setup SSH Config for Jump Host
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY_STAGING_JUMP }}" > ~/.ssh/id_rsa_jump
-          chmod 600 ~/.ssh/id_rsa_jump
-          echo "${{ secrets.DEPLOY_KEY_STAGING }}" > ~/.ssh/id_rsa_staging
-          chmod 600 ~/.ssh/id_rsa_staging
-          cat >> ~/.ssh/config <<EOF
-          Host jump-host
-            HostName 57.180.62.181
-            User ec2-user
-            IdentityFile ~/.ssh/id_rsa_jump
-            StrictHostKeyChecking no
-
-          Host staging-server
-            HostName 172.31.47.52
-            User ec2-user
-            IdentityFile ~/.ssh/id_rsa_staging
-            ProxyJump jump-host
-            StrictHostKeyChecking no
-          EOF
-
-      - name: Rsync Frontend Files via Jump Host
-        run: |
-          rsync -avzr --delete --filter=':- .gitignore' -e "ssh -F ~/.ssh/config" dist/ staging-server:/data/quanta-admin-ui
-
+      - name: rsync deployments
+        uses: burnett01/rsync-deployments@4.1
+        with:
+          switches: -avzr --delete --filter=':- .gitignore'
+          path: dist/*
+          remote_path: /data/quanta-admin-ui
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_key: ${{ secrets.DEPLOY_KEY_STAGING }}
 
