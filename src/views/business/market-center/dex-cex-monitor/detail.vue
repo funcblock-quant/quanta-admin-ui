@@ -266,14 +266,11 @@ export default {
       chart: null,
       chart2: null,
       chartData: {},
-      instanceId: '',
       id: undefined // 详情id
     }
   },
   created() {
-    const instanceId = this.$route.params && this.$route.params.instanceId
     const id = this.$route.params && this.$route.params.id
-    this.instanceId = instanceId
     this.id = id
     this.getObserverDetail(id)
     this.startTimer()
@@ -317,7 +314,7 @@ export default {
       getBusDexCexTriangularObserver(id).then(response => {
         if (response.code === 200) { // 检查响应状态码
           this.busDexCexTriangularObserver = response.data
-          this.instanceId = response.data.instanceId
+          this.id = response.data.id
           console.log('this.busDexCexTriangularObserver', this.busDexCexTriangularObserver)
           this.total = response.data.count
         } else {
