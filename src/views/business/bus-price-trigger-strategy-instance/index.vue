@@ -1204,6 +1204,7 @@ export default {
             type: 'warning'
           }).then(() => {
             if (this.form.id !== undefined) {
+              this.form.executeNum = Number(this.form.executeNum)
               updateBusPriceTriggerStrategyInstance(this.form).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
@@ -1214,6 +1215,12 @@ export default {
                 }
               })
             } else {
+              this.form.executeNum = Number(this.form.executeNum)
+              this.form.profitTargetPrice = Number(this.form.profitTargetPrice)
+              this.form.lossTargetPrice = Number(this.form.lossTargetPrice)
+              this.form.cutoffRatio = Number(this.form.cutoffRatio)
+              this.form.callbackRatio = Number(this.form.callbackRatio)
+              this.form.minProfit = Number(this.form.minProfit)
               addBusPriceTriggerStrategyInstance(this.form).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
