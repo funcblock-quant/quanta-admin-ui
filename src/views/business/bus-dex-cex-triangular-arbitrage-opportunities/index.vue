@@ -198,7 +198,8 @@ export default {
         pageIndex: 1,
         pageSize: 10,
         instanceId: undefined,
-        buyOnDex: undefined
+        buyOnDex: undefined,
+        idOrder: 'desc'
 
       },
       // 表单参数
