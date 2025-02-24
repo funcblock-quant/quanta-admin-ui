@@ -98,7 +98,6 @@
 </template>
 
 <script>
-import { listDexCexArbitrageChance } from '@/api/business/bus-dex-cex-triangular-arbitrage-record'
 import { listBusDexCexTriangularSymbolList } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -174,12 +173,12 @@ export default {
   methods: {
     /** 查询参数列表 */
     getList() {
-      this.loading = true
-      listDexCexArbitrageChance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
-        this.busDexCexArbitrageChanceList = response.data
-        this.loading = false
-      }
-      )
+      // this.loading = true
+      // listDexCexArbitrageChance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      //   this.busDexCexArbitrageChanceList = response.data
+      //   this.loading = false
+      // }
+      // )
     },
     /** 查询观察币种 */
     getSymbolWatchList() {
