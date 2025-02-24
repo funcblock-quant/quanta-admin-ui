@@ -67,7 +67,7 @@
         </div>
       </el-card>
 
-      <el-card class="box-card">
+      <el-card v-if="busDexCexTriangularObserver.status === '3' && busDexCexTriangularObserver.isTrading" class="box-card">
         <el-descriptions v-loading="loading" title="Trader参数" :column="3">
           <template slot="extra">
             <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
@@ -90,7 +90,7 @@
         </div>
       </el-card>
 
-      <el-card class="box-card">
+      <el-card v-if="busDexCexTriangularObserver.status === '2' || busDexCexTriangularObserver.status === '3'" class="box-card">
         <el-descriptions v-loading="loading" title="水位调节参数" :column="3">
           <template slot="extra">
             <el-button v-if="!loading && !isWaterLevelEdit" type="text" icon="el-icon-edit" @click="handleWaterLevelEdit">编辑</el-button>
