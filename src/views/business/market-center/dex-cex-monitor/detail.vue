@@ -45,7 +45,7 @@
             <template v-if="!isObserverEdit">
               {{ busDexCexTriangularObserver.minProfit }}
             </template>
-            <el-input v-else v-model="observerRequestParams.triggerProfitQuoteAmount" size="mini" />
+            <el-input v-else v-model="observerRequestParams.minProfit" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Priority Fee(SOL)">
             <template v-if="!isObserverEdit">
@@ -372,7 +372,9 @@ export default {
       isObserverEdit: false, // observer参数编辑模式
       isTraderEdit: false, // trader参数编辑模式
       isWaterLevelEdit: false, // 水位调节参数编辑模式
-      observerRequestParams: {}, // observer参数表单
+      observerRequestParams: {
+        triggerProfitQuoteAmount: undefined
+      }, // observer参数表单
       traderRequestParams: {}, // trader参数表单
       waterLevelRequestParams: {}, // 水位调节参数表单
       chart: null,
@@ -542,7 +544,7 @@ export default {
       // 提交逻辑（调用 API）
       const newMinSolAmount = Number(this.observerRequestParams.minSolAmount)
       const newMaxSolAmount = Number(this.observerRequestParams.maxSolAmount)
-      const triggerProfitQuoteAmount = Number(this.observerRequestParams.triggerProfitQuoteAmount)
+      const minProfit = Number(this.observerRequestParams.minProfit)
       const priorityFee = Number(this.observerRequestParams.priorityFee)
       const jitoFee = Number(this.observerRequestParams.jitoFee)
       if (isNaN(newMinSolAmount) || newMinSolAmount <= 0 || isNaN(newMaxSolAmount) || newMaxSolAmount <= 0) {
@@ -557,7 +559,7 @@ export default {
         id: this.observerRequestParams.id,
         minSolAmount: newMinSolAmount,
         maxSolAmount: newMaxSolAmount,
-        triggerProfitQuoteAmount: triggerProfitQuoteAmount,
+        minProfit: minProfit,
         priorityFee: priorityFee,
         jitoFee: jitoFee
       }
