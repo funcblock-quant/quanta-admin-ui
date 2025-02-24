@@ -96,3 +96,12 @@ export function busDexCexTriangularUpdateTrader(data) {
     data: data
   })
 }
+
+// 更新waterlevel
+export function busDexCexTriangularUpdateWaterLevel(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularUpdateWaterLevel',
+    method: 'put',
+    data: data
+  })
+}

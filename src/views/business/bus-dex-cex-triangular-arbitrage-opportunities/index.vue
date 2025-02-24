@@ -35,30 +35,51 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="买方标识"
+            label="套利币种"
+            align="center"
+            prop="cexTargetAsset"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="买方"
             align="center"
             prop="buyOnDex"
             :show-overflow-tooltip="true"
+            :formatter="formatBuyOnDex"
+          />
+          <el-table-column
+            label="交易时间"
+            align="center"
+            width="180"
+            :show-overflow-tooltip="true"
+            :formatter="formatTime"
+          />
+          <el-table-column
+            label="利润"
+            align="center"
+            width="100"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
           />
           <el-table-column label="DEX侧交易信息" align="center">
-            <el-table-column
-              label="token address"
-              align="center"
-              prop="dexTargetToken"
-              :show-overflow-tooltip="true"
-            />
-            <el-table-column
-              label="pool type"
-              align="center"
-              prop="dexPoolType"
-              :show-overflow-tooltip="true"
-            />
-            <el-table-column
-              label="pool id"
-              align="center"
-              prop="dexPoolId"
-              :show-overflow-tooltip="true"
-            />
+            <!--            <el-table-column-->
+            <!--              label="token address"-->
+            <!--              align="center"-->
+            <!--              prop="dexTargetToken"-->
+            <!--              :show-overflow-tooltip="true"-->
+            <!--            />-->
+            <!--            <el-table-column-->
+            <!--              label="pool type"-->
+            <!--              align="center"-->
+            <!--              prop="dexPoolType"-->
+            <!--              :show-overflow-tooltip="true"-->
+            <!--            />-->
+            <!--            <el-table-column-->
+            <!--              label="pool id"-->
+            <!--              align="center"-->
+            <!--              prop="dexPoolId"-->
+            <!--              :show-overflow-tooltip="true"-->
+            <!--            />-->
             <el-table-column
               label="交易数量"
               align="center"
@@ -66,7 +87,7 @@
               :show-overflow-tooltip="true"
             />
             <el-table-column
-              label="Sol交易量"
+              label="SolAmount"
               align="center"
               prop="dexSolAmount"
               :show-overflow-tooltip="true"
@@ -90,11 +111,6 @@
               label="交易所"
               align="center"
               prop="cexExchangeType"
-              :show-overflow-tooltip="true"
-            /><el-table-column
-              label="目标币种"
-              align="center"
-              prop="cexTargetAsset"
               :show-overflow-tooltip="true"
             /><el-table-column
               label="计价币种"
@@ -318,6 +334,21 @@ export default {
         }
       }).catch(function() {
       })
+    },
+    // 格式化方法
+    formatBuyOnDex(row, column, cellValue, index) {
+      console.log('row.buyOnDex', row.buyOnDex)
+      return row.buyOnDex === '1' ? 'DEX' : 'CEX'
+    },
+    formatTime(row, column, cellValue, index) {
+      console.log('row.createdAt', row.createdAt)
+      const date = new Date(row.createdAt) // 将返回的 ISO 格式时间字符串转为 Date 对象
+      return date.toLocaleString()
+    },
+    formatProfit(row, column, cellValue, index) {
+      const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
+      const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
+      return (cexSellQuoteAmount - cexBuyQuoteAmount)
     }
   }
 }
