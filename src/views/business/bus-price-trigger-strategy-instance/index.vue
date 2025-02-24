@@ -182,13 +182,68 @@
               <span class="label">状态：</span>
               <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
             </div>
-            <div class="data-item full-width">
+            <div class="data-item">
+              <span class="label">执行次数：</span>
+              <span v-if="!item.editingExecuteNum" class="value">{{ item.executeNum }}</span>
+              <!-- 修改按钮 -->
+              <el-button
+                v-if="!item.editingExecuteNum"
+                size="mini"
+                type="text"
+                icon="el-icon-edit"
+                @click="enableEditExecuteNum(item)"
+              >修改</el-button>
+              <!-- 可编辑输入框 -->
+              <div v-else>
+                <el-input
+                  v-model="item.executeNum"
+                  size="mini"
+                  style="width: 80px;"
+                  @keyup.enter.native="submitExecuteNumUpdate(item)"
+                />
+                <el-button
+                  icon="el-icon-check"
+                  size="mini"
+                  type="text"
+                  :disabled="item.isEditing"
+                  @click="submitExecuteNumUpdate(item)"
+                />
+                <el-button
+                  icon="el-icon-close"
+                  size="mini"
+                  type="text"
+                  :disabled="item.isEditing"
+                  @click="cancelExecuteNumUpdate(item)"
+                />
+              </div>
+            </div>
+            <div class="data-item">
               <span class="label">总下单次数：</span>
               <span class="value">{{ item.statistical.orderNum }}</span>
             </div>
-            <div class="data-item full-width">
+            <div class="data-item half-width">
               <span class="label">总盈亏：</span>
               <span class="value">{{ item.statistical.totalPnl }}</span>
+            </div>
+            <div v-if="item.profitTargetType" class="data-item">
+              <el-button
+                slot="reference"
+                size="mini"
+                type="text"
+                icon="el-icon-edit"
+                @click="handleProfitTargetUpdate(item)"
+              >更新止盈配置
+              </el-button>
+            </div>
+            <div v-else class="data-item">
+              <el-button
+                slot="reference"
+                size="mini"
+                type="text"
+                icon="el-icon-edit"
+                @click="handleProfitTargetAdd(item)"
+              >设置止盈
+              </el-button>
             </div>
             <div v-if="item.status==='started'" class="data-item">
               <el-popconfirm
@@ -206,24 +261,24 @@
                 </el-button>
               </el-popconfirm>
             </div>
-          <!--          <div class="mt-10">-->
-          <!--            <el-button-->
-          <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
-          <!--              size="mini"-->
-          <!--              type="text"-->
-          <!--              icon="el-icon-edit"-->
-          <!--              @click="handleUpdate(item)"-->
-          <!--            >修改-->
-          <!--            </el-button>-->
-          <!--            <el-popconfirm-->
-          <!--              class="delete-popconfirm"-->
-          <!--              title="确认要删除吗?"-->
-          <!--              confirm-button-text="删除"-->
-          <!--              @confirm="handleDelete(item)"-->
-          <!--            >-->
-          <!--              <el-button type="text" size="mini">删除</el-button>-->
-          <!--            </el-popconfirm>-->
-          <!--          </div>-->
+            <!--          <div class="mt-10">-->
+            <!--            <el-button-->
+            <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
+            <!--              size="mini"-->
+            <!--              type="text"-->
+            <!--              icon="el-icon-edit"-->
+            <!--              @click="handleUpdate(item)"-->
+            <!--            >修改-->
+            <!--            </el-button>-->
+            <!--            <el-popconfirm-->
+            <!--              class="delete-popconfirm"-->
+            <!--              title="确认要删除吗?"-->
+            <!--              confirm-button-text="删除"-->
+            <!--              @confirm="handleDelete(item)"-->
+            <!--            >-->
+            <!--              <el-button type="text" size="mini">删除</el-button>-->
+            <!--            </el-popconfirm>-->
+            <!--          </div>-->
           </div>
 
           <el-collapse v-model="activeNames" @change="handleCollapseChange">
@@ -253,153 +308,323 @@
               </div>
             </el-collapse-item>
           </el-collapse>
-        </el-card>
+        </el-card></div>
 
-        <!-- 添加或修改对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="600px">
-          <el-form ref="form" :model="form" :rules="rules" label-width="150px">
-            <el-form-item label="交易币种" prop="symbol">
-              <el-select
-                v-model="form.symbol"
-                filterable
-                allow-create
-                placeholder="交易币种"
-              >
-                <el-option
-                  v-for="symb in symbolList"
-                  :key="symb.value"
-                  :label="symb.label"
-                  :value="symb.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="开仓价格" prop="openPrice">
-              <el-input
-                v-model="form.openPrice"
-                placeholder="开仓价格"
-              />
-            </el-form-item>
-            <el-form-item label="平仓价格" prop="closePrice">
-              <el-input
-                v-model="form.closePrice"
-                placeholder="平仓价格"
-              />
-            </el-form-item>
-            <el-form-item label="开仓数量" prop="amount">
-              <el-input
-                v-model="form.amount"
-                placeholder="开仓数量"
-              />
-            </el-form-item>
-            <el-form-item label="买卖方向" prop="side">
-              <el-select
-                v-model="form.side"
-                placeholder="买卖方向"
-              >
-                <el-option
-                  v-for="side in sideDict"
-                  :key="side.value"
-                  :label="side.label"
-                  :value="side.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="停止时间" prop="closeTime">
-              <el-date-picker
-                v-model="form.closeTime"
-                type="datetime"
-                placeholder="选择日期"
-              />
-            </el-form-item>
-            <el-form-item label="api key" prop="side">
-              <el-select
-                v-model="form.apiConfig"
-                placeholder="选择api key"
-              >
-                <el-option
-                  v-for="apikey in apiKeyList"
-                  :key="apikey.id"
-                  :label="apikey.accountName"
-                  :value="apikey.id"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="Exchange User Id" prop="exchangeUserId">
-              <el-input
-                v-model="form.exchangeUserId"
-                placeholder="交易所userId"
-              />
-            </el-form-item>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submitForm">确 定</el-button>
-            <el-button @click="cancel">取 消</el-button>
-          </div>
-        </el-dialog>
-
-        <!-- api-key list -->
-        <el-dialog :title="apiKeyManageTitle" :visible.sync="showApiKeyList" width="1200px">
-          <el-table :data="apiKeyList">
-            <el-table-column
-              label="API Key"
-              align="center"
-              prop="apiKey"
-              width="400"
-              :show-overflow-tooltip="true"
-            />
-            <el-table-column
-              label="Secret Key"
-              align="center"
-              prop="secretKey"
-              width="400"
-            />>
-            <el-table-column
-              label="账户名称"
-              align="center"
-              prop="accountName"
-              width="80"
-            />
-            <el-table-column
-              label="交易所"
-              align="center"
-              prop="exchange"
-              width="80"
-            />
-            <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-              <template slot-scope="scope">
-                <!--                <el-button-->
-                <!--                  slot="reference"-->
-                <!--                  size="mini"-->
-                <!--                  type="text"-->
-                <!--                  icon="el-icon-edit"-->
-                <!--                  @click="handleApiKeyUpdate(scope.row)"-->
-                <!--                >修改-->
-                <!--                </el-button>-->
-                <el-popconfirm
-                  class="delete-popconfirm"
-                  title="确认要删除该API key吗?"
-                  confirm-button-text="删除"
-                  @confirm="handleApiKeyDelete(scope.row)"
+      <!-- 添加或修改对话框 -->
+      <el-dialog :title="title" :visible.sync="open" width="800px">
+        <el-form ref="form" :model="form" :rules="rules" label-width="150px">
+          <el-row :gutter="20">
+            <el-col :span="11">
+              <el-form-item label="交易币种" prop="symbol">
+                <el-select
+                  v-model="form.symbol"
+                  filterable
+                  allow-create
+                  placeholder="交易币种"
+                  style="width: 180px;"
                 >
-                  <el-button
-                    slot="reference"
-                    size="mini"
-                    type="text"
-                    icon="el-icon-delete"
-                  >删除
-                  </el-button>
-                </el-popconfirm>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div style="text-align: center; margin: 20px 0;">
-            <el-button type="primary" size="small" icon="el-icon-plus" @click="handleApiKeyAdd">绑定新的API Key</el-button>
+                  <el-option
+                    v-for="symb in symbolList"
+                    :key="symb.value"
+                    :label="symb.label"
+                    :value="symb.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="买卖方向" prop="side">
+                <el-select
+                  v-model="form.side"
+                  placeholder="买卖方向"
+                  style="width: 180px;"
+                >
+                  <el-option
+                    v-for="side in sideDict"
+                    :key="side.value"
+                    :label="side.label"
+                    :value="side.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="10">
+            <el-col :span="11">
+              <el-form-item label="开仓价格" prop="openPrice">
+                <el-input v-model="form.openPrice" placeholder="开仓价格" style="width: 180px;" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="开仓数量" prop="closePrice">
+                <el-input
+                  v-model="form.amount"
+                  placeholder="开仓数量"
+                  style="width: 180px;"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="10">
+            <el-col :span="11">
+              <el-form-item label="平仓价格" prop="amount">
+                <el-input v-model="form.closePrice" placeholder="平仓价格" style="width: 180px;" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="停止时间" prop="closeTime">
+                <el-date-picker
+                  v-model="form.closeTime"
+                  type="datetime"
+                  placeholder="选择日期"
+                  style="width: 180px;"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="10">
+            <el-col :span="11">
+              <el-form-item label="api key" prop="side">
+                <el-select
+                  v-model="form.apiConfig"
+                  placeholder="选择api key"
+                  style="width: 180px;"
+                >
+                  <el-option
+                    v-for="apikey in apiKeyList"
+                    :key="apikey.id"
+                    :label="apikey.accountName"
+                    :value="apikey.id"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="Exchange User Id" prop="exchangeUserId">
+                <el-input
+                  v-model="form.exchangeUserId"
+                  placeholder="交易所userId"
+                  style="width: 180px;"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="执行次数" prop="executeNum">
+            <el-input v-model="form.executeNum" type="number" placeholder="执行次数" style="width: 180px;" />
+          </el-form-item>
+          <el-divider />
+
+          <div>
+            <h5>止盈配置</h5>
+            <el-form-item label="止盈方式">
+              <el-radio-group v-model="form.profitTargetType" size="small">
+                <el-radio-button label="LIMIT">限价止盈</el-radio-button>
+                <el-radio-button label="FLOATING">浮动止盈</el-radio-button>
+              </el-radio-group>
+            </el-form-item>
+            <!-- 限价止盈 -->
+            <div v-if="form.profitTargetType === 'LIMIT'">
+              <el-form-item label="止盈价">
+                <el-input v-model="form.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              </el-form-item>
+              <el-form-item label="止损价">
+                <el-input v-model="form.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
+              </el-form-item>
+            </div>
+
+            <!-- 浮动止盈 -->
+            <div v-if="form.profitTargetType === 'FLOATING'">
+              <el-form-item label="回调比例">
+                <el-slider
+                  v-model="form.callbackRatio"
+                  show-input
+                  step="5"
+                  :precision="0"
+                  :max="100"
+                >
+                  <template slot="append">%</template>
+                </el-slider>
+                <!--                  <el-input v-model="form.callbackRatio" placeholder="请输入回调比例" style="width: 180px;" />-->
+              </el-form-item>
+              <el-form-item label="止盈比例">
+                <el-slider
+                  v-model="form.cutoffRatio"
+                  show-input
+                  step="5"
+                  :precision="0"
+                  :max="100"
+                >
+                  <template slot="append">%</template>
+                </el-slider>
+                <!--                  <el-input v-model="form.cutoffRatio" placeholder="请输入止盈比例" style="width: 180px;" />-->
+              </el-form-item>
+              <el-form-item label="最低盈利金额">
+                <el-input v-model="form.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
+              </el-form-item>
+            </div>
           </div>
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="closeApiManage">返 回</el-button>
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </el-dialog>
+
+      <!-- 编辑止盈配置 -->
+      <el-dialog :title="editProfitTargetTitle" :visible.sync="editProfitTarget" width="800px">
+        <el-form ref="profitTargetForm" :model="profitTargetForm" :rules="rules" label-width="150px">
+          <div>
+            <el-form-item label="止盈方式">
+              <div v-if="!allowChangeType && profitTargetForm.profitTargetType">
+                <el-radio-group
+                  v-model="profitTargetForm.profitTargetType"
+                  size="small"
+                  :disabled="!allowChangeType && profitTargetForm.profitTargetType"
+                >
+                  <el-radio-button v-if="profitTargetForm.profitTargetType === 'LIMIT'" label="LIMIT">限价止盈</el-radio-button>
+                  <el-radio-button v-if="profitTargetForm.profitTargetType === 'FLOATING'" label="FLOATING">浮动止盈</el-radio-button>
+                </el-radio-group>
+              </div>
+            </el-form-item>
+
+            <!-- 限价止盈表单 -->
+            <div v-if="profitTargetForm.profitTargetType === 'LIMIT'">
+              <el-form-item label="止盈价">
+                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              </el-form-item>
+              <el-form-item label="止损价">
+                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
+              </el-form-item>
+            </div>
+
+            <!-- 浮动止盈表单 -->
+            <div v-if="profitTargetForm.profitTargetType === 'FLOATING'">
+              <el-form-item label="回调比例">
+                <el-slider v-model="profitTargetForm.callbackRatio" show-input step="5" :precision="0" :max="100" />
+              </el-form-item>
+              <el-form-item label="止盈比例">
+                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />
+              </el-form-item>
+              <el-form-item label="最低盈利金额">
+                <el-input v-model="profitTargetForm.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
+              </el-form-item>
+            </div>
           </div>
-        </el-dialog>
-      </div></template>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitProfitTargetForm">确 定</el-button>
+          <el-button @click="cancelProfitTargetForm">取 消</el-button>
+        </div>
+      </el-dialog>
+
+      <el-dialog :title="addProfitTargetTitle" :visible.sync="addProfitTarget" width="800px">
+        <el-form ref="profitTargetForm" :model="profitTargetForm" :rules="rules" label-width="150px">
+          <div>
+            <el-form-item label="止盈方式">
+              <el-radio-group
+                v-model="profitTargetForm.profitTargetType"
+                size="small"
+              >
+                <el-radio-button label="LIMIT">限价止盈</el-radio-button>
+                <el-radio-button label="FLOATING">浮动止盈</el-radio-button>
+              </el-radio-group>
+            </el-form-item>
+
+            <!-- 限价止盈表单 -->
+            <div v-if="profitTargetForm.profitTargetType === 'LIMIT'">
+              <el-form-item label="止盈价">
+                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              </el-form-item>
+              <el-form-item label="止损价">
+                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
+              </el-form-item>
+            </div>
+
+            <!-- 浮动止盈表单 -->
+            <div v-if="profitTargetForm.profitTargetType === 'FLOATING'">
+              <el-form-item label="回调比例">
+                <el-slider v-model="profitTargetForm.callbackRatio" show-input step="5" :precision="0" :max="100" />
+              </el-form-item>
+              <el-form-item label="止盈比例">
+                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />
+              </el-form-item>
+              <el-form-item label="最低盈利金额">
+                <el-input v-model="profitTargetForm.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
+              </el-form-item>
+            </div>
+          </div>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitProfitTargetForm">确 定</el-button>
+          <el-button @click="cancelAddProfitTargetForm">取 消</el-button>
+        </div>
+      </el-dialog>
+
+      <!-- api-key list -->
+      <el-dialog :title="apiKeyManageTitle" :visible.sync="showApiKeyList" width="1200px">
+        <el-table :data="apiKeyList">
+          <el-table-column
+            label="API Key"
+            align="center"
+            prop="apiKey"
+            width="400"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="Secret Key"
+            align="center"
+            prop="secretKey"
+            width="400"
+          />>
+          <el-table-column
+            label="账户名称"
+            align="center"
+            prop="accountName"
+            width="80"
+          />
+          <el-table-column
+            label="交易所"
+            align="center"
+            prop="exchange"
+            width="80"
+          />
+          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+            <template slot-scope="scope">
+              <!--                <el-button-->
+              <!--                  slot="reference"-->
+              <!--                  size="mini"-->
+              <!--                  type="text"-->
+              <!--                  icon="el-icon-edit"-->
+              <!--                  @click="handleApiKeyUpdate(scope.row)"-->
+              <!--                >修改-->
+              <!--                </el-button>-->
+              <el-popconfirm
+                class="delete-popconfirm"
+                title="确认要删除该API key吗?"
+                confirm-button-text="删除"
+                @confirm="handleApiKeyDelete(scope.row)"
+              >
+                <el-button
+                  slot="reference"
+                  size="mini"
+                  type="text"
+                  icon="el-icon-delete"
+                >删除
+                </el-button>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="text-align: center; margin: 20px 0;">
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="handleApiKeyAdd">绑定新的API Key</el-button>
+        </div>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="closeApiManage">返 回</el-button>
+        </div>
+      </el-dialog>
+    </template>
   </BasicLayout>
 </template>
 
@@ -408,8 +633,8 @@ import {
   addBusPriceTriggerStrategyInstance,
   getBusPriceTriggerStrategyInstance, getSymbolList,
   listBusPriceTriggerStrategyInstance,
-  stopBusPriceTriggerStrategyInstance,
-  updateBusPriceTriggerStrategyInstance
+  stopBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyExecuteNum,
+  updateBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyProfitTarget
 } from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
 import {
@@ -437,6 +662,9 @@ export default {
       total: 0,
       // 弹出层标题
       title: '',
+      // 更新止盈配置弹出层标题
+      editProfitTargetTitle: '更新止盈配置',
+      addProfitTargetTitle: '设置止盈',
       apiKeyManageTitle: '',
       // 是否显示弹出层
       open: false,
@@ -494,8 +722,25 @@ export default {
       // 表单参数
       form: {
       },
+      allowChangeType: false, // 是否允许切换止盈方式
+      // 更新止盈配置表单
+      profitTargetForm: {
+        id: undefined,
+        profitTargetType: undefined,
+        profitTargetPrice: undefined,
+        lossTargetPrice: undefined,
+        callbackRatio: undefined,
+        cutoffRatio: undefined,
+        minProfit: undefined
+      },
+      // 修改执行次数的表单
+      executeNumForm: {
+        id: undefined,
+        executeNum: undefined
+      },
       // 表单校验
-      rules: { status: [{ required: true, message: '状态，created, started, stopped, closed不能为空', trigger: 'blur' }]
+      rules: {
+        status: [{ required: true, message: '状态，created, started, stopped, closed不能为空', trigger: 'blur' }]
       },
       detailFields: ['id', 'exchangeName', 'monitoredOpenedNum', 'pnl'], // 需要显示的字段列表
       timers: {}, // 使用对象存储定时器，key 为 item.id
@@ -512,7 +757,12 @@ export default {
       },
       apiKeyList: [],
       showBindForm: false,
-      showApiKeyList: false
+      showApiKeyList: false,
+      selectedItem: undefined, // 当前选中的行数据
+      editProfitTarget: false, // 止盈配置更新标识
+      addProfitTarget: false, // 新增止盈配置标识
+      editingExecuteNum: false, // 修改执行次数标识
+      originExecuteNum: {} // 记录原始执行次数值，方便恢复
     }
   },
   computed: {
@@ -598,10 +848,16 @@ export default {
     // 获取币种列表
     getSymbolList() {
       getSymbolList().then(response => {
-        this.querySymbolList = response.data.map(item => ({
+        const newSymbolList = response.data.map(item => ({
           label: item.symbol,
           value: item.symbol
         }))
+        this.querySymbolList = newSymbolList
+        // 增量合并数据，避免重复
+        this.symbolList = [
+          ...this.symbolList,
+          ...newSymbolList.filter(newItem => !this.symbolList.some(existingItem => existingItem.value === newItem.value))
+        ]
       })
     },
     getApiKeyList() {
@@ -684,6 +940,14 @@ export default {
       this.showBindForm = true
       this.apiKeyEditMode = true
     },
+    enableEditExecuteNum(item) {
+      console.log('row.editingExecuteNum', item.editingExecuteNum)
+      this.originExecuteNum[item.id] = item.executeNum
+      clearInterval(this.timers['listKey'])
+      this.$set(item, 'editingExecuteNum', true)
+      this.executeNumForm.executeNum = item.executeNum
+      this.executeNumForm.id = item.id
+    },
     handleApiKeyDelete(row) {
       var Ids = (row.id && [row.id]) || this.ids
 
@@ -732,6 +996,34 @@ export default {
     //     }
     //   })
     // },
+    // 提交执行次数更新
+    submitExecuteNumUpdate(item) {
+      console.log('item', item)
+      this.executeNumForm.executeNum = item.executeNum
+      const requestData = { ...this.executeNumForm }
+      console.log('requestData', requestData)
+      requestData.id = Number(requestData.id)
+      requestData.executeNum = Number(requestData.executeNum)
+      updateBusPriceTriggerStrategyExecuteNum(requestData).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.$set(item, 'editingExecuteNum', false)
+          this.timers['listKey'] = setInterval(() => {
+            this.getList()
+          }, 2000)
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+    // 取消执行次数编辑
+    cancelExecuteNumUpdate(item) {
+      this.editingExecuteNum = false
+      this.$set(item, 'editingExecuteNum', false)
+      this.timers['listKey'] = setInterval(() => {
+        this.getList()
+      }, 2000)
+    },
     /** 清除定时器，防止定时器还在请求*/
     clearTimer(id) {
       if (this.timers[id]) {
@@ -764,6 +1056,16 @@ export default {
       this.open = false
       this.reset()
     },
+    // 取消按钮
+    cancelProfitTargetForm() {
+      this.editProfitTarget = false
+      this.resetProfitTargetForm()
+    },
+    // 取消按钮
+    cancelAddProfitTargetForm() {
+      this.addProfitTarget = false
+      this.resetProfitTargetForm()
+    },
     // 返回按钮
     closeApiManage() {
       this.showApiKeyList = false
@@ -783,7 +1085,18 @@ export default {
         closeTime: undefined,
         status: undefined
       }
-      this.resetForm('form')
+    },
+    // 表单重置
+    resetProfitTargetForm() {
+      this.profitTargetForm = {
+        id: undefined,
+        profitTargetType: undefined,
+        profitTargetPrice: undefined,
+        lossTargetPrice: undefined,
+        callbackRatio: undefined,
+        cutoffRatio: undefined,
+        minProfit: undefined
+      }
     },
     statusFormat(status) {
       if (status === 'created') {
@@ -796,6 +1109,15 @@ export default {
         return '运行中'
       } else {
         return '未知状态'
+      }
+    },
+    formatProfitTargetType(profitType) {
+      if (profitType === 'LIMIT') {
+        return '限价止盈'
+      } else if (profitType === 'FLOATING') {
+        return '浮动止盈'
+      } else {
+        return ''
       }
     },
     sideFormat(side) {
@@ -851,6 +1173,24 @@ export default {
         }
       })
     },
+    // 处理更新止盈配置的按钮点击事件
+    handleProfitTargetUpdate(item) {
+      this.selectedItem = item
+      this.profitTargetForm.id = item.id
+      this.profitTargetForm.profitTargetType = item.profitTargetType
+      this.profitTargetForm.profitTargetPrice = item.profitTargetPrice
+      this.profitTargetForm.lossTargetPrice = item.lossTargetPrice
+      this.profitTargetForm.callbackRatio = item.callbackRatio
+      this.profitTargetForm.cutoffRatio = item.cutoffRatio
+      this.profitTargetForm.minProfit = item.minProfit
+      this.editProfitTarget = true
+    },
+    // 处理新增止盈配置的按钮点击事件
+    handleProfitTargetAdd(item) {
+      this.selectedItem = item
+      this.profitTargetForm.id = item.id
+      this.addProfitTarget = true
+    },
     /** 提交按钮 */
     submitForm: function() {
       this.$refs['form'].validate(valid => {
@@ -884,6 +1224,42 @@ export default {
                 }
               })
             }
+          }).catch(() => {
+            // 取消确认时不执行任何操作
+          })
+        }
+      })
+    },
+    /** 提交更新 */
+    submitProfitTargetForm: function() {
+      this.$refs['profitTargetForm'].validate(valid => {
+        if (valid) {
+          const confirmMessage = this.isEdit
+            ? '确定提交修改吗?'
+            : '确定提交新增吗?'
+          this.$confirm(confirmMessage, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // 更新止盈参数
+            const requestData = { ...this.profitTargetForm }
+            requestData.id = Number(requestData.id)
+            requestData.profitTargetPrice = Number(requestData.profitTargetPrice)
+            requestData.lossTargetPrice = Number(requestData.lossTargetPrice)
+            requestData.cutoffRatio = Number(requestData.cutoffRatio)
+            requestData.callbackRatio = Number(requestData.callbackRatio)
+            requestData.minProfit = Number(requestData.minProfit)
+            updateBusPriceTriggerStrategyProfitTarget(requestData).then(response => {
+              if (response.code === 200) {
+                this.msgSuccess(response.msg)
+                this.editProfitTarget = false
+                this.addProfitTarget = false
+                this.getList()
+              } else {
+                this.msgError(response.msg)
+              }
+            })
           }).catch(() => {
             // 取消确认时不执行任何操作
           })
@@ -1080,6 +1456,11 @@ export default {
 /* 新增样式 */
 .full-width {
   flex-basis: 800%; /* 或 width: 100%; 占据一行 */
+  min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
+}
+/* 新增样式 */
+.half-width {
+  width: 50%;
   min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
 }
 .error-message {

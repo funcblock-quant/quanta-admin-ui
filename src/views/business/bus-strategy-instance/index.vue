@@ -407,14 +407,6 @@ export default {
       return editor
     }
   },
-  mounted() {
-    this.$nextTick(() => {
-      const container = this.$el.querySelector('.card-container')
-      console.log('clientHeight:', container.clientHeight) // 可见区域高度
-      console.log('scrollHeight:', container.scrollHeight) // 实际内容高度
-      console.log('scrollWidth:', container.scrollWidth) // 宽度
-    })
-  },
   created() {
     this.loadData() // 初始化加载第一页数据
     this.getStrategyList()
@@ -521,88 +513,6 @@ export default {
 
       return -1 // 如果无法找到，返回无效值
     },
-    /** 解析toml配置，动态生成表单*/
-    // handleTomlChange() {
-    //   try {
-    //     const lines = this.form.schema.schemaText.split('\n')
-    //     const comments = {}
-    //     let currentPath = ''
-    //     console.log('lines', lines)
-    //
-    //     // 解析 TOML 节点
-    //     lines.forEach((line, index) => {
-    //       const trimmedLine = line.trim()
-    //
-    //       if (trimmedLine.startsWith('#')) {
-    //         // 提取注释
-    //         const comment = trimmedLine.substring(1).trim()
-    //         // 查找下一个非空非注释行，提取key
-    //         for (let i = index + 1; i < lines.length; i++) {
-    //           const nextLine = lines[i].trim()
-    //           if (nextLine.length > 0 && !nextLine.startsWith('#')) {
-    //             const keyMatch = nextLine.match(/^([a-zA-Z0-9_.-]+)\s*=/)
-    //             if (keyMatch) {
-    //               comments[currentPath ? `${currentPath}.${keyMatch[1]}` : keyMatch[1]] = comment
-    //               break
-    //             } else if (nextLine.startsWith('[')) {
-    //               const pathMatch = nextLine.match(/\[(.*?)\]/)
-    //               if (pathMatch) {
-    //                 currentPath = pathMatch[1]
-    //                 if (currentPath.includes('.')) {
-    //                   currentPath = currentPath.replaceAll('"', '')
-    //                 }
-    //               }
-    //               break
-    //             }
-    //           }
-    //         }
-    //       }
-    //     })
-    //     console.log('comments', comments)
-    //     const parsedTOML = toml.parse(this.form.schema.schemaText)
-    //     console.log('parsedTOML', parsedTOML)
-    //
-    //     const addCommentsToResult = (node, path = '') => {
-    //       console.log('node', node)
-    //       console.log('path', path)
-    //       if (typeof node === 'object' && node !== null) {
-    //         if (Array.isArray(node)) {
-    //           console.log('this node is array')
-    //           return node.map((item, index) => addCommentsToResult(item, path ? `${path}[${index}]` : `[${index}]`))
-    //         } else {
-    //           console.log('this node is not array')
-    //           const result = {}
-    //           for (const key in node) {
-    //             console.log('key', key)
-    //             if (Object.prototype.hasOwnProperty.call(node, key)) {
-    //               console.log('Object.prototype.hasOwnProperty.call is true')
-    //               const currentPath = path ? `${path}.${key}` : key
-    //               console.log('currentPath', currentPath)
-    //               console.log('comments[currentPath]', currentPath)
-    //               result[key] = {
-    //                 value: addCommentsToResult(node[key], currentPath),
-    //                 label: comments[currentPath] || key
-    //               }
-    //             }
-    //           }
-    //           return result
-    //         }
-    //       } else {
-    //         console.log('path', [path.split('.').pop()])
-    //         console.log('comments[path.split(\'.\').pop()', comments[path.split('.').pop()])
-    //
-    //         return { value: node, label: comments[path.split('.').pop()] || (path ? path.split('.').pop() : '') }
-    //       }
-    //     }
-    //
-    //     const result = addCommentsToResult(parsedTOML)
-    //     console.log('form.schema.schemaText', result)
-    //     this.$set(this.form.schema, 'parsedData', result)
-    //   } catch (e) {
-    //     console.error('TOML 解析出错:', e)
-    //     return null
-    //   }
-    // },
 
     handleTomlChange() {
       try {
