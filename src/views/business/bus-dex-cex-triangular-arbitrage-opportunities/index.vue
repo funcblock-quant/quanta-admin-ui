@@ -55,7 +55,7 @@
             :formatter="formatTime"
           />
           <el-table-column
-            label="利润"
+            label="预期利润"
             align="center"
             width="100"
             :show-overflow-tooltip="true"
