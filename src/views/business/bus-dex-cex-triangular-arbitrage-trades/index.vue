@@ -21,15 +21,31 @@
 
         <el-table v-loading="loading" :data="busDexCexTriangularArbitrageTradesList">
           <el-table-column
-            label="instance ID"
+            label="实例id"
             align="center"
             prop="instanceId"
             :show-overflow-tooltip="true"
-          /><el-table-column
-            label="买方标识"
+          />
+          <el-table-column
+            label="买方"
             align="center"
             prop="buyOnDex"
             :show-overflow-tooltip="true"
+            :formatter="formatBuyOnDex"
+          />
+          <el-table-column
+            label="交易时间"
+            align="center"
+            width="180"
+            :show-overflow-tooltip="true"
+            :formatter="formatTime"
+          />
+          <el-table-column
+            label="利润"
+            align="center"
+            width="100"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfit"
           />
           <el-table-column label="DEX侧交易信息" align="center">
             <el-table-column
@@ -48,7 +64,7 @@
               prop="dexTxFee"
               :show-overflow-tooltip="true"
             /><el-table-column
-              label="tx hash"
+              label="交易hash"
               align="center"
               prop="dexTxSig"
               :show-overflow-tooltip="true"
@@ -343,6 +359,21 @@ export default {
         }
       }).catch(function() {
       })
+    },
+    // 格式化方法
+    formatBuyOnDex(row, column, cellValue, index) {
+      console.log('row.buyOnDex', row.buyOnDex)
+      return row.buyOnDex === '1' ? 'DEX' : 'CEX'
+    },
+    formatTime(row, column, cellValue, index) {
+      console.log('row.createdAt', row.createdAt)
+      const date = new Date(row.createdAt) // 将返回的 ISO 格式时间字符串转为 Date 对象
+      return date.toLocaleString()
+    },
+    formatProfit(row, column, cellValue, index) {
+      const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
+      const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
+      return (cexSellQuoteAmount - cexBuyQuoteAmount)
     }
   }
 }

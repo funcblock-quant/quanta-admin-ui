@@ -23,6 +23,110 @@
         </el-descriptions>
       </el-card>
 
+      <el-card class="box-card">
+        <el-descriptions v-loading="loading" title="Observer参数" :column="3">
+          <template slot="extra">
+            <el-button v-if="!loading && !isObserverEdit" type="text" icon="el-icon-edit" @click="handleObserverEdit">编辑</el-button>
+          </template>
+
+          <el-descriptions-item label="Min SOL Amount">
+            <template v-if="!isObserverEdit">
+              {{ busDexCexTriangularObserver.minSolAmount }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.minSolAmount" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Max SOL Amount">
+            <template v-if="!isObserverEdit">
+              {{ busDexCexTriangularObserver.maxSolAmount }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.maxSolAmount" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Min Profit">
+            <template v-if="!isObserverEdit">
+              {{ busDexCexTriangularObserver.minProfit }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.triggerProfitQuoteAmount" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Priority Fee(SOL)">
+            <template v-if="!isObserverEdit">
+              {{ formattedPriorityFee }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.priorityFee" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Jito Fee(SOL)">
+            <template v-if="!isObserverEdit">
+              {{ formattedJitoFee }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.jitoFee" size="mini" />
+          </el-descriptions-item>
+        </el-descriptions>
+        <!-- 提交 & 取消 按钮 -->
+        <div v-if="isObserverEdit" class="action-buttons">
+          <el-button type="primary" @click="observerUpdateSubmit">提交</el-button>
+          <el-button @click="handleObserverEdit">取消</el-button>
+        </div>
+      </el-card>
+
+      <el-card class="box-card">
+        <el-descriptions v-loading="loading" title="Trader参数" :column="3">
+          <template slot="extra">
+            <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
+          </template>
+
+          <el-descriptions-item label="SlippageBps">
+            <template v-if="!isTraderEdit">
+              {{ (busDexCexTriangularObserver.slippage / 100).toFixed(2) }}%
+            </template>
+            <template v-else>
+              <el-input v-model="traderRequestParams.slippage" size="mini" @input="handleSlippageInput">
+                <template slot="append">%</template>
+              </el-input>
+            </template>
+          </el-descriptions-item>
+        </el-descriptions>
+        <div v-if="isTraderEdit" class="action-buttons">
+          <el-button type="primary" @click="traderUpdateSubmit">提交</el-button>
+          <el-button @click="handleTraderEdit">取消</el-button>
+        </div>
+      </el-card>
+
+      <el-card class="box-card">
+        <el-descriptions v-loading="loading" title="水位调节参数" :column="3">
+          <template slot="extra">
+            <el-button v-if="!loading && !isWaterLevelEdit" type="text" icon="el-icon-edit" @click="handleWaterLevelEdit">编辑</el-button>
+          </template>
+
+          <el-descriptions-item label="最低预警余额">
+            <template v-if="!isWaterLevelEdit">
+              {{ busDexCexTriangularObserver.alertThreshold }}
+            </template>
+            <el-input v-else v-model="waterLevelRequestParams.alertThreshold" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="低水位触发余额">
+            <template v-if="!isWaterLevelEdit">
+              {{ busDexCexTriangularObserver.buyTriggerThreshold }}
+            </template>
+            <el-input v-else v-model="waterLevelRequestParams.buyTriggerThreshold" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="低水位调节目标余额">
+            <template v-if="!isWaterLevelEdit">
+              {{ busDexCexTriangularObserver.targetBalanceThreshold }}
+            </template>
+            <el-input v-else v-model="waterLevelRequestParams.targetBalanceThreshold" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="高水位触发余额">
+            <template v-if="!isWaterLevelEdit">
+              {{ busDexCexTriangularObserver.sellTriggerThreshold }}
+            </template>
+            <el-input v-else v-model="waterLevelRequestParams.sellTriggerThreshold" size="mini" />
+          </el-descriptions-item>
+        </el-descriptions>
+        <div v-if="isWaterLevelEdit" class="action-buttons">
+          <el-button type="primary" @click="waterLevelUpdateSubmit">提交</el-button>
+          <el-button @click="handleWaterLevelEdit">取消</el-button>
+        </div>
+      </el-card>
+
       <el-card>
         <el-descriptions v-loading="loading" title="实时价差信息" column="5">
           <el-descriptions-item label="Dex买入价格">{{ formatProfit(busDexCexTriangularObserver.dexBuyPrice, busDexCexTriangularObserver.quoteToken) }}</el-descriptions-item>
@@ -50,6 +154,8 @@
 
 <script>
 import {
+  busDexCexTriangularUpdateObserver,
+  busDexCexTriangularUpdateTrader, busDexCexTriangularUpdateWaterLevel,
   getBusDexCexTriangularObserver
 } from '@/api/business/bus-dex-cex-triangular-observer'
 import { getDexCexHistoryChart } from '@/api/business/bus-dex-cex-price-spread-data'
@@ -263,10 +369,24 @@ export default {
       isBrowserTabVisible: true, // 浏览器当前标签页是否可见
       isTabVisible: true, // 网站内当前标签页是否可见
       isWindowFocused: true, // 当前窗口是否聚焦
+      isObserverEdit: false, // observer参数编辑模式
+      isTraderEdit: false, // trader参数编辑模式
+      isWaterLevelEdit: false, // 水位调节参数编辑模式
+      observerRequestParams: {}, // observer参数表单
+      traderRequestParams: {}, // trader参数表单
+      waterLevelRequestParams: {}, // 水位调节参数表单
       chart: null,
       chart2: null,
       chartData: {},
       id: undefined // 详情id
+    }
+  },
+  computed: {
+    formattedPriorityFee() {
+      return parseFloat(this.busDexCexTriangularObserver.priorityFee / 1_000_000_000)
+    },
+    formattedJitoFee() {
+      return parseFloat(this.busDexCexTriangularObserver.jitoFee / 1_000_000_000)
     }
   },
   created() {
@@ -389,6 +509,105 @@ export default {
         // 否则停止定时任务
         this.clearTimer()
       }
+    },
+
+    handleObserverEdit() {
+      if (!this.isObserverEdit) {
+        this.clearTimer()
+        this.observerRequestParams = { ...this.busDexCexTriangularObserver }
+        this.observerRequestParams.priorityFee = this.observerRequestParams.priorityFee / 1_000_000_000
+        this.observerRequestParams.jitoFee = this.observerRequestParams.jitoFee / 1_000_000_000
+      }
+      this.isObserverEdit = !this.isObserverEdit
+    },
+    handleTraderEdit() {
+      if (!this.isTraderEdit) {
+        this.clearTimer()
+        this.traderRequestParams = { ...this.busDexCexTriangularObserver }
+        this.traderRequestParams.slippage = (this.busDexCexTriangularObserver.slippage / 100).toFixed(2)
+      }
+      this.isTraderEdit = !this.isTraderEdit
+    },
+    handleWaterLevelEdit() {
+      if (!this.isWaterLevelEdit) {
+        this.clearTimer()
+        this.waterLevelRequestParams = { ...this.busDexCexTriangularObserver }
+      }
+      this.isWaterLevelEdit = !this.isWaterLevelEdit
+    },
+
+    // 更新提交
+    observerUpdateSubmit() {
+      console.log('提交数据:', this.observerRequestParams)
+      // 提交逻辑（调用 API）
+      const newMinSolAmount = Number(this.observerRequestParams.minSolAmount)
+      const newMaxSolAmount = Number(this.observerRequestParams.maxSolAmount)
+      const triggerProfitQuoteAmount = Number(this.observerRequestParams.triggerProfitQuoteAmount)
+      const priorityFee = Number(this.observerRequestParams.priorityFee)
+      const jitoFee = Number(this.observerRequestParams.jitoFee)
+      if (isNaN(newMinSolAmount) || newMinSolAmount <= 0 || isNaN(newMaxSolAmount) || newMaxSolAmount <= 0) {
+        this.$message.error('请输入有效的数字')
+        return
+      }
+      if (newMinSolAmount > newMaxSolAmount) {
+        this.$message.error('最大交易金额必须大于最小交易金额')
+        return
+      }
+      const requestData = {
+        id: this.observerRequestParams.id,
+        minSolAmount: newMinSolAmount,
+        maxSolAmount: newMaxSolAmount,
+        triggerProfitQuoteAmount: triggerProfitQuoteAmount,
+        priorityFee: priorityFee,
+        jitoFee: jitoFee
+      }
+      busDexCexTriangularUpdateObserver(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getObserverDetail(requestData.id)
+        } else {
+          this.msgError(res.msg)
+        }
+      })
+      this.startTimer()
+      this.isObserverEdit = false
+    },
+
+    traderUpdateSubmit() {
+      console.log('提交数据:', this.traderRequestParams)
+      const requestData = { ...this.traderRequestParams }
+      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+
+      busDexCexTriangularUpdateTrader(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getObserverDetail(requestData.id)
+        } else {
+          this.msgError(res.msg)
+        }
+      })
+      this.startTimer()
+      this.isTraderEdit = false
+    },
+
+    waterLevelUpdateSubmit() {
+      console.log('提交数据:', this.waterLevelRequestParams)
+      const requestData = { ...this.waterLevelRequestParams }
+      requestData.id = this.waterLevelRequestParams.id
+      requestData.alertThreshold = Number(requestData.alertThreshold)
+      requestData.buyTriggerThreshold = Number(requestData.buyTriggerThreshold)
+      requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
+      requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
+      busDexCexTriangularUpdateWaterLevel(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.getObserverDetail(requestData.id)
+        } else {
+          this.msgError(res.msg)
+        }
+      })
+      this.startTimer()
+      this.isWaterLevelEdit = false
     },
 
     getPriceYAxisRange(values) {
@@ -637,6 +856,13 @@ export default {
       const slippage = Number(cellValue) / 100
       return slippage.toFixed(2).toString() + '%' // 保留四位小数，根据需要调整
     },
+    formatFee(cellValue) {
+      if (cellValue === null || cellValue === undefined || cellValue === '') {
+        return ''
+      }
+      const fee = Number(fee) / 1000_000_000
+      return fee
+    },
     formatProfit(cellValue, quoteToken) {
       if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
         return '' // 或者其他默认值，例如 0
@@ -725,6 +951,15 @@ export default {
     formatDexType(dexType) {
       const match = this.dexTypeList.find(item => item.key === dexType)
       return match ? match.label : dexType // 如果匹配不到，就显示原始值
+    },
+    handleSlippageInput() {
+      let value = this.traderRequestParams.slippage
+      // 只允许数字，并限制两位小数
+      value = value.replace(/[^0-9.]/g, '') // 只能输入数字和小数点
+      value = value.replace(/^0+(\d)/, '$1') // 去掉前导 0
+      value = value.replace(/^\./, '0.') // 防止以 . 开头
+      value = value.match(/^\d*(\.\d{0,2})?/)?.[0] || '' // 限制小数点后两位
+      this.traderRequestParams.slippage = value
     }
   }
 }

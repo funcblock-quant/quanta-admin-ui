@@ -81,43 +81,7 @@
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              <div v-if="!scope.row.isEditing">
-                {{ scope.row.minSolAmount }} - {{ scope.row.maxSolAmount }}
-                <el-button
-                  icon="el-icon-edit"
-                  size="mini"
-                  type="text"
-                  @click="startEditing(scope.row)"
-                />
-              </div>
-
-              <div v-else class="edit-container">
-                <el-input
-                  v-model="scope.row.newMinSolAmount"
-                  size="mini"
-                  style="width: 50px"
-                /> -
-                <el-input
-                  v-model="scope.row.newMaxSolAmount"
-                  size="mini"
-                  style="width: 50px"
-                />
-                <el-button
-                  icon="el-icon-check"
-                  size="mini"
-                  type="text"
-                  :disabled="scope.row.isUpdating"
-                  @click="confirmVolume(scope.row)"
-                />
-                <el-button
-                  icon="el-icon-close"
-                  size="mini"
-                  type="text"
-                  :disabled="scope.row.isUpdating"
-                  @click="cancelEditing(scope.row)"
-                />
-                <i v-if="scope.row.isUpdating" class="el-icon-loading" />
-              </div>
+              {{ scope.row.minSolAmount }} - {{ scope.row.maxSolAmount }}
             </template>
           </el-table-column>
           <el-table-column label="DEX买入CEX卖出" align="center">
@@ -207,20 +171,6 @@
                       icon="el-icon-video-pause"
                     >暂停交易</el-button>
                   </el-popconfirm>
-                  <div class="vertical-buttons">
-                    <el-button
-                      type="text"
-                      size="mini"
-                      icon="el-icon-edit"
-                      @click="handleTradeParamsUpdate(scope.row)"
-                    >修改交易参数</el-button>
-                    <!--                    <el-button-->
-                    <!--                      type="text"-->
-                    <!--                      size="mini"-->
-                    <!--                      icon="el-icon-edit"-->
-                    <!--                      @click="handleWaterLevelUpdate(scope.row)"-->
-                    <!--                    >修改水位调节</el-button>-->
-                  </div>
                 </template>
                 <!-- 交易未开启，并且 status = 2（水位调节中），显示一个禁用的按钮 -->
                 <el-button
@@ -331,6 +281,27 @@
                 >
                   <template slot="append">%</template>
                 </el-slider>
+              </el-form-item>
+              <el-form-item label="Min SOL Amount" prop="minSolAmount">
+                <el-input
+                  v-model="startTraderFormData.minSolAmount"
+                  placeholder="请输入最小交易量"
+                />
+              </el-form-item>
+              <el-form-item label="Max SOL Amount" prop="maxSolAmount">
+                <el-input
+                  v-model="startTraderFormData.maxSolAmount"
+                  placeholder="请输入最大交易量"
+                />
+              </el-form-item>
+              <el-form-item label="Min Profit" prop="minProfit">
+                <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
+              </el-form-item>
+              <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
+                <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
+              </el-form-item>
+              <el-form-item label="Jito Fee(SOL)" prop="jitoFee">
+                <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
               </el-form-item>
             </el-row>
           </el-form>
@@ -778,14 +749,16 @@ export default {
       this.showStartDialog = true
     },
 
-    // 打开修改交易参数表单
-    handleTradeParamsUpdate(row) {
+    // 打开修改observer参数表单
+    handleObserverParamsUpdate(row) {
       console.log('this row', row)
       this.currentRow = row
       this.startTraderFormData = {
         instanceId: row.id,
         minProfit: row.minProfit,
-        slippage: parseFloat(row.slippage) / 100,
+        minSolAmount: row.minSolAmount,
+        maxSolAmount: row.maxSolAmount,
+        // slippage: parseFloat(row.slippage) / 100,
         priorityFee: row.priorityFee / 1_000_000_000,
         jitoFee: row.jitoFee / 1_000_000_000
       }
@@ -795,7 +768,7 @@ export default {
     // 重置表单数据
     resetStartTraderFormData() {
       this.startTraderFormData = {
-        instanceId: undefined,
+        id: undefined,
         minProfit: '',
         slippage: '',
         priorityFee: '',
@@ -806,7 +779,7 @@ export default {
     // 确认启动交易
     confirmStartTrade() {
       const requestData = { ...this.startTraderFormData }
-      requestData.instanceId = this.currentRow.id
+      requestData.id = this.currentRow.id
       requestData.alertThreshold = Number(requestData.alertThreshold)
       requestData.buyTriggerThreshold = Number(requestData.buyTriggerThreshold)
       requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
@@ -830,9 +803,6 @@ export default {
     updateTraderParams() {
       const requestData = { ...this.startTraderFormData }
       requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
-      requestData.minProfit = Number(requestData.minProfit)
-      requestData.priorityFee = Number(requestData.priorityFee)
-      requestData.jitoFee = Number(requestData.jitoFee)
 
       busDexCexTriangularUpdateTrader(requestData).then(res => {
         if (res.code === 200) {
@@ -850,7 +820,7 @@ export default {
     pauseTrader(row) {
       console.log('暂停交易:', row)
       const requestData = {
-        instanceId: row.id
+        id: row.id
       }
       busDexCexTriangularStopTrader(requestData).then(res => {
         if (res.code === 200) {
