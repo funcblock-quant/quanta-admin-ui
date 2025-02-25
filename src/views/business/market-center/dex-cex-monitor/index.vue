@@ -222,15 +222,21 @@
         <!-- 启动交易表单弹窗 -->
         <el-dialog title="启动交易参数设置" :visible.sync="showStartDialog" width="600px">
           <!-- 说明区域 -->
-          <el-alert type="info" show-icon :closable="false">
+          <el-alert type="success" :closable="false" style="margin-bottom: 16px;">
             交易启动流程：
             <ul>
               <li>先启动水位调节，确保资金池中的水位达到设定要求。</li>
               <li>当水位达到交易条件后，才会正式开启交易功能。</li>
-              <li>交易过程中当资金超出水位阈值，可能触发告警和交易功能暂停</li>
+              <li>交易过程中当资金超出预警水位阈值，可能触发告警和交易功能暂停</li>
             </ul>
           </el-alert>
-
+          <el-descriptions border column="2">
+            <el-descriptions-item label="币对">{{ startTradingDialogData.symbol }}</el-descriptions-item>
+            <!--            <el-descriptions-item label="当前币价">{{ currentPrice }}</el-descriptions-item>-->
+            <!--            <el-descriptions-item label="借贷利率 (BTC)">-->
+            <!--              {{ loanRateBTC }}%-->
+            <!--            </el-descriptions-item>-->
+          </el-descriptions>
           <el-form :model="startTraderFormData" label-width="150px">
             <!-- 水位调节参数 -->
             <h3 style="margin-top: 50px; margin-bottom: 10px;">水位调节参数</h3>
@@ -480,7 +486,7 @@
 import {
   batchAddBusDexCexTriangularObserver,
   busDexCexTriangularStartTrader,
-  busDexCexTriangularStopTrader, busDexCexTriangularUpdateObserver,
+  busDexCexTriangularStopTrader,
   busDexCexTriangularUpdateTrader,
   delBusDexCexTriangularObserver,
   getBusDexCexTriangularObserver,
@@ -556,6 +562,7 @@ export default {
       ],
 
       showStartDialog: false, // 控制启动trader表单弹窗显示
+      startTradingDialogData: {}, // 启动交易对话框存储数据
       showEditTraderDialog: false, // 控制编辑trader参数的弹窗显示
       currentRow: null, // 当前选中的行数据
       startTraderFormData: {
@@ -746,23 +753,8 @@ export default {
     openStartTradeDialog(row) {
       this.currentRow = row
       this.resetStartTraderFormData()
+      this.startTradingDialogData.symbol = row.symbol
       this.showStartDialog = true
-    },
-
-    // 打开修改observer参数表单
-    handleObserverParamsUpdate(row) {
-      console.log('this row', row)
-      this.currentRow = row
-      this.startTraderFormData = {
-        instanceId: row.id,
-        minProfit: row.minProfit,
-        minSolAmount: row.minSolAmount,
-        maxSolAmount: row.maxSolAmount,
-        // slippage: parseFloat(row.slippage) / 100,
-        priorityFee: row.priorityFee / 1_000_000_000,
-        jitoFee: row.jitoFee / 1_000_000_000
-      }
-      this.showEditTraderDialog = true
     },
 
     // 重置表单数据
@@ -852,52 +844,6 @@ export default {
         }
       }).catch(function() {
       })
-    },
-    // 进入sol_amount的编辑模式
-    startEditing(row) {
-      this.originalMinSolAmount[row.id] = row.minSolAmount
-      this.originalMaxSolAmount[row.id] = row.maxSolAmount
-      this.clearTimer()
-      this.$set(row, 'isEditing', true)
-      this.$set(row, 'newMinSolAmount', row.minSolAmount)
-      this.$set(row, 'newMaxSolAmount', row.maxSolAmount)
-    },
-    confirmVolume(row) {
-      const newMinSolAmount = Number(row.newMinSolAmount)
-      const newMaxSolAmount = Number(row.newMaxSolAmount)
-      if (isNaN(newMinSolAmount) || newMinSolAmount <= 0 || isNaN(newMaxSolAmount) || newMaxSolAmount <= 0) {
-        this.$message.error('请输入有效的数字')
-        return
-      }
-      if (newMinSolAmount > newMaxSolAmount) {
-        this.$message.error('最大交易金额必须大于最小交易金额')
-        return
-      }
-      row.isUpdating = true
-      const requestData = {
-        instanceId: row.id,
-        minSolAmount: newMinSolAmount,
-        maxSolAmount: newMaxSolAmount
-      }
-      busDexCexTriangularUpdateObserver(requestData).then(res => {
-        if (res.code === 200) {
-          this.msgSuccess(res.msg)
-          this.getList()
-        } else {
-          this.msgError(res.msg)
-          this.getList()
-        }
-        row.isEditing = false
-        row.isUpdating = false
-        this.startTimer()
-      })
-    },
-    // 取消编辑
-    cancelEditing(row) {
-      row.minSolAmount = this.originalMinSolAmount[row.id]
-      row.maxSolAmount = this.originalMaxSolAmount[row.id]
-      row.isEditing = false
-      this.startTimer()
     },
 
     formatSlippage(cellValue) {

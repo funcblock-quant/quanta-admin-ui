@@ -4,27 +4,79 @@
     <template #wrapper>
       <el-card class="box-card">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="100px">
-          <el-form-item label="实例id" prop="instanceId"><el-input
-            v-model="queryParams.instanceId"
-            placeholder="请输入实例id"
-            clearable
-            size="small"
-            @keyup.enter.native="handleQuery"
-          />
+          <el-form-item label="实例id" prop="instanceId">
+            <el-input
+              v-model="queryParams.instanceId"
+              placeholder="请输入实例id"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
           </el-form-item>
-          <!--          <el-form-item label="买方标识" prop="buyOnDex"><el-input-->
-          <!--            v-model="queryParams.buyOnDex"-->
-          <!--            placeholder="请输入买方标识"-->
-          <!--            clearable-->
-          <!--            size="small"-->
-          <!--            @keyup.enter.native="handleQuery"-->
-          <!--          />-->
-          <!--          </el-form-item>-->
-
-          <el-form-item>
-            <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-            <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+          <el-form-item label="买方" prop="buyOnDex">
+            <el-select
+              v-model="queryParams.buyOnDex"
+              placeholder="请选择买方类型"
+              clearable
+              size="small"
+              style="width: 200px;"
+            >
+              <el-option
+                v-for="buySide in buyOndexList"
+                :key="buySide.value"
+                :label="buySide.label"
+                :value="buySide.value"
+              />
+            </el-select>
           </el-form-item>
+          <el-form-item label="套利币种" prop="symbols">
+            <el-select
+              v-model="queryParams.symbol"
+              placeholder="请选择套利币种"
+              clearable
+              size="small"
+              style="width: 200px;"
+            >
+              <el-option
+                v-for="symbol in symbolList"
+                :key="symbol.symbol"
+                :value="symbol.symbol"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="最小利润" prop="minProfit">
+            <el-input
+              v-model="queryParams.minProfit"
+              placeholder="最小利润"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="最大利润" prop="maxProfit">
+            <el-input
+              v-model="queryParams.maxProfit"
+              placeholder="最小利润"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="选择时间段">
+            <el-date-picker
+              v-model="dateRange"
+              size="small"
+              type="datetimerange"
+              :picker-options="pickerOptions"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              align="right"
+              value-format="yyyy-MM-dd HH:mm:ss"
+            />
+          </el-form-item>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         </el-form>
 
         <el-table v-loading="loading" :data="busDexCexTriangularArbitrageOpportunitiesList">
@@ -165,6 +217,7 @@
 
 <script>
 import { addStrategyDexCexTriangularArbitrageOpportunities, delStrategyDexCexTriangularArbitrageOpportunities, getStrategyDexCexTriangularArbitrageOpportunities, listStrategyDexCexTriangularArbitrageOpportunities, updateStrategyDexCexTriangularArbitrageOpportunities } from '@/api/business/bus-dex-cex-triangular-arbitrage-opportunities'
+import { listBusDexCexTriangularSymbolList } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
   name: 'StrategyDexCexTriangularArbitrageOpportunities',
@@ -191,8 +244,10 @@ export default {
       typeOptions: [],
       busDexCexTriangularArbitrageOpportunitiesList: [],
 
-      // 关系表类型
-
+      // 日期范围
+      dateRange: [],
+      pickerOptions: {
+      },
       // 查询参数
       queryParams: {
         pageIndex: 1,
@@ -202,6 +257,11 @@ export default {
         idOrder: 'desc'
 
       },
+      buyOndexList: [
+        { label: 'CEX', value: '0' },
+        { label: 'DEX', value: '1' }
+      ],
+      symbolList: [],
       // 表单参数
       form: {
       },
@@ -213,6 +273,7 @@ export default {
   },
   created() {
     this.getList()
+    this.getSymbolList()
   },
   methods: {
     /** 查询参数列表 */
@@ -221,6 +282,22 @@ export default {
       listStrategyDexCexTriangularArbitrageOpportunities(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busDexCexTriangularArbitrageOpportunitiesList = response.data.list
         this.total = response.data.count
+        this.loading = false
+      }
+      )
+    },
+    /** 查询观察币种 */
+    getSymbolList() {
+      this.loading = true
+      listBusDexCexTriangularSymbolList().then(response => {
+        this.symbolList = response.data.map(symbol => {
+          if (typeof symbol.symbol === 'string') {
+            symbol.symbol = symbol.symbol.split('/')[0]
+            return symbol// 获取 '/' 前的部分
+          } else {
+            return symbol // 如果 symbol 不是字符串，则直接返回
+          }
+        })
         this.loading = false
       }
       )
