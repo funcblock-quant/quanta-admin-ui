@@ -5,7 +5,6 @@
         <el-descriptions v-loading="loading" title="币种信息">
           <el-descriptions-item label="TargetToken">{{ busDexCexTriangularObserver.targetToken }}</el-descriptions-item>
           <el-descriptions-item label="QuoteToken">{{ busDexCexTriangularObserver.quoteToken }}</el-descriptions-item>
-          <el-descriptions-item label="Sol交易数量">{{ busDexCexTriangularObserver.minSolAmount }} - {{ busDexCexTriangularObserver.maxSolAmount }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
       <el-card class="box-card">
