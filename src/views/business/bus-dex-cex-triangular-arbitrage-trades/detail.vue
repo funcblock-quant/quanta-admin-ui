@@ -64,15 +64,15 @@
             <el-descriptions-item label="交易签名" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               <!-- 省略中间部分 -->
               <el-tooltip class="item" effect="dark" :content="busDexCexTriangularRecord.dexTxSig" placement="top">
-                <span>{{ shortenTxSig(busDexCexTriangularRecord.dexTxSig) }}</span>
+                <a
+                  :href="'https://solscan.io/tx/' + busDexCexTriangularRecord.dexTxSig"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color: #409EFF; text-decoration: underline; cursor: pointer;"
+                >
+                  {{ shortenTxSig(busDexCexTriangularRecord.dexTxSig) }}
+                </a>
               </el-tooltip>
-
-              <!-- 复制按钮 -->
-              <el-button
-                type="text"
-                icon="el-icon-document-copy"
-                @click="copyText(busDexCexTriangularRecord.dexTxSig)"
-              />
             </el-descriptions-item>
           </el-descriptions>
 
@@ -204,16 +204,6 @@ export default {
       if (!sig) return ''
       return sig.length > 15 ? sig.slice(0, 16) + '...' + sig.slice(-8) : sig
     },
-    // 复制到剪贴板
-    copyText(text) {
-      if (!text) return
-      try {
-        navigator.clipboard.writeText(text)
-        this.$message.success('复制成功！')
-      } catch (err) {
-        this.$message.error('复制失败，请手动复制')
-      }
-    },
     getSellQuantityUnit(record) {
       if (!record || record.cexSellQuantity === '') return '' // 先检查是否为空
       // 如果是dex 买入，那么cex卖出的应该是target，否则是 SOL
@@ -304,6 +294,8 @@ export default {
   text-align: right !important; /* 右对齐 label */
   color: #484848;
   width: 140px;
+  display: flex;
+  align-items: center;
 }
 
 .custom-bold-descriptions-label {
@@ -311,6 +303,8 @@ export default {
   color: #484848;
   width: 140px;
   font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 
 .custom-error-descriptions-label {
@@ -318,15 +312,21 @@ export default {
   color: #ba0000;
   width: 140px;
   font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 
 .custom-descriptions-content {
   color: #111111; /* 修改内容的字体颜色 */
-  margin-left: 20px
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .custom-error-descriptions-content {
   color: #ba0000; /* 修改内容的字体颜色 */
-  margin-left: 20px
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }
 </style>

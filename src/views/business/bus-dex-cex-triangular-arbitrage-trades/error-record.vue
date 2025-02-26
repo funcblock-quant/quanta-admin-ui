@@ -2,6 +2,65 @@
 <template>
   <BasicLayout>
     <template #wrapper>
+      <!--      <el-row :gutter="12">-->
+      <!--        <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px'}">-->
+      <!--          <chart-card title="总套利机会" total="12111">-->
+      <!--            <el-tooltip slot="action" class="item" effect="dark" content="统计当前系统监控到的总的套利机会数，非实际成交次数，仅供参考分析" placement="top-start">-->
+      <!--              <i class="el-icon-warning-outline" />-->
+      <!--            </el-tooltip>-->
+      <!--            &lt;!&ndash;            <div>&ndash;&gt;-->
+      <!--            &lt;!&ndash;              <trend flag="top" style="margin-right: 16px;" rate="12">&ndash;&gt;-->
+      <!--            &lt;!&ndash;                <span slot="term">总预期收益</span>&ndash;&gt;-->
+      <!--            &lt;!&ndash;              </trend>&ndash;&gt;-->
+      <!--            &lt;!&ndash;            </div>&ndash;&gt;-->
+      <!--            <template slot="footer">24小时套利机会<span>$ 234.56</span></template>-->
+      <!--          </chart-card>-->
+      <!--        </el-col>-->
+      <!--        <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">-->
+      <!--          <chart-card title="24小时套利机会" total="$ 12111.23">-->
+      <!--            <el-tooltip slot="action" class="item" effect="dark" content="统计当前系统24小时监控到的套利机会数，非实际成交次数，仅供参考分析" placement="top-start">-->
+      <!--              <i class="el-icon-warning-outline" />-->
+      <!--            </el-tooltip>-->
+      <!--            <div>-->
+      <!--              <trend flag="top" style="margin-right: 16px;" rate="12">-->
+      <!--                <span slot="term">预期收益</span>-->
+      <!--              </trend>-->
+      <!--            </div>-->
+      <!--            <template slot="footer">24小时套利机会<span>$ 234.56</span></template>-->
+      <!--            <template slot="footer">24小时预期套利利润<span>$ 234.56</span></template>-->
+      <!--          </chart-card>-->
+      <!--        </el-col>-->
+      <!--        <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">-->
+      <!--          <chart-card title="总套利次数" :total="6560">-->
+      <!--            <el-tooltip slot="action" class="item" effect="dark" content="统计该实例总的套利次数" placement="top-start">-->
+      <!--              <i class="el-icon-warning-outline" />-->
+      <!--            </el-tooltip>-->
+      <!--            <div>-->
+      <!--              <mini-bar />-->
+      <!--            </div>-->
+      <!--            <template slot="footer">胜率 <span>60%</span></template>-->
+      <!--          </chart-card>-->
+      <!--        </el-col>-->
+      <!--        <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">-->
+      <!--          <chart-card title="总套利次数" total="78%">-->
+      <!--            <el-tooltip slot="action" class="item" effect="dark" content="统计该实例总的套利次数" placement="top-start">-->
+      <!--              <i class="el-icon-warning-outline" />-->
+      <!--            </el-tooltip>-->
+      <!--            <div>-->
+      <!--              <mini-progress color="rgb(19, 194, 194)" :target="80" :percentage="78" height="8px" />-->
+      <!--            </div>-->
+      <!--            <template slot="footer">-->
+      <!--              <trend flag="top" style="margin-right: 16px;" rate="12">-->
+      <!--                <span slot="term">同周比</span>-->
+      <!--              </trend>-->
+      <!--              <trend flag="bottom" rate="80">-->
+      <!--                <span slot="term">日环比</span>-->
+      <!--              </trend>-->
+      <!--            </template>-->
+      <!--          </chart-card>-->
+      <!--        </el-col>-->
+      <!--      </el-row>-->
+
       <el-card class="box-card">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="100px">
           <el-form-item label="实例id" prop="instanceId">
@@ -290,6 +349,7 @@ import { listBusDexCexTriangularSymbolList } from '@/api/business/bus-dex-cex-tr
 export default {
   name: 'StrategyDexCexTriangularArbitrageFailedTrades',
   components: {
+    // ChartCard, Trend, MiniProgress, MiniBar
     // RankList,
     // MiniProgress,
     // Trend,
@@ -344,6 +404,11 @@ export default {
         buyOnDex: [{ required: true, message: 'Buy on dex or cex不能为空', trigger: 'blur' }]
       }
     }
+  },
+  activated() {
+    // 触发数据更新，例如重新获取数据
+    this.getList()
+    this.getSymbolList()
   },
   created() {
     this.getList()

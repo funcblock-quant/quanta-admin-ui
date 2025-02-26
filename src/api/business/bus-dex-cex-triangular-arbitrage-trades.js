@@ -17,6 +17,14 @@ export function getStrategyDexCexTriangularArbitrageTrades(id) {
   })
 }
 
+// 查询StrategyDexCexTriangularArbitrageTrades 统计信息
+export function getStrategyDexCexTriangularArbitrageTradesStatistics() {
+  return request({
+    url: '/api/v1/getDexCexTriangularTraderStatistics',
+    method: 'get'
+  })
+}
+
 // 新增StrategyDexCexTriangularArbitrageTrades
 export function addStrategyDexCexTriangularArbitrageTrades(data) {
   return request({
