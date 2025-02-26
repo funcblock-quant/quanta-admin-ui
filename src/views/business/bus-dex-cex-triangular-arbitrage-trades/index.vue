@@ -389,12 +389,12 @@ export default {
     // 格式化 totalProfit，保留6位小数并加上 $
     formattedTotalProfit() {
       const numericValue = parseFloat(this.dashboardData.totalProfit)
-      return isNaN(numericValue) ? '$ 0.000000' : `$$ {numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+      return isNaN(numericValue) ? '$ 0.000000' : `$ ${numericValue.toFixed(6)}` // 转换为数字并保留6位小数
     },
     // 格式化 dailyTotalProfit，保留6位小数并加上 $
     formattedDailyTotalProfit() {
       const numericValue = parseFloat(this.dashboardData.dailyTotalProfit)
-      return isNaN(numericValue) ? '$ 0.000000' : `$$ {numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+      return isNaN(numericValue) ? '$ 0.000000' : `$ ${numericValue.toFixed(6)}` // 转换为数字并保留6位小数
     }
   },
   activated() {
