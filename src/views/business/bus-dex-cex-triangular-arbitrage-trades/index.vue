@@ -21,7 +21,7 @@
                 <span slot="term" />
               </trend>
             </div>
-            <template slot="footer">24H 利润 <span>$ {{ formattedDailyTotalProfit }}</span></template>
+            <template slot="footer">24H 利润 <span>{{ formattedDailyTotalProfit }}</span></template>
           </chart-card>
         </el-col>
         <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
