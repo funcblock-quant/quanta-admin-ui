@@ -12,7 +12,7 @@
           </chart-card>
         </el-col>
         <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-          <chart-card title="总利润" :total="'$ ' + dashboardData.totalProfit">
+          <chart-card title="总利润" :total="formattedTotalProfit">
             <el-tooltip slot="action" class="item" effect="dark" content="统计当前系统总利润" placement="top-start">
               <i class="el-icon-warning-outline" />
             </el-tooltip>
@@ -21,7 +21,7 @@
                 <span slot="term" />
               </trend>
             </div>
-            <template slot="footer">24H 利润 <span>$ {{ dashboardData.dailyTotalProfit }}</span></template>
+            <template slot="footer">24H 利润 <span>$ {{ formattedDailyTotalProfit }}</span></template>
           </chart-card>
         </el-col>
         <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
@@ -29,7 +29,7 @@
             <el-tooltip slot="action" class="item" effect="dark" content="统计当前总的套利交易量" placement="top-start">
               <i class="el-icon-warning-outline" />
             </el-tooltip>
-            <template slot="footer">24H 交易量 <span>{{ dashboardData.dailyTotalTradeVolume }}%</span></template>
+            <template slot="footer">24H 交易量 <span>{{ dashboardData.dailyTotalTradeVolume }}</span></template>
           </chart-card>
         </el-col>
       </el-row>
@@ -383,6 +383,18 @@ export default {
       rules: { instanceId: [{ required: true, message: 'Arbitrager instance ID不能为空', trigger: 'blur' }],
         buyOnDex: [{ required: true, message: 'Buy on dex or cex不能为空', trigger: 'blur' }]
       }
+    }
+  },
+  computed: {
+    // 格式化 totalProfit，保留6位小数并加上 $
+    formattedTotalProfit() {
+      const numericValue = parseFloat(this.dashboardData.totalProfit)
+      return isNaN(numericValue) ? '$ 0.000000' : `$$ {numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+    },
+    // 格式化 dailyTotalProfit，保留6位小数并加上 $
+    formattedDailyTotalProfit() {
+      const numericValue = parseFloat(this.dashboardData.dailyTotalProfit)
+      return isNaN(numericValue) ? '$ 0.000000' : `$$ {numericValue.toFixed(6)}` // 转换为数字并保留6位小数
     }
   },
   activated() {
