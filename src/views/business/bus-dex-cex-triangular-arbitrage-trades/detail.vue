@@ -117,7 +117,7 @@
             <el-descriptions-item label="买单ID" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexBuyOrderId }}</el-descriptions-item>
             <el-descriptions-item label="买入数量" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexBuyQuantity }}
-              {{ busDexCexTriangularRecord.buyOnDex === '1' && busDexCexTriangularRecord.cexBuyQuantity !== ''? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
+              {{ getBuyQuantityUnit(busDexCexTriangularRecord) }}
             </el-descriptions-item>
             <el-descriptions-item label="买入金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexBuyQuoteAmount }}
@@ -216,7 +216,15 @@ export default {
     },
     getSellQuantityUnit(record) {
       if (!record || record.cexSellQuantity === '') return '' // 先检查是否为空
+      // 如果是dex 买入，那么cex卖出的应该是target，否则是 SOL
+      // 如果是cex 买入，那么cex卖出的应该是SOL，否则是targetAsset
       return record.buyOnDex === '0' ? 'SOL' : record.cexTargetAsset
+    },
+    getBuyQuantityUnit(record) {
+      if (!record || record.cexBuyQuantity === '') return '' // 先检查是否为空
+      // 如果是dex 买入，那么cex买入的应该是SOL，否则是 targetAsset
+      // 如果是cex 买入，那么cex买入的单位应该是targetAsset
+      return record.buyOnDex === '0' ? record.cexTargetAsset : 'SOL'
     },
     // 取消按钮
     cancel() {
