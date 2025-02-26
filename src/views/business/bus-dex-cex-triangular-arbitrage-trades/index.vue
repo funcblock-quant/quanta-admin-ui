@@ -424,6 +424,11 @@ export default {
       }
     }
   },
+  activated() {
+    // 触发数据更新，例如重新获取数据
+    this.getList()
+    this.getSymbolList()
+  },
   created() {
     this.getList()
     this.getSymbolList()
