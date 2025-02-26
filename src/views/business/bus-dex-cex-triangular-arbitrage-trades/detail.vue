@@ -102,7 +102,7 @@
             <el-descriptions-item label="卖单ID" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexSellOrderId }}</el-descriptions-item>
             <el-descriptions-item label="卖出数量" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexSellQuantity }}
-              {{ busDexCexTriangularRecord.buyOnDex === '0' && busDexCexTriangularRecord.cexSellQuantity !== '' ? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
+              {{ getSellQuantityUnit(busDexCexTriangularRecord) }}
             </el-descriptions-item>
             <el-descriptions-item label="卖出金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexSellQuoteAmount }}
@@ -204,7 +204,6 @@ export default {
       if (!sig) return ''
       return sig.length > 15 ? sig.slice(0, 16) + '...' + sig.slice(-8) : sig
     },
-
     // 复制到剪贴板
     copyText(text) {
       if (!text) return
@@ -215,7 +214,10 @@ export default {
         this.$message.error('复制失败，请手动复制')
       }
     },
-
+    getSellQuantityUnit(record) {
+      if (!record || record.cexSellQuantity === '') return '' // 先检查是否为空
+      return record.buyOnDex === '0' ? 'SOL' : record.cexTargetAsset
+    },
     // 取消按钮
     cancel() {
       this.open = false
