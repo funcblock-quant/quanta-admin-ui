@@ -135,7 +135,9 @@
         <div class="descriptions-container">
           <!-- 预期利润 -->
           <el-descriptions :column="1" class="descriptions-item expected">
-            <el-descriptions-item label="预期利润" label-class-name="custom-bold-descriptions-label" content-class-name="custom-descriptions-content">{{ formatProfit(busDexCexTriangularRecord.cexSellQuoteAmount, busDexCexTriangularRecord.cexBuyQuoteAmount) }} {{ busDexCexTriangularRecord.cexQuoteAsset }}</el-descriptions-item>
+            <el-descriptions-item label="预期利润" label-class-name="custom-bold-descriptions-label" content-class-name="custom-descriptions-content">
+              {{ formatProfit(busDexCexTriangularRecord.oppoCexSellQuoteAmount, busDexCexTriangularRecord.oppoCexBuyQuoteAmount) }} {{ busDexCexTriangularRecord.cexQuoteAsset }}
+            </el-descriptions-item>
           </el-descriptions>
 
           <!-- 成交利润 -->
