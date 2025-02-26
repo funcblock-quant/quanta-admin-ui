@@ -11,7 +11,7 @@
           <el-descriptions-item label="买方" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ formatBuyOnDex(busDexCexTriangularRecord.buyOnDex) }}</el-descriptions-item>
           <el-descriptions-item label="交易时间" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ formatTime(busDexCexTriangularRecord.createdAt) }}</el-descriptions-item>
           <el-descriptions-item :column="1" label="交易结果" label-class-name="custom-bold-descriptions-label" content-class-name="custom-error-descriptions-content">
-            <el-tag :type="busDexCexTriangularRecord.dexSuccess === '1' || busDexCexTriangularRecord.cexBuySuccess === '1' && busDexCexTriangularRecord.cexSellSuccess === '1' ? 'success' : 'danger'">
+            <el-tag :type="busDexCexTriangularRecord.dexSuccess === '1' && busDexCexTriangularRecord.cexBuySuccess === '1' && busDexCexTriangularRecord.cexSellSuccess === '1' ? 'success' : 'danger'">
               {{ formatTradeStatus(busDexCexTriangularRecord.dexSuccess, busDexCexTriangularRecord.cexBuySuccess, busDexCexTriangularRecord.cexSellSuccess) }}
             </el-tag>
           </el-descriptions-item>
@@ -46,18 +46,34 @@
           <el-descriptions title="DEX侧成交信息" :column="1" class="descriptions-item actual">
             <el-descriptions-item label="交易数量" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.dexTargetAmount }}
-              {{ busDexCexTriangularRecord.cexTargetAsset }}
+              {{ busDexCexTriangularRecord.dexTargetAmount !== '' ? busDexCexTriangularRecord.cexTargetAsset : '' }}
             </el-descriptions-item>
             <el-descriptions-item label="SOL Amount" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
-              {{ busDexCexTriangularRecord.dexSolAmount }} SOL
+              {{ busDexCexTriangularRecord.dexSolAmount }}
+              {{ busDexCexTriangularRecord.dexSolAmount !== '' ? 'SOL' : '' }}
             </el-descriptions-item>
-            <el-descriptions-item label="交易手续费" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ formatNumber(busDexCexTriangularRecord.dexTxFee) }} SOL</el-descriptions-item>
+            <el-descriptions-item label="交易手续费" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
+              {{ formatNumber(busDexCexTriangularRecord.dexTxFee) }}
+              {{ busDexCexTriangularRecord.dexTxFee !== '' ? 'SOL' : '' }}
+            </el-descriptions-item>
             <el-descriptions-item label="交易状态" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               <el-tag :type="busDexCexTriangularRecord.dexSuccess === '1' ? 'success' : 'danger'">
                 {{ formatTradeStatus(busDexCexTriangularRecord.dexSuccess) }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="交易签名" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.dexTxSig }} </el-descriptions-item>
+            <el-descriptions-item label="交易签名" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
+              <!-- 省略中间部分 -->
+              <el-tooltip class="item" effect="dark" :content="busDexCexTriangularRecord.dexTxSig" placement="top">
+                <span>{{ shortenTxSig(busDexCexTriangularRecord.dexTxSig) }}</span>
+              </el-tooltip>
+
+              <!-- 复制按钮 -->
+              <el-button
+                type="text"
+                icon="el-icon-document-copy"
+                @click="copyText(busDexCexTriangularRecord.dexTxSig)"
+              />
+            </el-descriptions-item>
           </el-descriptions>
 
         </div>
@@ -86,9 +102,12 @@
             <el-descriptions-item label="卖单ID" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexSellOrderId }}</el-descriptions-item>
             <el-descriptions-item label="卖出数量" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexSellQuantity }}
-              {{ busDexCexTriangularRecord.buyOnDex === '0' ? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
+              {{ busDexCexTriangularRecord.buyOnDex === '0' && busDexCexTriangularRecord.cexSellQuantity !== '' ? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
             </el-descriptions-item>
-            <el-descriptions-item label="卖出金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexSellQuoteAmount }} {{ busDexCexTriangularRecord.cexQuoteAsset }}</el-descriptions-item>
+            <el-descriptions-item label="卖出金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
+              {{ busDexCexTriangularRecord.cexSellQuoteAmount }}
+              {{ busDexCexTriangularRecord.cexSellQuoteAmount !== '' ? busDexCexTriangularRecord.cexQuoteAsset : '' }}
+            </el-descriptions-item>
             <el-descriptions-item label="卖出手续费" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexSellFee }} {{ busDexCexTriangularRecord.cexSellFeeAsset }}</el-descriptions-item>
             <el-descriptions-item label="卖单状态" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               <el-tag :type="busDexCexTriangularRecord.cexSellSuccess === '1' ? 'success' : 'danger'">
@@ -98,9 +117,12 @@
             <el-descriptions-item label="买单ID" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexBuyOrderId }}</el-descriptions-item>
             <el-descriptions-item label="买入数量" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               {{ busDexCexTriangularRecord.cexBuyQuantity }}
-              {{ busDexCexTriangularRecord.buyOnDex === '1' ? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
+              {{ busDexCexTriangularRecord.buyOnDex === '1' && busDexCexTriangularRecord.cexBuyQuantity !== ''? 'SOL' : busDexCexTriangularRecord.cexTargetAsset }}
             </el-descriptions-item>
-            <el-descriptions-item label="买入金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexBuyQuoteAmount }} {{ busDexCexTriangularRecord.cexQuoteAsset }}</el-descriptions-item>
+            <el-descriptions-item label="买入金额" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
+              {{ busDexCexTriangularRecord.cexBuyQuoteAmount }}
+              {{ busDexCexTriangularRecord.cexBuyQuoteAmount !== '' ? busDexCexTriangularRecord.cexQuoteAsset : '' }}
+            </el-descriptions-item>
             <el-descriptions-item label="买入手续费" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexBuyFee }} {{ busDexCexTriangularRecord.cexBuyFeeAsset }}</el-descriptions-item>
             <el-descriptions-item label="买入状态" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">
               <el-tag :type="busDexCexTriangularRecord.cexBuySuccess === '1' ? 'success' : 'danger'">
@@ -175,6 +197,22 @@ export default {
         this.msgError('获取列表数据失败：' + error)
       })
     },
+    // 交易签名缩短显示
+    shortenTxSig(sig) {
+      if (!sig) return ''
+      return sig.length > 15 ? sig.slice(0, 16) + '...' + sig.slice(-8) : sig
+    },
+
+    // 复制到剪贴板
+    copyText(text) {
+      if (!text) return
+      try {
+        navigator.clipboard.writeText(text)
+        this.$message.success('复制成功！')
+      } catch (err) {
+        this.$message.error('复制失败，请手动复制')
+      }
+    },
 
     // 取消按钮
     cancel() {
@@ -194,6 +232,7 @@ export default {
     formatProfit(sellAmount, buyAmount) {
       const cexSellQuoteAmount = parseFloat(sellAmount) || 0
       const cexBuyQuoteAmount = parseFloat(buyAmount) || 0
+      console.log('cexSellQuoteAmount - cexBuyQuoteAmount', cexSellQuoteAmount - cexBuyQuoteAmount)
       return (cexSellQuoteAmount - cexBuyQuoteAmount)
     },
 
