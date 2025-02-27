@@ -84,7 +84,7 @@
           </el-descriptions-item>
           <el-descriptions-item label="Jito Fee Rate">
             <template v-if="!isTraderEdit">
-              {{ formattedJitoFee }}
+              {{ formattedJitoFee }}%
             </template>
             <el-input v-else v-model="observerRequestParams.jitoFeeRate" size="mini" />
           </el-descriptions-item>
@@ -394,7 +394,7 @@ export default {
       return parseFloat(this.busDexCexTriangularObserver.priorityFee / 1_000_000_000)
     },
     formattedJitoFee() {
-      return parseFloat(this.busDexCexTriangularObserver.jitoFee / 1_000_000_000)
+      return parseFloat(this.busDexCexTriangularObserver.jitoFeeRate * 100)
     }
   },
   created() {
