@@ -74,14 +74,14 @@
             :formatter="formatDexType"
           />
           <el-table-column
-            label="Sol交易数量"
+            label="交易数量"
             width="160"
             align="center"
             prop="volume"
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              {{ scope.row.minQuoteAmount }} - {{ scope.row.maxQuoteAmount }}
+              {{ scope.row.minQuoteAmount }} - {{ scope.row.maxQuoteAmount }} {{ scope.row.quoteToken }}
             </template>
           </el-table-column>
           <el-table-column label="DEX买入CEX卖出" align="center">

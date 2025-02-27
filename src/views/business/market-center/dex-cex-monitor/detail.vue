@@ -30,25 +30,25 @@
 
           <el-descriptions-item label="Min Amount">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.minQuoteAmount }}
+              {{ busDexCexTriangularObserver.minQuoteAmount }} {{ busDexCexTriangularObserver.quoteToken }}
             </template>
             <el-input v-else v-model="observerRequestParams.minQuoteAmount" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Max Amount">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.maxQuoteAmount }}
+              {{ busDexCexTriangularObserver.maxQuoteAmount }} {{ busDexCexTriangularObserver.quoteToken }}
             </template>
             <el-input v-else v-model="observerRequestParams.maxQuoteAmount" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Min Profit">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.minProfit }}
+              {{ busDexCexTriangularObserver.minProfit }} {{ busDexCexTriangularObserver.quoteToken }}
             </template>
             <el-input v-else v-model="observerRequestParams.minProfit" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Trigger Holding(ms)">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.triggerHoldingMs }}
+              {{ busDexCexTriangularObserver.triggerHoldingMs }} ms
             </template>
             <el-input v-else v-model="observerRequestParams.triggerHoldingMs" size="mini" />
           </el-descriptions-item>
