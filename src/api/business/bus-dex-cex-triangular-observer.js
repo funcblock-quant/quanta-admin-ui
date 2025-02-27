@@ -105,3 +105,20 @@ export function busDexCexTriangularUpdateWaterLevel(data) {
     data: data
   })
 }
+
+// 获取全局水位参数
+export function busDexCexTriangularGetGlobalWaterLevel() {
+  return request({
+    url: '/api/v1/busDexCexTriangularGetGlobalWaterLevel',
+    method: 'get'
+  })
+}
+
+// 更新全局水位参数
+export function busDexCexTriangularUpdateGlobalWaterLevel(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularUpdateGlobalWaterLevel',
+    method: 'post',
+    data: data
+  })
+}
