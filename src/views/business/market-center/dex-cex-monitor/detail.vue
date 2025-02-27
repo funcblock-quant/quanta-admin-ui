@@ -28,17 +28,17 @@
             <el-button v-if="!loading && !isObserverEdit" type="text" icon="el-icon-edit" @click="handleObserverEdit">编辑</el-button>
           </template>
 
-          <el-descriptions-item label="Min SOL Amount">
+          <el-descriptions-item label="Min Amount">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.minSolAmount }}
+              {{ busDexCexTriangularObserver.minQuoteAmount }}
             </template>
-            <el-input v-else v-model="observerRequestParams.minSolAmount" size="mini" />
+            <el-input v-else v-model="observerRequestParams.minQuoteAmount" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="Max SOL Amount">
+          <el-descriptions-item label="Max Amount">
             <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.maxSolAmount }}
+              {{ busDexCexTriangularObserver.maxQuoteAmount }}
             </template>
-            <el-input v-else v-model="observerRequestParams.maxSolAmount" size="mini" />
+            <el-input v-else v-model="observerRequestParams.maxQuoteAmount" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Min Profit">
             <template v-if="!isObserverEdit">
@@ -46,17 +46,11 @@
             </template>
             <el-input v-else v-model="observerRequestParams.minProfit" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="Priority Fee(SOL)">
+          <el-descriptions-item label="Trigger Holding(ms)">
             <template v-if="!isObserverEdit">
-              {{ formattedPriorityFee }}
+              {{ busDexCexTriangularObserver.triggerHoldingMs }}
             </template>
-            <el-input v-else v-model="observerRequestParams.priorityFee" size="mini" />
-          </el-descriptions-item>
-          <el-descriptions-item label="Jito Fee(SOL)">
-            <template v-if="!isObserverEdit">
-              {{ formattedJitoFee }}
-            </template>
-            <el-input v-else v-model="observerRequestParams.jitoFee" size="mini" />
+            <el-input v-else v-model="observerRequestParams.triggerHoldingMs" size="mini" />
           </el-descriptions-item>
         </el-descriptions>
         <!-- 提交 & 取消 按钮 -->
@@ -81,6 +75,18 @@
                 <template slot="append">%</template>
               </el-input>
             </template>
+          </el-descriptions-item>
+          <el-descriptions-item label="Priority Fee(SOL)">
+            <template v-if="!isTraderEdit">
+              {{ formattedPriorityFee }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.priorityFee" size="mini" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Jito Fee Rate">
+            <template v-if="!isTraderEdit">
+              {{ formattedJitoFee }}
+            </template>
+            <el-input v-else v-model="observerRequestParams.jitoFeeRate" size="mini" />
           </el-descriptions-item>
         </el-descriptions>
         <div v-if="isTraderEdit" class="action-buttons">
@@ -372,7 +378,8 @@ export default {
       isTraderEdit: false, // trader参数编辑模式
       isWaterLevelEdit: false, // 水位调节参数编辑模式
       observerRequestParams: {
-        triggerProfitQuoteAmount: undefined
+        triggerProfitQuoteAmount: undefined,
+        triggerHoldingMs: undefined
       }, // observer参数表单
       traderRequestParams: {}, // trader参数表单
       waterLevelRequestParams: {}, // 水位调节参数表单
@@ -541,26 +548,30 @@ export default {
     observerUpdateSubmit() {
       console.log('提交数据:', this.observerRequestParams)
       // 提交逻辑（调用 API）
-      const newMinSolAmount = Number(this.observerRequestParams.minSolAmount)
-      const newMaxSolAmount = Number(this.observerRequestParams.maxSolAmount)
+      const newMinQuoteAmount = Number(this.observerRequestParams.minQuoteAmount)
+      const newMaxQuoteAmount = Number(this.observerRequestParams.maxQuoteAmount)
+      const newHoldingMs = Number(this.observerRequestParams.triggerHoldingMs)
       const minProfit = Number(this.observerRequestParams.minProfit)
-      const priorityFee = Number(this.observerRequestParams.priorityFee)
-      const jitoFee = Number(this.observerRequestParams.jitoFee)
-      if (isNaN(newMinSolAmount) || newMinSolAmount <= 0 || isNaN(newMaxSolAmount) || newMaxSolAmount <= 0) {
+      if (isNaN(newMinQuoteAmount) || newMinQuoteAmount <= 0 || isNaN(newMaxQuoteAmount) || newMaxQuoteAmount <= 0) {
         this.$message.error('请输入有效的数字')
         return
       }
-      if (newMinSolAmount > newMaxSolAmount) {
+      if (newMinQuoteAmount > newMaxQuoteAmount) {
         this.$message.error('最大交易金额必须大于最小交易金额')
+        return
+      }
+      if (!Number.isInteger(newHoldingMs) || newHoldingMs < 0) {
+        this.$message.error('请输入大于0的整数')
         return
       }
       const requestData = {
         id: this.observerRequestParams.id,
-        minSolAmount: newMinSolAmount,
-        maxSolAmount: newMaxSolAmount,
+        minQuoteAmount: newMinQuoteAmount,
+        maxQuoteAmount: newMaxQuoteAmount,
         minProfit: minProfit,
-        priorityFee: priorityFee,
-        jitoFee: jitoFee
+        triggerHoldingMs: newHoldingMs
+        // priorityFee: priorityFee,
+        // jitoFee: jitoFee
       }
       busDexCexTriangularUpdateObserver(requestData).then(res => {
         if (res.code === 200) {
@@ -577,7 +588,9 @@ export default {
     traderUpdateSubmit() {
       console.log('提交数据:', this.traderRequestParams)
       const requestData = { ...this.traderRequestParams }
-      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上*100
+      requestData.priorityFee = Number(this.traderRequestParams.priorityFee)
+      requestData.jitoFeeRate = Number(Number(this.traderRequestParams.jitoFeeRate) / 100)
 
       busDexCexTriangularUpdateTrader(requestData).then(res => {
         if (res.code === 200) {
