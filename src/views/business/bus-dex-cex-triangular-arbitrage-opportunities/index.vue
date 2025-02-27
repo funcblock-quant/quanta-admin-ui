@@ -145,18 +145,6 @@
               :show-overflow-tooltip="true"
             />
 
-            <el-table-column
-              label="priority fee"
-              align="center"
-              prop="dexTxPriorityFee"
-              :show-overflow-tooltip="true"
-            />
-            <el-table-column
-              label="jito fee"
-              align="center"
-              prop="dexTxJitoFee"
-              :show-overflow-tooltip="true"
-            />
           </el-table-column>
           <el-table-column label="CEX侧交易信息" align="center">
             <el-table-column
