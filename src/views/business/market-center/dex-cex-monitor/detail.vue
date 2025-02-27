@@ -113,12 +113,12 @@
             </template>
             <el-input v-else v-model="waterLevelRequestParams.buyTriggerThreshold" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="低水位调节目标余额">
-            <template v-if="!isWaterLevelEdit">
-              {{ busDexCexTriangularObserver.targetBalanceThreshold }}
-            </template>
-            <el-input v-else v-model="waterLevelRequestParams.targetBalanceThreshold" size="mini" />
-          </el-descriptions-item>
+          <!--          <el-descriptions-item label="低水位调节目标余额">-->
+          <!--            <template v-if="!isWaterLevelEdit">-->
+          <!--              {{ busDexCexTriangularObserver.targetBalanceThreshold }}-->
+          <!--            </template>-->
+          <!--            <el-input v-else v-model="waterLevelRequestParams.targetBalanceThreshold" size="mini" />-->
+          <!--          </el-descriptions-item>-->
           <el-descriptions-item label="高水位触发余额">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.sellTriggerThreshold }}

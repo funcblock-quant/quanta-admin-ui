@@ -36,6 +36,15 @@
             >新增
             </el-button>
           </el-col>
+          <el-col :span="1.5">
+            <el-button
+              v-permisaction="['business:busDexCexMonitor:list']"
+              type="primary"
+              size="mini"
+              @click="handleEditGlobalConfig"
+            >全局水位参数调节
+            </el-button>
+          </el-col>
         </el-row>
 
         <el-table v-loading="loading" :data="busDexCexTriangularObserverList" class="table-container" style="width: 100%;">
@@ -246,9 +255,9 @@
             <el-form-item label="低水位触发余额" class="mb16">
               <el-input v-model="startTraderFormData.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
             </el-form-item>
-            <el-form-item label="低水位调节目标余额" class="mb16">
-              <el-input v-model="startTraderFormData.targetBalanceThreshold" placeholder="请输入低水位调节目标余额" />
-            </el-form-item>
+            <!--            <el-form-item label="低水位调节目标余额" class="mb16">-->
+            <!--              <el-input v-model="startTraderFormData.targetBalanceThreshold" placeholder="请输入低水位调节目标余额" />-->
+            <!--            </el-form-item>-->
             <el-form-item label="高水位触发余额" class="mb16">
               <el-input v-model="startTraderFormData.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
             </el-form-item>
@@ -287,49 +296,31 @@
           </div>
         </el-dialog>
 
-        <!--        &lt;!&ndash; 修改交易表单弹窗 &ndash;&gt;-->
-        <!--        <el-dialog title="修改交易参数设置" :visible.sync="showEditTraderDialog" width="600px">-->
-        <!--          <el-form :model="startTraderFormData" label-width="150px">-->
-        <!--            <el-row :gutter="20" class="mb8">-->
-        <!--              <el-form-item label="指定滑点BPS" prop="slippage">-->
-        <!--                <el-slider-->
-        <!--                  v-model="startTraderFormData.slippage"-->
-        <!--                  show-input-->
-        <!--                  step="0.01"-->
-        <!--                  :precision="2"-->
-        <!--                  :max="5"-->
-        <!--                >-->
-        <!--                  <template slot="append">%</template>-->
-        <!--                </el-slider>-->
-        <!--              </el-form-item>-->
-        <!--              <el-form-item label="Min SOL Amount" prop="minSolAmount">-->
-        <!--                <el-input-->
-        <!--                  v-model="startTraderFormData.minSolAmount"-->
-        <!--                  placeholder="请输入最小交易量"-->
-        <!--                />-->
-        <!--              </el-form-item>-->
-        <!--              <el-form-item label="Max SOL Amount" prop="maxSolAmount">-->
-        <!--                <el-input-->
-        <!--                  v-model="startTraderFormData.maxSolAmount"-->
-        <!--                  placeholder="请输入最大交易量"-->
-        <!--                />-->
-        <!--              </el-form-item>-->
-        <!--              <el-form-item label="Min Profit" prop="minProfit">-->
-        <!--                <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />-->
-        <!--              </el-form-item>-->
-        <!--              <el-form-item label="Priority Fee(SOL)" prop="priorityFee">-->
-        <!--                <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />-->
-        <!--              </el-form-item>-->
-        <!--              <el-form-item label="Jito Fee(SOL)" prop="jitoFee">-->
-        <!--                <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />-->
-        <!--              </el-form-item>-->
-        <!--            </el-row>-->
-        <!--          </el-form>-->
-        <!--          <div slot="footer" class="dialog-footer">-->
-        <!--            <el-button @click="showEditTraderDialog = false">取消</el-button>-->
-        <!--            <el-button type="primary" @click="updateTraderParams">确定</el-button>-->
-        <!--          </div>-->
-        <!--        </el-dialog>-->
+        <!-- 启动交易表单弹窗 -->
+        <el-dialog title="全局参数调整" :visible.sync="editGlobalConfig" width="800px">
+          <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
+            <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
+            <el-form-item label="最低预警余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+            </el-form-item>
+            <el-form-item label="低水位触发余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
+            </el-form-item>
+            <el-form-item label="高水位触发余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
+            </el-form-item>
+
+            <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
+            <el-form-item label="最低预警余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+            </el-form-item>
+          </el-form>
+
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="cancelEditGlobalSolConfig">取消</el-button>
+            <el-button type="primary" @click="submitUpdateGlobalSolConfig">确定</el-button>
+          </div>
+        </el-dialog>
 
         <el-dialog :title="title" :visible.sync="batchOpen" width="800px">
           <el-form ref="batchForm" :model="batchForm" :rules="rules" label-width="150px">
@@ -469,8 +460,8 @@
                 <el-form-item label="触发套利利润" prop="minProfit">
                   <el-input v-model="batchForm.triggerProfitQuoteAmount" placeholder="请输入预期最低收益" />
                 </el-form-item>
-                <el-form-item label="触发套利" prop="triggerHoldingMs">
-                  <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发持续时间" />
+                <el-form-item label="价差持续时间" prop="triggerHoldingMs">
+                  <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发套利的价差持续时间" />
                 </el-form-item>
                 <!--                <el-form-item label="Priority Fee(SOL)" prop="priorityFee">-->
                 <!--                  <el-input v-model="batchForm.priorityFee" placeholder="请指定优先费" />-->
@@ -501,9 +492,9 @@
 
 <script>
 import {
-  batchAddBusDexCexTriangularObserver,
+  batchAddBusDexCexTriangularObserver, busDexCexTriangularGetGlobalWaterLevel,
   busDexCexTriangularStartTrader,
-  busDexCexTriangularStopTrader,
+  busDexCexTriangularStopTrader, busDexCexTriangularUpdateGlobalWaterLevel,
   delBusDexCexTriangularObserver,
   getBusDexCexTriangularObserver,
   listBusDexCexTriangularObserver,
@@ -533,6 +524,7 @@ export default {
       // 批量添加弹出层
       batchOpen: false,
       isEdit: false,
+      editGlobalConfig: false, // 全局参数调节编辑开关
       // 类型数据字典
       typeOptions: [],
       busDexCexTriangularObserverList: [],
@@ -564,6 +556,11 @@ export default {
         takerFee: undefined,
         maxArraySize: undefined,
         triggerProfitQuoteAmount: undefined
+      },
+      // 全局水位调节表单数据
+      updateGlobalWaterLevelFormData: {
+        solWaterLevelConfig: {},
+        stableCoinWaterLevelConfig: {}
       },
       exchangeType: [
         { key: 'Binance', value: 'Binance' },
@@ -734,6 +731,17 @@ export default {
         this.isEdit = true
       })
     },
+    // 开启编辑全局参数弹窗
+    handleEditGlobalConfig() {
+      busDexCexTriangularGetGlobalWaterLevel().then(response => {
+        this.updateGlobalWaterLevelFormData = response.data
+        this.editGlobalConfig = true
+      })
+    },
+    // 取消编辑全局参数弹窗
+    cancelEditGlobalSolConfig() {
+      this.editGlobalConfig = false
+    },
     // 提交批量添加
     submitBatchForm() {
       const targetTokenArray = [this.batchForm.targetToken]
@@ -766,6 +774,26 @@ export default {
           this.msgError(res.msg)
           this.batchOpen = false
           this.batchForm = []
+          this.getList()
+        }
+      })
+    },
+    // 提交全局水位参数配置
+    submitUpdateGlobalSolConfig() {
+      const requestData = { ...this.updateGlobalWaterLevelFormData }
+      requestData.solWaterLevelConfig.alertThreshold = Number(requestData.solWaterLevelConfig.alertThreshold)
+      requestData.solWaterLevelConfig.buyTriggerThreshold = Number(requestData.solWaterLevelConfig.buyTriggerThreshold)
+      requestData.solWaterLevelConfig.sellTriggerThreshold = Number(requestData.solWaterLevelConfig.sellTriggerThreshold)
+      requestData.stableCoinWaterLevelConfig.alertThreshold = Number(requestData.stableCoinWaterLevelConfig.alertThreshold)
+
+      busDexCexTriangularUpdateGlobalWaterLevel(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.editGlobalConfig = false
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.editGlobalConfig = false
           this.getList()
         }
       })
