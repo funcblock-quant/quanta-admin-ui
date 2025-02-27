@@ -409,7 +409,8 @@ export default {
     formatTime(row, column, cellValue, index) {
       console.log('row.createdAt', row.createdAt)
       const date = new Date(row.createdAt) // 将返回的 ISO 格式时间字符串转为 Date 对象
-      return date.toLocaleString()
+      const milliseconds = date.getMilliseconds().toString().padStart(3, '0') // 确保毫秒是 3 位数
+      return `${date.toLocaleString()}.${milliseconds}`
     },
     formatProfit(row, column, cellValue, index) {
       const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
