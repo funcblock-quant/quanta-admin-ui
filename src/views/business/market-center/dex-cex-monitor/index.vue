@@ -81,7 +81,7 @@
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              {{ scope.row.minSolAmount }} - {{ scope.row.maxSolAmount }}
+              {{ scope.row.minQuoteAmount }} - {{ scope.row.maxQuoteAmount }}
             </template>
           </el-table-column>
           <el-table-column label="DEX买入CEX卖出" align="center">
@@ -261,7 +261,21 @@
                 show-input
                 step="0.01"
                 :precision="2"
-                :max="5"
+                :max="10"
+              >
+                <template slot="append">%</template>
+              </el-slider>
+            </el-form-item>
+            <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
+              <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
+            </el-form-item>
+            <el-form-item label="Jito Fee Rate" prop="jitoFeeRate" class="mb16">
+              <el-slider
+                v-model="startTraderFormData.jitoFeeRate"
+                show-input
+                step="0.01"
+                :precision="2"
+                :max="50"
               >
                 <template slot="append">%</template>
               </el-slider>
@@ -273,49 +287,49 @@
           </div>
         </el-dialog>
 
-        <!-- 修改交易表单弹窗 -->
-        <el-dialog title="修改交易参数设置" :visible.sync="showEditTraderDialog" width="600px">
-          <el-form :model="startTraderFormData" label-width="150px">
-            <el-row :gutter="20" class="mb8">
-              <el-form-item label="指定滑点BPS" prop="slippage">
-                <el-slider
-                  v-model="startTraderFormData.slippage"
-                  show-input
-                  step="0.01"
-                  :precision="2"
-                  :max="5"
-                >
-                  <template slot="append">%</template>
-                </el-slider>
-              </el-form-item>
-              <el-form-item label="Min SOL Amount" prop="minSolAmount">
-                <el-input
-                  v-model="startTraderFormData.minSolAmount"
-                  placeholder="请输入最小交易量"
-                />
-              </el-form-item>
-              <el-form-item label="Max SOL Amount" prop="maxSolAmount">
-                <el-input
-                  v-model="startTraderFormData.maxSolAmount"
-                  placeholder="请输入最大交易量"
-                />
-              </el-form-item>
-              <el-form-item label="Min Profit" prop="minProfit">
-                <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />
-              </el-form-item>
-              <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
-                <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
-              </el-form-item>
-              <el-form-item label="Jito Fee(SOL)" prop="jitoFee">
-                <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />
-              </el-form-item>
-            </el-row>
-          </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="showEditTraderDialog = false">取消</el-button>
-            <el-button type="primary" @click="updateTraderParams">确定</el-button>
-          </div>
-        </el-dialog>
+        <!--        &lt;!&ndash; 修改交易表单弹窗 &ndash;&gt;-->
+        <!--        <el-dialog title="修改交易参数设置" :visible.sync="showEditTraderDialog" width="600px">-->
+        <!--          <el-form :model="startTraderFormData" label-width="150px">-->
+        <!--            <el-row :gutter="20" class="mb8">-->
+        <!--              <el-form-item label="指定滑点BPS" prop="slippage">-->
+        <!--                <el-slider-->
+        <!--                  v-model="startTraderFormData.slippage"-->
+        <!--                  show-input-->
+        <!--                  step="0.01"-->
+        <!--                  :precision="2"-->
+        <!--                  :max="5"-->
+        <!--                >-->
+        <!--                  <template slot="append">%</template>-->
+        <!--                </el-slider>-->
+        <!--              </el-form-item>-->
+        <!--              <el-form-item label="Min SOL Amount" prop="minSolAmount">-->
+        <!--                <el-input-->
+        <!--                  v-model="startTraderFormData.minSolAmount"-->
+        <!--                  placeholder="请输入最小交易量"-->
+        <!--                />-->
+        <!--              </el-form-item>-->
+        <!--              <el-form-item label="Max SOL Amount" prop="maxSolAmount">-->
+        <!--                <el-input-->
+        <!--                  v-model="startTraderFormData.maxSolAmount"-->
+        <!--                  placeholder="请输入最大交易量"-->
+        <!--                />-->
+        <!--              </el-form-item>-->
+        <!--              <el-form-item label="Min Profit" prop="minProfit">-->
+        <!--                <el-input v-model="startTraderFormData.minProfit" placeholder="请输入预期最低收益" />-->
+        <!--              </el-form-item>-->
+        <!--              <el-form-item label="Priority Fee(SOL)" prop="priorityFee">-->
+        <!--                <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />-->
+        <!--              </el-form-item>-->
+        <!--              <el-form-item label="Jito Fee(SOL)" prop="jitoFee">-->
+        <!--                <el-input v-model="startTraderFormData.jitoFee" placeholder="请指定jito手续费" />-->
+        <!--              </el-form-item>-->
+        <!--            </el-row>-->
+        <!--          </el-form>-->
+        <!--          <div slot="footer" class="dialog-footer">-->
+        <!--            <el-button @click="showEditTraderDialog = false">取消</el-button>-->
+        <!--            <el-button type="primary" @click="updateTraderParams">确定</el-button>-->
+        <!--          </div>-->
+        <!--        </el-dialog>-->
 
         <el-dialog :title="title" :visible.sync="batchOpen" width="800px">
           <el-form ref="batchForm" :model="batchForm" :rules="rules" label-width="150px">
@@ -440,27 +454,30 @@
                 </el-col>
               </el-row>
               <el-row :gutter="4" class="mb8">
-                <el-form-item label="Min SOL Amount" prop="minSolAmount">
+                <el-form-item label="Min Amount" prop="minQuoteAmount">
                   <el-input
-                    v-model="batchForm.minSolAmount"
-                    placeholder="请输入最小交易量"
+                    v-model="batchForm.minQuoteAmount"
+                    placeholder="请输入最小Quote交易量"
                   />
                 </el-form-item>
-                <el-form-item label="Max SOL Amount" prop="maxSolAmount">
+                <el-form-item label="Max Amount" prop="maxQuoteAmount">
                   <el-input
-                    v-model="batchForm.maxSolAmount"
-                    placeholder="请输入最大交易量"
+                    v-model="batchForm.maxQuoteAmount"
+                    placeholder="请输入最大Quote交易量"
                   />
                 </el-form-item>
-                <el-form-item label="Min Profit" prop="minProfit">
+                <el-form-item label="触发套利利润" prop="minProfit">
                   <el-input v-model="batchForm.triggerProfitQuoteAmount" placeholder="请输入预期最低收益" />
                 </el-form-item>
-                <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
-                  <el-input v-model="batchForm.priorityFee" placeholder="请指定优先费" />
+                <el-form-item label="触发套利" prop="triggerHoldingMs">
+                  <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发持续时间" />
                 </el-form-item>
-                <el-form-item label="Jito Fee(SOL)" prop="jitoFee">
-                  <el-input v-model="batchForm.jitoFee" placeholder="请指定jito手续费" />
-                </el-form-item>
+                <!--                <el-form-item label="Priority Fee(SOL)" prop="priorityFee">-->
+                <!--                  <el-input v-model="batchForm.priorityFee" placeholder="请指定优先费" />-->
+                <!--                </el-form-item>-->
+                <!--                <el-form-item label="Jito Fee(SOL)" prop="jitoFee">-->
+                <!--                  <el-input v-model="batchForm.jitoFee" placeholder="请指定jito手续费" />-->
+                <!--                </el-form-item>-->
               </el-row>
               <el-row :gutter="20" class="mb8">
                 <el-form-item label="Taker Fee" prop="takerFee">
@@ -487,7 +504,6 @@ import {
   batchAddBusDexCexTriangularObserver,
   busDexCexTriangularStartTrader,
   busDexCexTriangularStopTrader,
-  busDexCexTriangularUpdateTrader,
   delBusDexCexTriangularObserver,
   getBusDexCexTriangularObserver,
   listBusDexCexTriangularObserver,
@@ -541,15 +557,13 @@ export default {
         ammPool: undefined,
         tokenMint: undefined,
         slippage: undefined,
-        minSolAmount: undefined,
-        maxSolAmount: undefined,
+        minQuoteAmount: undefined,
+        maxQuoteAmount: undefined,
         exchangeType: undefined,
         dexType: undefined,
         takerFee: undefined,
         maxArraySize: undefined,
-        triggerProfitQuoteAmount: undefined,
-        priorityFee: undefined,
-        jitoFee: undefined
+        triggerProfitQuoteAmount: undefined
       },
       exchangeType: [
         { key: 'Binance', value: 'Binance' },
@@ -571,10 +585,12 @@ export default {
         buyTriggerThreshold: undefined,
         targetBalanceThreshold: undefined,
         sellTriggerThreshold: undefined,
-        slippage: ''
+        slippage: '',
+        priorityFee: undefined,
+        jitoFeeRate: undefined
       },
-      originalMinSolAmount: {}, // 记录原始值，方便取消恢复
-      originalMaxSolAmount: {}, // 记录原始值，方便取消恢复
+      originalMinQuoteAmount: {}, // 记录原始值，方便取消恢复
+      originalMaxQuoteAmount: {}, // 记录原始值，方便取消恢复
 
       // 表单校验
       rules: {
@@ -582,13 +598,14 @@ export default {
         quoteToken: [{ required: true, message: '至少指定一个Quote Token', trigger: 'blur' }],
         ammPool: [{ required: true, message: 'ammPool不能为空', trigger: 'blur' }],
         slippage: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
-        minSolAmount: [{ required: true, message: '请设置最小交易金额', trigger: 'blur' }],
-        maxSolAmount: [{ required: true, message: '请设置最大交易金额', trigger: 'blur' }],
+        minQuoteAmount: [{ required: true, message: '请设置最小交易金额', trigger: 'blur' }],
+        maxQuoteAmount: [{ required: true, message: '请设置最大交易金额', trigger: 'blur' }],
         takerFee: [{ required: true, message: '请设置交易所taker手续费', trigger: 'blur' }],
         exchangeType: [{ required: true, message: '请选择交易所', trigger: 'blur' }],
         triggerProfitQuoteAmount: [{ required: true, message: '请输入触发套利的最小利润', trigger: 'blur' }],
+        triggerHoldingMs: [{ required: true, message: '请输入触发套利的最小持续时间', trigger: 'blur' }],
         priorityFee: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
-        jitoFee: [{ required: true, message: '请输入jito费', trigger: 'blur' }]
+        jitoFeeRate: [{ required: true, message: '请输入jito费比例', trigger: 'blur' }]
       }
     }
   },
@@ -723,13 +740,18 @@ export default {
 
       const requestData = { ...this.batchForm }
       requestData.takerFee = Number(requestData.takerFee)
-      requestData.minSolAmount = Number(requestData.minSolAmount)
-      requestData.maxSolAmount = Number(requestData.maxSolAmount)
+      requestData.minQuoteAmount = Number(requestData.minQuoteAmount)
+      requestData.maxQuoteAmount = Number(requestData.maxQuoteAmount)
       requestData.maxArraySize = Number(requestData.maxArraySize)
       requestData.decimals = Number(requestData.decimals)
       requestData.triggerProfitQuoteAmount = Number(requestData.triggerProfitQuoteAmount)
-      requestData.priorityFee = Number(requestData.priorityFee)
-      requestData.jitoFee = Number(requestData.jitoFee)
+      requestData.triggerHoldingMs = Number(requestData.triggerHoldingMs)
+      // requestData.priorityFee = Number(requestData.priorityFee)
+      // requestData.jitoFeeRate = Number(requestData.jitoFeeRate)
+      if (requestData.minQuoteAmount > requestData.maxQuoteAmount) {
+        this.$message.error('最大交易金额必须大于最小交易金额')
+        return
+      }
 
       requestData.targetToken = targetTokenArray
 
@@ -761,10 +783,13 @@ export default {
     resetStartTraderFormData() {
       this.startTraderFormData = {
         id: undefined,
-        minProfit: '',
+        alertThreshold: undefined,
+        buyTriggerThreshold: undefined,
+        targetBalanceThreshold: undefined,
+        sellTriggerThreshold: undefined,
         slippage: '',
         priorityFee: '',
-        jitoFee: ''
+        jitoFeeRate: ''
       }
     },
 
@@ -777,6 +802,8 @@ export default {
       requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
       requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
       requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      requestData.priorityFee = Number(requestData.priorityFee)
+      requestData.jitoFeeRate = Number(Number(requestData.jitoFeeRate) / 100)
       console.log('this.requestData', requestData)
 
       busDexCexTriangularStartTrader(requestData).then(res => {
@@ -789,23 +816,6 @@ export default {
         }
         this.showStartDialog = false
       })
-    },
-
-    // 确认更新交易参数
-    updateTraderParams() {
-      const requestData = { ...this.startTraderFormData }
-      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
-
-      busDexCexTriangularUpdateTrader(requestData).then(res => {
-        if (res.code === 200) {
-          this.msgSuccess(res.msg)
-          this.getList()
-        } else {
-          this.msgError(res.msg)
-          this.getList()
-        }
-      })
-      this.showEditTraderDialog = false
     },
 
     // 暂停交易
@@ -846,13 +856,6 @@ export default {
       })
     },
 
-    formatSlippage(cellValue) {
-      if (cellValue === null || cellValue === undefined || cellValue === '') {
-        return '' // 或者其他默认值，例如 0
-      }
-      const slippage = Number(cellValue) / 100
-      return slippage.toFixed(2).toString() // 保留四位小数，根据需要调整
-    },
     formatProfit(row, column, cellValue, index) {
       if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
         return '' // 或者其他默认值，例如 0
