@@ -74,7 +74,7 @@
             :formatter="formatDexType"
           />
           <el-table-column
-            label="交易数量"
+            label="交易金额"
             width="160"
             align="center"
             prop="volume"
