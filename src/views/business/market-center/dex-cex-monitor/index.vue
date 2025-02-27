@@ -368,26 +368,6 @@
               </el-row>
               <el-row :gutter="20" class="mb8">
                 <el-col :span="1.5">
-                  <el-form-item label="Owner Program" prop="ownerProgram">
-                    <el-input
-                      v-model="batchForm.ownerProgram"
-                      placeholder="请输入Owner Program地址"
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="20" class="mb8">
-                <el-col :span="1.5">
-                  <el-form-item label="Token 精度" prop="decimals">
-                    <el-input
-                      v-model="batchForm.decimals"
-                      placeholder="请输入Token 精度"
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="20" class="mb8">
-                <el-col :span="1.5">
                   <el-form-item label="Dex Type" prop="dexType">
                     <el-select
                       v-model="batchForm.dexType"
