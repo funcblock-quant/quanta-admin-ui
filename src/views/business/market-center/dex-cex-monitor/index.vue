@@ -264,9 +264,20 @@
 
             <!-- 交易参数 -->
             <h3 style="margin-top: 30px; margin-bottom: 10px;">交易参数</h3>
-            <el-form-item label="指定滑点BPS" prop="slippage" class="mb16">
+            <!--            <el-form-item label="指定滑点BPS" prop="slippage" class="mb16">-->
+            <!--              <el-slider-->
+            <!--                v-model="startTraderFormData.slippage"-->
+            <!--                show-input-->
+            <!--                step="0.01"-->
+            <!--                :precision="2"-->
+            <!--                :max="10"-->
+            <!--              >-->
+            <!--                <template slot="append">%</template>-->
+            <!--              </el-slider>-->
+            <!--            </el-form-item>-->
+            <el-form-item label="Priority Fee Rate" prop="priorityFeeRate" class="mb16">
               <el-slider
-                v-model="startTraderFormData.slippage"
+                v-model="startTraderFormData.priorityFeeRate"
                 show-input
                 step="0.01"
                 :precision="2"
@@ -274,9 +285,6 @@
               >
                 <template slot="append">%</template>
               </el-slider>
-            </el-form-item>
-            <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
-              <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
             </el-form-item>
             <el-form-item label="Jito Fee Rate" prop="jitoFeeRate" class="mb16">
               <el-slider
@@ -296,7 +304,6 @@
           </div>
         </el-dialog>
 
-        <!-- 启动交易表单弹窗 -->
         <el-dialog title="全局参数调整" :visible.sync="editGlobalConfig" width="800px">
           <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
             <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
@@ -437,8 +444,27 @@
                     placeholder="请输入最大Quote交易量"
                   />
                 </el-form-item>
-                <el-form-item label="触发套利利润" prop="minProfit">
-                  <el-input v-model="batchForm.triggerProfitQuoteAmount" placeholder="请输入预期最低收益" />
+                <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">
+                  <el-slider
+                    v-model="batchForm.slippageBpsRate"
+                    show-input
+                    step="0.01"
+                    :precision="2"
+                    :max="10"
+                  >
+                    <template slot="append">%</template>
+                  </el-slider>
+                </el-form-item>
+                <el-form-item label="触发套利利润比例" prop="profitTriggerRate">
+                  <el-slider
+                    v-model="batchForm.profitTriggerRate"
+                    show-input
+                    step="0.01"
+                    :precision="2"
+                    :max="1"
+                  >
+                    <template slot="append">%</template>
+                  </el-slider>
                 </el-form-item>
                 <el-form-item label="价差持续时间" prop="triggerHoldingMs">
                   <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发套利的价差持续时间" />
@@ -528,7 +554,7 @@ export default {
         quoteToken: undefined,
         ammPool: undefined,
         tokenMint: undefined,
-        slippage: undefined,
+        slippageBpsRate: undefined,
         minQuoteAmount: undefined,
         maxQuoteAmount: undefined,
         exchangeType: undefined,
@@ -562,8 +588,7 @@ export default {
         buyTriggerThreshold: undefined,
         targetBalanceThreshold: undefined,
         sellTriggerThreshold: undefined,
-        slippage: '',
-        priorityFee: undefined,
+        priorityFeeRate: undefined,
         jitoFeeRate: undefined
       },
       originalMinQuoteAmount: {}, // 记录原始值，方便取消恢复
@@ -574,21 +599,16 @@ export default {
         targetToken: [{ required: true, message: '至少指定一个Target Token', trigger: 'blur' }],
         quoteToken: [{ required: true, message: '至少指定一个Quote Token', trigger: 'blur' }],
         ammPool: [{ required: true, message: 'ammPool不能为空', trigger: 'blur' }],
-        slippage: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
+        slippageBpsRate: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
         minQuoteAmount: [{ required: true, message: '请设置最小交易金额', trigger: 'blur' }],
         maxQuoteAmount: [{ required: true, message: '请设置最大交易金额', trigger: 'blur' }],
         takerFee: [{ required: true, message: '请设置交易所taker手续费', trigger: 'blur' }],
         exchangeType: [{ required: true, message: '请选择交易所', trigger: 'blur' }],
-        triggerProfitQuoteAmount: [{ required: true, message: '请输入触发套利的最小利润', trigger: 'blur' }],
+        profitTriggerRate: [{ required: true, message: '请输入触发套利的最小利润', trigger: 'blur' }],
         triggerHoldingMs: [{ required: true, message: '请输入触发套利的最小持续时间', trigger: 'blur' }],
-        priorityFee: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
+        priorityFeeRate: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
         jitoFeeRate: [{ required: true, message: '请输入jito费比例', trigger: 'blur' }]
       }
-    }
-  },
-  computed: {
-    minProfitLabel() {
-      return `Min Profit`
     }
   },
   created() {
@@ -669,7 +689,7 @@ export default {
       }
       this.batchForm = {
         symbol: [],
-        slippage: undefined
+        slippageBpsRate: undefined
       }
       this.resetForm('form')
     },
@@ -732,10 +752,9 @@ export default {
       requestData.maxQuoteAmount = Number(requestData.maxQuoteAmount)
       requestData.maxArraySize = Number(requestData.maxArraySize)
       requestData.decimals = Number(requestData.decimals)
-      requestData.triggerProfitQuoteAmount = Number(requestData.triggerProfitQuoteAmount)
+      requestData.profitTriggerRate = Number(requestData.profitTriggerRate) / 100
       requestData.triggerHoldingMs = Number(requestData.triggerHoldingMs)
-      // requestData.priorityFee = Number(requestData.priorityFee)
-      // requestData.jitoFeeRate = Number(requestData.jitoFeeRate)
+      requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
       if (requestData.minQuoteAmount > requestData.maxQuoteAmount) {
         this.$message.error('最大交易金额必须大于最小交易金额')
         return
@@ -795,8 +814,8 @@ export default {
         buyTriggerThreshold: undefined,
         targetBalanceThreshold: undefined,
         sellTriggerThreshold: undefined,
-        slippage: '',
-        priorityFee: '',
+        slippageBpsRate: '',
+        priorityFeeRate: '',
         jitoFeeRate: ''
       }
     },
@@ -809,8 +828,8 @@ export default {
       requestData.buyTriggerThreshold = Number(requestData.buyTriggerThreshold)
       requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
       requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
-      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
-      requestData.priorityFee = Number(requestData.priorityFee)
+      // requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      requestData.priorityFeeRate = Number(requestData.priorityFeeRate) / 100
       requestData.jitoFeeRate = Number(Number(requestData.jitoFeeRate) / 100)
       console.log('this.requestData', requestData)
 
