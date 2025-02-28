@@ -46,6 +46,16 @@
             </template>
             <el-input v-else v-model="observerRequestParams.minProfit" size="mini" />
           </el-descriptions-item>
+          <el-descriptions-item label="SlippageBps">
+            <template v-if="!isObserverEdit">
+              {{ (busDexCexTriangularObserver.slippage / 100).toFixed(2) }}%
+            </template>
+            <template v-else>
+              <el-input v-model="observerRequestParams.slippage" size="mini" @input="handleSlippageInput">
+                <template slot="append">%</template>
+              </el-input>
+            </template>
+          </el-descriptions-item>
           <el-descriptions-item label="Trigger Holding(ms)">
             <template v-if="!isObserverEdit">
               {{ busDexCexTriangularObserver.triggerHoldingMs }} ms
@@ -66,16 +76,6 @@
             <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
           </template>
 
-          <el-descriptions-item label="SlippageBps">
-            <template v-if="!isTraderEdit">
-              {{ (busDexCexTriangularObserver.slippage / 100).toFixed(2) }}%
-            </template>
-            <template v-else>
-              <el-input v-model="traderRequestParams.slippage" size="mini" @input="handleSlippageInput">
-                <template slot="append">%</template>
-              </el-input>
-            </template>
-          </el-descriptions-item>
           <el-descriptions-item label="Priority Fee(SOL)">
             <template v-if="!isTraderEdit">
               {{ formattedPriorityFee }}
@@ -523,6 +523,7 @@ export default {
       if (!this.isObserverEdit) {
         this.clearTimer()
         this.observerRequestParams = { ...this.busDexCexTriangularObserver }
+        this.observerRequestParams.slippage = (this.busDexCexTriangularObserver.slippage / 100).toFixed(2)
       }
       this.isObserverEdit = !this.isObserverEdit
     },
@@ -530,7 +531,6 @@ export default {
       if (!this.isTraderEdit) {
         this.clearTimer()
         this.traderRequestParams = { ...this.busDexCexTriangularObserver }
-        this.traderRequestParams.slippage = (this.busDexCexTriangularObserver.slippage / 100).toFixed(2)
         this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee / 1_000_000_000
         this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
         console.log(this.traderRequestParams)
@@ -553,6 +553,7 @@ export default {
       const newMaxQuoteAmount = Number(this.observerRequestParams.maxQuoteAmount)
       const newHoldingMs = Number(this.observerRequestParams.triggerHoldingMs)
       const minProfit = Number(this.observerRequestParams.minProfit)
+      const slippage = (Number(this.observerRequestParams.slippage) * 100).toString() // 只在副本上*100
       if (isNaN(newMinQuoteAmount) || newMinQuoteAmount <= 0 || isNaN(newMaxQuoteAmount) || newMaxQuoteAmount <= 0) {
         this.$message.error('请输入有效的数字')
         return
@@ -570,7 +571,8 @@ export default {
         minQuoteAmount: newMinQuoteAmount,
         maxQuoteAmount: newMaxQuoteAmount,
         minProfit: minProfit,
-        triggerHoldingMs: newHoldingMs
+        triggerHoldingMs: newHoldingMs,
+        slippage: slippage
         // priorityFee: priorityFee,
         // jitoFee: jitoFee
       }
@@ -589,7 +591,7 @@ export default {
     traderUpdateSubmit() {
       console.log('提交数据:', this.traderRequestParams)
       const requestData = { ...this.traderRequestParams }
-      requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上*100
+      // requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上*100
       requestData.priorityFee = Number(this.traderRequestParams.priorityFee)
       requestData.jitoFeeRate = Number(Number(this.traderRequestParams.jitoFeeRate) / 100)
 
@@ -968,13 +970,13 @@ export default {
       return match ? match.label : dexType // 如果匹配不到，就显示原始值
     },
     handleSlippageInput() {
-      let value = this.traderRequestParams.slippage
+      let value = this.observerRequestParams.slippage
       // 只允许数字，并限制两位小数
       value = value.replace(/[^0-9.]/g, '') // 只能输入数字和小数点
       value = value.replace(/^0+(\d)/, '$1') // 去掉前导 0
       value = value.replace(/^\./, '0.') // 防止以 . 开头
       value = value.match(/^\d*(\.\d{0,2})?/)?.[0] || '' // 限制小数点后两位
-      this.traderRequestParams.slippage = value
+      this.observerRequestParams.slippage = value
     }
   }
 }
