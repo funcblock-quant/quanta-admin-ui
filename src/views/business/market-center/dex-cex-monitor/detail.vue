@@ -80,13 +80,13 @@
             <template v-if="!isTraderEdit">
               {{ formattedPriorityFee }}
             </template>
-            <el-input v-else v-model="observerRequestParams.priorityFee" size="mini" />
+            <el-input v-else v-model="traderRequestParams.priorityFee" size="mini" />
           </el-descriptions-item>
           <el-descriptions-item label="Jito Fee Rate">
             <template v-if="!isTraderEdit">
               {{ formattedJitoFee }}%
             </template>
-            <el-input v-else v-model="observerRequestParams.jitoFeeRate" size="mini" />
+            <el-input v-else v-model="traderRequestParams.jitoFeeRate" size="mini" />
           </el-descriptions-item>
         </el-descriptions>
         <div v-if="isTraderEdit" class="action-buttons">
@@ -533,6 +533,7 @@ export default {
         this.traderRequestParams.slippage = (this.busDexCexTriangularObserver.slippage / 100).toFixed(2)
         this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee / 1_000_000_000
         this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
+        console.log(this.traderRequestParams)
       }
       this.isTraderEdit = !this.isTraderEdit
     },
