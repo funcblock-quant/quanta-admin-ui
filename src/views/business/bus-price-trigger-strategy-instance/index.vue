@@ -428,9 +428,9 @@
               <el-form-item label="止盈价">
                 <el-input v-model="form.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
               </el-form-item>
-              <el-form-item label="止损价">
-                <el-input v-model="form.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
-              </el-form-item>
+              <!--              <el-form-item label="止损价">-->
+              <!--                <el-input v-model="form.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
+              <!--              </el-form-item>-->
             </div>
 
             <!-- 浮动止盈 -->
@@ -494,9 +494,9 @@
               <el-form-item label="止盈价">
                 <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
               </el-form-item>
-              <el-form-item label="止损价">
-                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
-              </el-form-item>
+              <!--              <el-form-item label="止损价">-->
+              <!--                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
+              <!--              </el-form-item>-->
             </div>
 
             <!-- 浮动止盈表单 -->
@@ -537,9 +537,9 @@
               <el-form-item label="止盈价">
                 <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
               </el-form-item>
-              <el-form-item label="止损价">
-                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />
-              </el-form-item>
+              <!--              <el-form-item label="止损价">-->
+              <!--                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
+              <!--              </el-form-item>-->
             </div>
 
             <!-- 浮动止盈表单 -->
