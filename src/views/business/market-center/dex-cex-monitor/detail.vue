@@ -523,8 +523,6 @@ export default {
       if (!this.isObserverEdit) {
         this.clearTimer()
         this.observerRequestParams = { ...this.busDexCexTriangularObserver }
-        this.observerRequestParams.priorityFee = this.observerRequestParams.priorityFee / 1_000_000_000
-        this.observerRequestParams.jitoFee = this.observerRequestParams.jitoFee / 1_000_000_000
       }
       this.isObserverEdit = !this.isObserverEdit
     },
@@ -533,6 +531,8 @@ export default {
         this.clearTimer()
         this.traderRequestParams = { ...this.busDexCexTriangularObserver }
         this.traderRequestParams.slippage = (this.busDexCexTriangularObserver.slippage / 100).toFixed(2)
+        this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee / 1_000_000_000
+        this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
       }
       this.isTraderEdit = !this.isTraderEdit
     },
