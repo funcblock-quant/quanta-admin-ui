@@ -44,7 +44,11 @@
             <template v-if="!isObserverEdit">
               {{ (busDexCexTriangularObserver.profitTriggerRate*100).toFixed(2) }}%
             </template>
-            <el-input v-else v-model="observerRequestParams.profitTriggerRate" size="mini" @input="handleSlippageInput" />
+            <template v-else>
+              <el-input v-model="observerRequestParams.profitTriggerRate" size="mini" @input="handleSlippageInput">
+                <template slot="append">%</template>
+              </el-input>
+            </template>
           </el-descriptions-item>
           <el-descriptions-item label="SlippageBpsRate">
             <template v-if="!isObserverEdit">
@@ -76,9 +80,9 @@
             <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
           </template>
 
-          <el-descriptions-item label="Priority Fee(SOL)">
+          <el-descriptions-item label="Priority Fee Rate">
             <template v-if="!isTraderEdit">
-              {{ formattedPriorityFeeRate }}
+              {{ formattedPriorityFeeRate }}%
             </template>
             <el-input v-else v-model="traderRequestParams.priorityFeeRate" size="mini" @input="handleSlippageInput" />
           </el-descriptions-item>
