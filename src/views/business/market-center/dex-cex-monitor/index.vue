@@ -466,9 +466,9 @@
                     <template slot="append">%</template>
                   </el-slider>
                 </el-form-item>
-                <el-form-item label="价差持续时间" prop="triggerHoldingMs">
-                  <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发套利的价差持续时间" />
-                </el-form-item>
+                <!--                <el-form-item label="价差持续时间" prop="triggerHoldingMs">-->
+                <!--                  <el-input v-model="batchForm.triggerHoldingMs" placeholder="请输入触发套利的价差持续时间" />-->
+                <!--                </el-form-item>-->
                 <!--                <el-form-item label="Priority Fee(SOL)" prop="priorityFee">-->
                 <!--                  <el-input v-model="batchForm.priorityFee" placeholder="请指定优先费" />-->
                 <!--                </el-form-item>-->
@@ -605,7 +605,7 @@ export default {
         takerFee: [{ required: true, message: '请设置交易所taker手续费', trigger: 'blur' }],
         exchangeType: [{ required: true, message: '请选择交易所', trigger: 'blur' }],
         profitTriggerRate: [{ required: true, message: '请输入触发套利的最小利润', trigger: 'blur' }],
-        triggerHoldingMs: [{ required: true, message: '请输入触发套利的最小持续时间', trigger: 'blur' }],
+        // triggerHoldingMs: [{ required: true, message: '请输入触发套利的最小持续时间', trigger: 'blur' }],
         priorityFeeRate: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
         jitoFeeRate: [{ required: true, message: '请输入jito费比例', trigger: 'blur' }]
       }
@@ -753,7 +753,7 @@ export default {
       requestData.maxArraySize = Number(requestData.maxArraySize)
       requestData.decimals = Number(requestData.decimals)
       requestData.profitTriggerRate = Number(requestData.profitTriggerRate) / 100
-      requestData.triggerHoldingMs = Number(requestData.triggerHoldingMs)
+      // requestData.triggerHoldingMs = Number(requestData.triggerHoldingMs)
       requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
       if (requestData.minQuoteAmount > requestData.maxQuoteAmount) {
         this.$message.error('最大交易金额必须大于最小交易金额')
