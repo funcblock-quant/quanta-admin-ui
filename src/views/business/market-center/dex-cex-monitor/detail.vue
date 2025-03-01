@@ -60,12 +60,12 @@
               </el-input>
             </template>
           </el-descriptions-item>
-          <el-descriptions-item label="Trigger Holding(ms)">
-            <template v-if="!isObserverEdit">
-              {{ busDexCexTriangularObserver.triggerHoldingMs }} ms
-            </template>
-            <el-input v-else v-model="observerRequestParams.triggerHoldingMs" size="mini" />
-          </el-descriptions-item>
+          <!--          <el-descriptions-item label="Trigger Holding(ms)">-->
+          <!--            <template v-if="!isObserverEdit">-->
+          <!--              {{ busDexCexTriangularObserver.triggerHoldingMs }} ms-->
+          <!--            </template>-->
+          <!--            <el-input v-else v-model="observerRequestParams.triggerHoldingMs" size="mini" />-->
+          <!--          </el-descriptions-item>-->
         </el-descriptions>
         <!-- 提交 & 取消 按钮 -->
         <div v-if="isObserverEdit" class="action-buttons">
@@ -382,8 +382,8 @@ export default {
       isTraderEdit: false, // trader参数编辑模式
       isWaterLevelEdit: false, // 水位调节参数编辑模式
       observerRequestParams: {
-        profitTriggerRate: undefined,
-        triggerHoldingMs: undefined
+        profitTriggerRate: undefined
+        // triggerHoldingMs: undefined
       }, // observer参数表单
       traderRequestParams: {}, // trader参数表单
       waterLevelRequestParams: {}, // 水位调节参数表单
@@ -556,7 +556,7 @@ export default {
       // 提交逻辑（调用 API）
       const newMinQuoteAmount = Number(this.observerRequestParams.minQuoteAmount)
       const newMaxQuoteAmount = Number(this.observerRequestParams.maxQuoteAmount)
-      const newHoldingMs = Number(this.observerRequestParams.triggerHoldingMs)
+      // const newHoldingMs = Number(this.observerRequestParams.triggerHoldingMs)
       const profitTriggerRate = Number(this.observerRequestParams.profitTriggerRate) / 100
       const slippageBpsRate = Number(this.observerRequestParams.slippageBpsRate) / 100 // 只在副本上*100
       if (isNaN(newMinQuoteAmount) || newMinQuoteAmount <= 0 || isNaN(newMaxQuoteAmount) || newMaxQuoteAmount <= 0) {
@@ -567,16 +567,16 @@ export default {
         this.$message.error('最大交易金额必须大于最小交易金额')
         return
       }
-      if (!Number.isInteger(newHoldingMs) || newHoldingMs < 0) {
-        this.$message.error('请输入大于0的整数')
-        return
-      }
+      // if (!Number.isInteger(newHoldingMs) || newHoldingMs < 0) {
+      //   this.$message.error('请输入大于0的整数')
+      //   return
+      // }
       const requestData = {
         id: this.observerRequestParams.id,
         minQuoteAmount: newMinQuoteAmount,
         maxQuoteAmount: newMaxQuoteAmount,
         profitTriggerRate: profitTriggerRate,
-        triggerHoldingMs: newHoldingMs,
+        // triggerHoldingMs: newHoldingMs,
         slippageBpsRate: slippageBpsRate
         // priorityFee: priorityFee,
         // jitoFee: jitoFee
