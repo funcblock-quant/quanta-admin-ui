@@ -264,17 +264,17 @@
 
             <!-- 交易参数 -->
             <h3 style="margin-top: 30px; margin-bottom: 10px;">交易参数</h3>
-            <!--            <el-form-item label="指定滑点BPS" prop="slippage" class="mb16">-->
-            <!--              <el-slider-->
-            <!--                v-model="startTraderFormData.slippage"-->
-            <!--                show-input-->
-            <!--                step="0.01"-->
-            <!--                :precision="2"-->
-            <!--                :max="10"-->
-            <!--              >-->
-            <!--                <template slot="append">%</template>-->
-            <!--              </el-slider>-->
-            <!--            </el-form-item>-->
+            <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">
+              <el-slider
+                v-model="startTraderFormData.slippageBpsRate"
+                show-input
+                step="0.01"
+                :precision="2"
+                :max="10"
+              >
+                <template slot="append">%</template>
+              </el-slider>
+            </el-form-item>
             <el-form-item label="Priority Fee Rate" prop="priorityFeeRate" class="mb16">
               <el-slider
                 v-model="startTraderFormData.priorityFeeRate"
@@ -444,17 +444,17 @@
                     placeholder="请输入最大Quote交易量"
                   />
                 </el-form-item>
-                <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">
-                  <el-slider
-                    v-model="batchForm.slippageBpsRate"
-                    show-input
-                    step="0.01"
-                    :precision="2"
-                    :max="10"
-                  >
-                    <template slot="append">%</template>
-                  </el-slider>
-                </el-form-item>
+                <!--                <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">-->
+                <!--                  <el-slider-->
+                <!--                    v-model="batchForm.slippageBpsRate"-->
+                <!--                    show-input-->
+                <!--                    step="0.01"-->
+                <!--                    :precision="2"-->
+                <!--                    :max="10"-->
+                <!--                  >-->
+                <!--                    <template slot="append">%</template>-->
+                <!--                  </el-slider>-->
+                <!--                </el-form-item>-->
                 <el-form-item label="触发套利利润比例" prop="profitTriggerRate">
                   <el-slider
                     v-model="batchForm.profitTriggerRate"
@@ -688,8 +688,8 @@ export default {
         id: undefined
       }
       this.batchForm = {
-        symbol: [],
-        slippageBpsRate: undefined
+        symbol: []
+        // slippageBpsRate: undefined
       }
       this.resetForm('form')
     },
@@ -754,7 +754,7 @@ export default {
       requestData.decimals = Number(requestData.decimals)
       requestData.profitTriggerRate = Number(requestData.profitTriggerRate) / 100
       // requestData.triggerHoldingMs = Number(requestData.triggerHoldingMs)
-      requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
+      // requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
       if (requestData.minQuoteAmount > requestData.maxQuoteAmount) {
         this.$message.error('最大交易金额必须大于最小交易金额')
         return
@@ -828,7 +828,7 @@ export default {
       requestData.buyTriggerThreshold = Number(requestData.buyTriggerThreshold)
       requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
       requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
-      // requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上乘以 100
+      requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
       requestData.priorityFeeRate = Number(requestData.priorityFeeRate) / 100
       requestData.jitoFeeRate = Number(Number(requestData.jitoFeeRate) / 100)
       console.log('this.requestData', requestData)

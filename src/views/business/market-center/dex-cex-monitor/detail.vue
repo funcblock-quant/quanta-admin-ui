@@ -50,16 +50,16 @@
               </el-input>
             </template>
           </el-descriptions-item>
-          <el-descriptions-item label="SlippageBpsRate">
-            <template v-if="!isObserverEdit">
-              {{ (busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2) }}%
-            </template>
-            <template v-else>
-              <el-input v-model="observerRequestParams.slippageBpsRate" size="mini" @input="handleSlippageInput">
-                <template slot="append">%</template>
-              </el-input>
-            </template>
-          </el-descriptions-item>
+          <!--          <el-descriptions-item label="SlippageBpsRate">-->
+          <!--            <template v-if="!isObserverEdit">-->
+          <!--              {{ (busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2) }}%-->
+          <!--            </template>-->
+          <!--            <template v-else>-->
+          <!--              <el-input v-model="observerRequestParams.slippageBpsRate" size="mini" @input="handleSlippageInput">-->
+          <!--                <template slot="append">%</template>-->
+          <!--              </el-input>-->
+          <!--            </template>-->
+          <!--          </el-descriptions-item>-->
           <!--          <el-descriptions-item label="Trigger Holding(ms)">-->
           <!--            <template v-if="!isObserverEdit">-->
           <!--              {{ busDexCexTriangularObserver.triggerHoldingMs }} ms-->
@@ -79,7 +79,16 @@
           <template slot="extra">
             <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
           </template>
-
+          <el-descriptions-item label="SlippageBpsRate">
+            <template v-if="!isTraderEdit">
+              {{ (busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2) }}%
+            </template>
+            <template v-else>
+              <el-input v-model="traderRequestParams.slippageBpsRate" size="mini" @input="handleSlippageInput">
+                <template slot="append">%</template>
+              </el-input>
+            </template>
+          </el-descriptions-item>
           <el-descriptions-item label="Priority Fee Rate">
             <template v-if="!isTraderEdit">
               {{ formattedPriorityFeeRate }}%
@@ -527,7 +536,7 @@ export default {
       if (!this.isObserverEdit) {
         this.clearTimer()
         this.observerRequestParams = { ...this.busDexCexTriangularObserver }
-        this.observerRequestParams.slippageBpsRate = (this.busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2)
+        // this.observerRequestParams.slippageBpsRate = (this.busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2)
         this.observerRequestParams.profitTriggerRate = (this.busDexCexTriangularObserver.profitTriggerRate * 100).toFixed(2)
       }
       this.isObserverEdit = !this.isObserverEdit
@@ -538,6 +547,7 @@ export default {
         this.traderRequestParams = { ...this.busDexCexTriangularObserver }
         this.traderRequestParams.priorityFeeRate = this.busDexCexTriangularObserver.priorityFeeRate * 100
         this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
+        this.traderRequestParams.slippageBpsRate = this.busDexCexTriangularObserver.slippageBpsRate * 100
         console.log(this.traderRequestParams)
       }
       this.isTraderEdit = !this.isTraderEdit
@@ -558,7 +568,7 @@ export default {
       const newMaxQuoteAmount = Number(this.observerRequestParams.maxQuoteAmount)
       // const newHoldingMs = Number(this.observerRequestParams.triggerHoldingMs)
       const profitTriggerRate = Number(this.observerRequestParams.profitTriggerRate) / 100
-      const slippageBpsRate = Number(this.observerRequestParams.slippageBpsRate) / 100 // 只在副本上*100
+      // const slippageBpsRate = Number(this.observerRequestParams.slippageBpsRate) / 100 // 只在副本上*100
       if (isNaN(newMinQuoteAmount) || newMinQuoteAmount <= 0 || isNaN(newMaxQuoteAmount) || newMaxQuoteAmount <= 0) {
         this.$message.error('请输入有效的数字')
         return
@@ -575,9 +585,9 @@ export default {
         id: this.observerRequestParams.id,
         minQuoteAmount: newMinQuoteAmount,
         maxQuoteAmount: newMaxQuoteAmount,
-        profitTriggerRate: profitTriggerRate,
+        profitTriggerRate: profitTriggerRate
         // triggerHoldingMs: newHoldingMs,
-        slippageBpsRate: slippageBpsRate
+        // slippageBpsRate: slippageBpsRate
         // priorityFee: priorityFee,
         // jitoFee: jitoFee
       }
@@ -599,7 +609,7 @@ export default {
       // requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上*100
       requestData.priorityFeeRate = Number(this.traderRequestParams.priorityFeeRate) / 100
       requestData.jitoFeeRate = Number(Number(this.traderRequestParams.jitoFeeRate) / 100)
-
+      requestData.slippageBpsRate = Number(this.traderRequestParams.slippageBpsRate) / 100 // 只在副本上*100
       busDexCexTriangularUpdateTrader(requestData).then(res => {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
