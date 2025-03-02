@@ -776,6 +776,8 @@ export default {
             return ''
           }
           const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status, errMsg, orderId } = detail
+
+          console.log('get fee:', fee)
           return {
             formattedCreatedAt: this.formatUTCTime(createdAt),
             exchangeName: exchangeName ? exchangeName.trim() : '',
