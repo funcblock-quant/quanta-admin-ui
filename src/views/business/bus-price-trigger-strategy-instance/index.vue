@@ -447,18 +447,18 @@
                 </el-slider>
                 <!--                  <el-input v-model="form.callbackRatio" placeholder="请输入回调比例" style="width: 180px;" />-->
               </el-form-item>
-              <el-form-item label="止盈比例">
-                <el-slider
-                  v-model="form.cutoffRatio"
-                  show-input
-                  step="5"
-                  :precision="0"
-                  :max="100"
-                >
-                  <template slot="append">%</template>
-                </el-slider>
-                <!--                  <el-input v-model="form.cutoffRatio" placeholder="请输入止盈比例" style="width: 180px;" />-->
-              </el-form-item>
+              <!--              <el-form-item label="止盈比例">-->
+              <!--                <el-slider-->
+              <!--                  v-model="form.cutoffRatio"-->
+              <!--                  show-input-->
+              <!--                  step="5"-->
+              <!--                  :precision="0"-->
+              <!--                  :max="100"-->
+              <!--                >-->
+              <!--                  <template slot="append">%</template>-->
+              <!--                </el-slider>-->
+              <!--                &lt;!&ndash;                  <el-input v-model="form.cutoffRatio" placeholder="请输入止盈比例" style="width: 180px;" />&ndash;&gt;-->
+              <!--              </el-form-item>-->
               <el-form-item label="最低盈利金额">
                 <el-input v-model="form.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
               </el-form-item>
@@ -504,9 +504,9 @@
               <el-form-item label="回调比例">
                 <el-slider v-model="profitTargetForm.callbackRatio" show-input step="5" :precision="0" :max="100" />
               </el-form-item>
-              <el-form-item label="止盈比例">
-                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />
-              </el-form-item>
+              <!--              <el-form-item label="止盈比例">-->
+              <!--                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />-->
+              <!--              </el-form-item>-->
               <el-form-item label="最低盈利金额">
                 <el-input v-model="profitTargetForm.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
               </el-form-item>
@@ -547,9 +547,9 @@
               <el-form-item label="回调比例">
                 <el-slider v-model="profitTargetForm.callbackRatio" show-input step="5" :precision="0" :max="100" />
               </el-form-item>
-              <el-form-item label="止盈比例">
-                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />
-              </el-form-item>
+              <!--              <el-form-item label="止盈比例">-->
+              <!--                <el-slider v-model="profitTargetForm.cutoffRatio" show-input step="5" :precision="0" :max="100" />-->
+              <!--              </el-form-item>-->
               <el-form-item label="最低盈利金额">
                 <el-input v-model="profitTargetForm.minProfit" placeholder="输入最低盈利金额" style="width: 180px;" />
               </el-form-item>
@@ -730,7 +730,7 @@ export default {
         profitTargetPrice: undefined,
         lossTargetPrice: undefined,
         callbackRatio: undefined,
-        cutoffRatio: undefined,
+        // cutoffRatio: undefined,
         minProfit: undefined
       },
       // 修改执行次数的表单
@@ -1094,7 +1094,7 @@ export default {
         profitTargetPrice: undefined,
         lossTargetPrice: undefined,
         callbackRatio: undefined,
-        cutoffRatio: undefined,
+        // cutoffRatio: undefined,
         minProfit: undefined
       }
     },
@@ -1180,8 +1180,8 @@ export default {
       this.profitTargetForm.profitTargetType = item.profitTargetType
       this.profitTargetForm.profitTargetPrice = item.profitTargetPrice
       this.profitTargetForm.lossTargetPrice = item.lossTargetPrice
-      this.profitTargetForm.callbackRatio = item.callbackRatio
-      this.profitTargetForm.cutoffRatio = item.cutoffRatio
+      this.profitTargetForm.callbackRatio = Number(item.callbackRatio) * 100
+      // this.profitTargetForm.cutoffRatio = item.cutoffRatio
       this.profitTargetForm.minProfit = item.minProfit
       this.editProfitTarget = true
     },
@@ -1205,6 +1205,11 @@ export default {
           }).then(() => {
             if (this.form.id !== undefined) {
               this.form.executeNum = Number(this.form.executeNum)
+              if (this.form.callbackRatio !== undefined || this.form.callbackRatio !== '') {
+                console.log('before', this.form.callbackRatio)
+                this.form.callbackRatio = Number(this.form.callbackRatio) / 100
+                console.log('after', this.form.callbackRatio)
+              }
               updateBusPriceTriggerStrategyInstance(this.form).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
@@ -1215,13 +1220,14 @@ export default {
                 }
               })
             } else {
-              this.form.executeNum = Number(this.form.executeNum)
-              this.form.profitTargetPrice = Number(this.form.profitTargetPrice)
-              this.form.lossTargetPrice = Number(this.form.lossTargetPrice)
-              this.form.cutoffRatio = Number(this.form.cutoffRatio)
-              this.form.callbackRatio = Number(this.form.callbackRatio)
-              this.form.minProfit = Number(this.form.minProfit)
-              addBusPriceTriggerStrategyInstance(this.form).then(response => {
+              const requestData = { ...this.form }
+              requestData.executeNum = Number(this.form.executeNum)
+              requestData.profitTargetPrice = Number(this.form.profitTargetPrice)
+              requestData.lossTargetPrice = Number(this.form.lossTargetPrice)
+              // this.form.cutoffRatio = Number(this.form.cutoffRatio)
+              requestData.callbackRatio = Number(this.form.callbackRatio) / 100
+              requestData.minProfit = Number(this.form.minProfit)
+              addBusPriceTriggerStrategyInstance(requestData).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
                   this.open = false
@@ -1254,8 +1260,8 @@ export default {
             requestData.id = Number(requestData.id)
             requestData.profitTargetPrice = Number(requestData.profitTargetPrice)
             requestData.lossTargetPrice = Number(requestData.lossTargetPrice)
-            requestData.cutoffRatio = Number(requestData.cutoffRatio)
-            requestData.callbackRatio = Number(requestData.callbackRatio)
+            // requestData.cutoffRatio = Number(requestData.cutoffRatio)
+            requestData.callbackRatio = Number(requestData.callbackRatio) / 100
             requestData.minProfit = Number(requestData.minProfit)
             updateBusPriceTriggerStrategyProfitTarget(requestData).then(response => {
               if (response.code === 200) {
