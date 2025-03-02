@@ -775,16 +775,16 @@ export default {
           if (typeof detail !== 'object' || detail === null) {
             return ''
           }
-          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fee, feeAsset, status, errMsg, orderId } = detail
+          const { createdAt, exchangeName, pnl, originQty, originPrice, symbol, side, role, fees, feeAsset, status, errMsg, orderId } = detail
 
-          console.log('get fee:', fee)
+          console.log('get fee:', fees)
           return {
             formattedCreatedAt: this.formatUTCTime(createdAt),
             exchangeName: exchangeName ? exchangeName.trim() : '',
             originPrice,
             originQty,
             symbol: symbol ? symbol.trim() : '',
-            formattedFee: this.formatFees(fee),
+            formattedFee: this.formatFees(fees),
             feeAsset,
             formattedSide: this.formatSide(side),
             formattedRole: this.formatRole(role),
