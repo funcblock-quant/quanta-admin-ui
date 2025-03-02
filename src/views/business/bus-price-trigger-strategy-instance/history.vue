@@ -139,8 +139,8 @@
                   <span> 成交一笔 <span style="font-weight: bold;">{{ detail.symbol }}</span> <span style="font-weight: bold;">  价格:</span>${{ detail.originPrice }}  <span style="font-weight: bold;">  数量:</span> {{ detail.originQty }} </span>
                   <span><span style="font-weight: bold;"> 方向: </span> {{ detail.formattedSide }}</span>
                   <span><span style="font-weight: bold;"> 手续费:</span> {{ detail.formattedFee }}{{ detail.feeAsset }}</span>
-                  <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
-                  <span><span style="font-weight: bold;"> 状态:</span> {{ detail.status }}</span>
+                  <!-- <span><span style="font-weight: bold;"> 角色:</span> {{ detail.formattedRole }}</span>
+                  <span><span style="font-weight: bold;"> 状态:</span> {{ detail.status }}</span> -->
                   <span><span style="font-weight: bold;"> pnl: </span> {{ detail.pnl }}</span>
                 </div>
                 <div v-else class="error-message">
