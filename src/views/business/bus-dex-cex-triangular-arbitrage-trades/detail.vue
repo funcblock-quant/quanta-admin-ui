@@ -251,9 +251,9 @@ export default {
       console.log('cexSellQuoteAmount - cexBuyQuoteAmount', cexSellQuoteAmount - cexBuyQuoteAmount)
       return (cexSellQuoteAmount - cexBuyQuoteAmount)
     },
-    formatProfitPercent(row, column, cellValue, index) {
-      const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
-      const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
+    formatProfitPercent(sellAmount, buyAmount) {
+      const cexSellQuoteAmount = parseFloat(sellAmount) || 0
+      const cexBuyQuoteAmount = parseFloat(buyAmount) || 0
       const profitPercent = ((cexSellQuoteAmount - cexBuyQuoteAmount) / cexBuyQuoteAmount) * 100
       return `${profitPercent.toFixed(2)}%`
     },
