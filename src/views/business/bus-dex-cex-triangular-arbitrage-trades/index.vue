@@ -168,6 +168,13 @@
             :show-overflow-tooltip="true"
             :formatter="formatProfit"
           />
+          <el-table-column
+            label="利润比"
+            align="center"
+            width="100"
+            :show-overflow-tooltip="true"
+            :formatter="formatProfitPercent"
+          />
           <el-table-column label="DEX侧交易信息" align="center">
             <el-table-column
               label="交易状态"
@@ -569,6 +576,12 @@ export default {
       const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
       const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
       return (cexSellQuoteAmount - cexBuyQuoteAmount)
+    },
+    formatProfitPercent(row, column, cellValue, index) {
+      const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
+      const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
+      const profitPercent = ((cexSellQuoteAmount - cexBuyQuoteAmount) / cexBuyQuoteAmount) * 100
+      return `${profitPercent.toFixed(2)}%`
     },
     formatNumber(row, column, cellValue, index) {
       if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
