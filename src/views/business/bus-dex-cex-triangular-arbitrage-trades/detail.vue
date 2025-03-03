@@ -145,6 +145,19 @@
             <el-descriptions-item label="成交利润" label-class-name="custom-bold-descriptions-label" content-class-name="custom-descriptions-content">{{ formatProfit(busDexCexTriangularRecord.cexSellQuoteAmount, busDexCexTriangularRecord.cexBuyQuoteAmount) }} {{ busDexCexTriangularRecord.cexQuoteAsset }}</el-descriptions-item>
           </el-descriptions>
         </div>
+        <div class="descriptions-container">
+          <!-- 预期利润 -->
+          <el-descriptions :column="1" class="descriptions-item expected">
+            <el-descriptions-item label="预期利润比" label-class-name="custom-bold-descriptions-label" content-class-name="custom-descriptions-content">
+              {{ formatProfitPercent(busDexCexTriangularRecord.oppoCexSellQuoteAmount, busDexCexTriangularRecord.oppoCexBuyQuoteAmount) }}
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <!-- 成交利润 -->
+          <el-descriptions v-if="busDexCexTriangularRecord.dexSuccess === '1' && busDexCexTriangularRecord.cexBuySuccess === '1' && busDexCexTriangularRecord.cexSellSuccess === '1'" :column="1" class="descriptions-item actual">
+            <el-descriptions-item label="成交利润比" label-class-name="custom-bold-descriptions-label" content-class-name="custom-descriptions-content">{{ formatProfitPercent(busDexCexTriangularRecord.cexSellQuoteAmount, busDexCexTriangularRecord.cexBuyQuoteAmount) }}</el-descriptions-item>
+          </el-descriptions>
+        </div>
       </el-card>
 
     </template>
@@ -237,6 +250,12 @@ export default {
       const cexBuyQuoteAmount = parseFloat(buyAmount) || 0
       console.log('cexSellQuoteAmount - cexBuyQuoteAmount', cexSellQuoteAmount - cexBuyQuoteAmount)
       return (cexSellQuoteAmount - cexBuyQuoteAmount)
+    },
+    formatProfitPercent(row, column, cellValue, index) {
+      const cexSellQuoteAmount = parseFloat(row.cexSellQuoteAmount) || 0
+      const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
+      const profitPercent = ((cexSellQuoteAmount - cexBuyQuoteAmount) / cexBuyQuoteAmount) * 100
+      return `${profitPercent.toFixed(2)}%`
     },
 
     formatTradeStatus(...statusList) {
