@@ -8,7 +8,18 @@
             <el-tooltip slot="action" class="item" effect="dark" content="统计当前系统总套利次数" placement="top-start">
               <i class="el-icon-warning-outline" />
             </el-tooltip>
-            <template slot="footer">24H 套利次数 <span>{{ dashboardData.dailyTotalTrade }}</span></template>
+            <!-- <template slot="footer">24H 套利次数 <span>{{ dashboardData.dailyTotalTrade }}</span></template> -->
+            <template slot="footer">总成交次数 <span>{{ dashboardData.totalSuccessTrade }} </span></template>
+            <template slot="footer">总成交率 <span>{{ formatTradeSuccessPercentage }}</span></template>
+          </chart-card>
+        </el-col>
+        <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '24px'}">
+          <chart-card title="24H套利次数" :total="dashboardData.dailyTotalTrade">
+            <el-tooltip slot="action" class="item" effect="dark" content="统计当前系统24H套利次数" placement="top-start">
+              <i class="el-icon-warning-outline" />
+            </el-tooltip>
+            <template slot="footer">24H 成交次数 <span>{{ dashboardData.dailyTotalSuccessTrade }} </span></template>
+            <template slot="footer">成交率 <span>{{ formatDailyTradeSuccessPercentage }}</span></template>
           </chart-card>
         </el-col>
         <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
@@ -25,11 +36,16 @@
           </chart-card>
         </el-col>
         <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-          <chart-card title="总交易量" :total="dashboardData.totalTradeVolume">
+          <chart-card title="总交易量" :total="formattedTotalVolume">
             <el-tooltip slot="action" class="item" effect="dark" content="统计当前总的套利交易量" placement="top-start">
               <i class="el-icon-warning-outline" />
             </el-tooltip>
-            <template slot="footer">24H 交易量 <span>{{ dashboardData.dailyTotalTradeVolume }}</span></template>
+            <div>
+              <trend :flag="dashboardData.dailyProfitChangePercent >= 0 ? 'top' : 'bottom'" style="margin-right: 16px;" :rate="dashboardData.dailyVolumeChangePercent">
+                <span slot="term" />
+              </trend>
+            </div>
+            <template slot="footer">24H 交易量 <span>{{ formattedDailyTotalVolume }}</span></template>
           </chart-card>
         </el-col>
       </el-row>
@@ -402,6 +418,24 @@ export default {
     formattedDailyTotalProfit() {
       const numericValue = parseFloat(this.dashboardData.dailyTotalProfit)
       return isNaN(numericValue) ? '$ 0.000000' : `$ ${numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+    },
+    formattedTotalVolume() {
+      const numericValue = parseFloat(this.dashboardData.totalTradeVolume)
+      return isNaN(numericValue) ? '$ 0.000000' : `$ ${numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+    },
+    formattedDailyTotalVolume() {
+      const numericValue = parseFloat(this.dashboardData.dailyTotalTradeVolume)
+      return isNaN(numericValue) ? '$ 0.000000' : `$ ${numericValue.toFixed(6)}` // 转换为数字并保留6位小数
+    },
+    formatTradeSuccessPercentage() {
+      const totalTrade = parseFloat(this.dashboardData.totalTrade)
+      const totalSuccessTrade = parseFloat(this.dashboardData.totalSuccessTrade)
+      return `${((totalSuccessTrade / totalTrade) * 100).toFixed(2)}%`
+    },
+    formatDailyTradeSuccessPercentage() {
+      const dailyTotalTrade = parseFloat(this.dashboardData.dailyTotalTrade)
+      const dailyTotalSuccessTrade = parseFloat(this.dashboardData.dailyTotalSuccessTrade)
+      return `${((dailyTotalSuccessTrade / dailyTotalTrade) * 100).toFixed(2)}%`
     }
   },
   activated() {
@@ -582,6 +616,9 @@ export default {
       const cexBuyQuoteAmount = parseFloat(row.cexBuyQuoteAmount) || 0
       const profitPercent = ((cexSellQuoteAmount - cexBuyQuoteAmount) / cexBuyQuoteAmount) * 100
       return `${profitPercent.toFixed(2)}%`
+    },
+    formatMoney(num) {
+      return num.toFixed(6)
     },
     formatNumber(row, column, cellValue, index) {
       if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
