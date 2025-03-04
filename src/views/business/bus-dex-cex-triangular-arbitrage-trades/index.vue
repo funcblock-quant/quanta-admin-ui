@@ -41,7 +41,7 @@
               <i class="el-icon-warning-outline" />
             </el-tooltip>
             <div>
-              <trend :flag="dashboardData.dailyProfitChangePercent >= 0 ? 'top' : 'bottom'" style="margin-right: 16px;" :rate="dashboardData.dailyVolumeChangePercent">
+              <trend :flag="dashboardData.dailyVolumeChangePercent >= 0 ? 'top' : 'bottom'" style="margin-right: 16px;" :rate="dashboardData.dailyVolumeChangePercent">
                 <span slot="term" />
               </trend>
             </div>
