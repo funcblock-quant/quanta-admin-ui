@@ -44,24 +44,6 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="最小利润" prop="minProfit">
-            <el-input
-              v-model="queryParams.minProfit"
-              placeholder="最小利润"
-              clearable
-              size="small"
-              @keyup.enter.native="handleQuery"
-            />
-          </el-form-item>
-          <el-form-item label="最大利润" prop="maxProfit">
-            <el-input
-              v-model="queryParams.maxProfit"
-              placeholder="最小利润"
-              clearable
-              size="small"
-              @keyup.enter.native="handleQuery"
-            />
-          </el-form-item>
           <el-form-item label="选择时间段">
             <el-date-picker
               v-model="dateRange"
@@ -74,6 +56,46 @@
               align="right"
               value-format="yyyy-MM-dd HH:mm:ss"
             />
+          </el-form-item>
+          <el-form-item label="最小利润" prop="minProfit">
+            <el-input
+              v-model="queryParams.minProfit"
+              placeholder="最小利润"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="最大利润" prop="maxProfit">
+            <el-input
+              v-model="queryParams.maxProfit"
+              placeholder="最大利润"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="最小利润比" prop="minProfitPercent">
+            <el-input
+              v-model="queryParams.minProfitPercent"
+              placeholder="最小利润比"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            >
+              <template slot="append">%</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="最大利润比" prop="maxProfitPercent">
+            <el-input
+              v-model="queryParams.maxProfitPercent"
+              placeholder="最大利润比"
+              clearable
+              size="small"
+              @keyup.enter.native="handleQuery"
+            >
+              <template slot="append">%</template>
+            </el-input>
           </el-form-item>
           <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -274,7 +296,10 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
-      listStrategyDexCexTriangularArbitrageOpportunities(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      const requestData = { ...this.queryParams }
+      if (this.queryParams.minProfitPercent) requestData.minProfitPercent = (Number(this.queryParams.minProfitPercent) / 100).toString()
+      if (this.queryParams.maxProfitPercent) requestData.maxProfitPercent = (Number(this.queryParams.maxProfitPercent) / 100).toString()
+      listStrategyDexCexTriangularArbitrageOpportunities(this.addDateRange(requestData, this.dateRange)).then(response => {
         this.busDexCexTriangularArbitrageOpportunitiesList = response.data.list
         this.total = response.data.count
         this.loading = false
