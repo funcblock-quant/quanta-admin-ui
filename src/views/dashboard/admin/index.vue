@@ -166,7 +166,7 @@ export default {
     }
   },
   created() {
-    this.getInstanceList()
+    // this.getInstanceList()
   },
   methods: {
     // 获取策略实例列表
