@@ -44,7 +44,8 @@
               <el-option
                 v-for="level in riskLevelList"
                 :key="level.key"
-                :value="level.value"
+                :label="level.value"
+                :value="level.key"
               />
             </el-select>
           </el-form-item>
@@ -58,7 +59,8 @@
               <el-option
                 v-for="type in manualRecoverList"
                 :key="type.key"
-                :value="type.value"
+                :value="type.key"
+                :label="type.value"
               />
             </el-select>
           </el-form-item>
@@ -72,7 +74,8 @@
               <el-option
                 v-for="status in recoverStatusList"
                 :key="status.key"
-                :value="status.value"
+                :value="status.key"
+                :label="status.value"
               />
             </el-select>
           </el-form-item>
@@ -248,23 +251,23 @@ export default {
       typeOptions: [],
       busRiskEventList: [],
       riskScopeList: [
-        { key: '0', value: '全局风控' },
-        { key: '1', value: '单币种' }
+        { key: 0, value: '全局风控' },
+        { key: 1, value: '单币种' }
       ],
       riskLevelList: [
-        { key: '1', value: '预警' },
-        { key: '2', value: '暂停交易' }
+        { key: 1, value: '预警' },
+        { key: 2, value: '暂停交易' }
       ],
       manualRecoverList: [
-        { key: true, value: '人工恢复' },
-        { key: false, value: '自动恢复' }
+        { key: 1, value: '人工恢复' },
+        { key: 0, value: '自动恢复' }
       ],
       recoverStatusList: [
-        { key: true, value: '已恢复' },
-        { key: false, value: '未恢复' }
+        { key: 1, value: '已恢复' },
+        { key: 0, value: '未恢复' }
       ],
       recoverActionList: [
-        { key: true, value: '恢复' }
+        { key: 1, value: '恢复' }
       ],
 
       // 关系表类型
