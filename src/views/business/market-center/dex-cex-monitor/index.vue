@@ -982,9 +982,9 @@ export default {
       requestData.solWaterLevelConfig.alertThreshold = Number(requestData.solWaterLevelConfig.alertThreshold)
       requestData.solWaterLevelConfig.buyTriggerThreshold = Number(requestData.solWaterLevelConfig.buyTriggerThreshold)
       requestData.solWaterLevelConfig.sellTriggerThreshold = Number(requestData.solWaterLevelConfig.sellTriggerThreshold)
+      requestData.solWaterLevelConfig.minDepositAmountThreshold = Number(requestData.solWaterLevelConfig.minDepositAmountThreshold)
+      requestData.solWaterLevelConfig.minWithdrawAmountThreshold = Number(requestData.solWaterLevelConfig.minWithdrawAmountThreshold)
       requestData.stableCoinWaterLevelConfig.alertThreshold = Number(requestData.stableCoinWaterLevelConfig.alertThreshold)
-      requestData.stableCoinWaterLevelConfig.minDepositAmountThreshold = Number(requestData.stableCoinWaterLevelConfig.minDepositAmountThreshold)
-      requestData.stableCoinWaterLevelConfig.minWithdrawAmountThreshold = Number(requestData.stableCoinWaterLevelConfig.minWithdrawAmountThreshold)
 
       busDexCexTriangularUpdateGlobalWaterLevel(requestData).then(res => {
         if (res.code === 200) {
