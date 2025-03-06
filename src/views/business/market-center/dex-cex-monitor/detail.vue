@@ -636,6 +636,8 @@ export default {
       requestData.buyTriggerThreshold = Number(requestData.buyTriggerThreshold)
       requestData.targetBalanceThreshold = Number(requestData.targetBalanceThreshold)
       requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
+      requestData.minDepositAmountThreshold = Number(requestData.minDepositAmountThreshold)
+      requestData.minWithdrawAmountThreshold = Number(requestData.minWithdrawAmountThreshold)
       busDexCexTriangularUpdateWaterLevel(requestData).then(res => {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
