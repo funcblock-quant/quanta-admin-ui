@@ -332,10 +332,10 @@
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
             </el-form-item>
             <el-form-item label="最小充值金额阈值" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
             </el-form-item>
             <el-form-item label="最小提现金额阈值" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
             </el-form-item>
 
             <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
