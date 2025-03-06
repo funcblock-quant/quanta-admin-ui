@@ -36,13 +36,22 @@
             >新增
             </el-button>
           </el-col>
-          <el-col :span="1.5">
+          <el-col :span="20">
             <el-button
               v-permisaction="['business:busDexCexMonitor:list']"
               type="primary"
               size="mini"
               @click="handleEditGlobalConfig"
             >全局水位参数调节
+            </el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+              v-permisaction="['business:busDexCexMonitor:list']"
+              type="danger"
+              size="mini"
+              @click="handleEditGlobalRiskConfig"
+            >风控参数配置
             </el-button>
           </el-col>
         </el-row>
@@ -261,6 +270,12 @@
             <el-form-item label="高水位触发余额" class="mb16">
               <el-input v-model="startTraderFormData.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
             </el-form-item>
+            <el-form-item label="最小充值金额阈值" class="mb16">
+              <el-input v-model="startTraderFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+            </el-form-item>
+            <el-form-item label="最小提现金额阈值" class="mb16">
+              <el-input v-model="startTraderFormData.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+            </el-form-item>
 
             <!-- 交易参数 -->
             <h3 style="margin-top: 30px; margin-bottom: 10px;">交易参数</h3>
@@ -316,6 +331,12 @@
             <el-form-item label="高水位触发余额" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
             </el-form-item>
+            <el-form-item label="最小充值金额阈值" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+            </el-form-item>
+            <el-form-item label="最小提现金额阈值" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+            </el-form-item>
 
             <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
             <el-form-item label="最低预警余额" class="mb16">
@@ -327,6 +348,81 @@
             <el-button @click="cancelEditGlobalSolConfig">取消</el-button>
             <el-button type="primary" @click="submitUpdateGlobalSolConfig">确定</el-button>
           </div>
+        </el-dialog>
+
+        <el-dialog title="全局参数调整" :visible.sync="editGlobalRiskConfig" width="800px">
+          <template>
+            <div>
+              <el-tooltip content="新增风控项" placement="top">
+                <el-button type="primary" icon="el-icon-plus" circle @click="addRiskItem" />
+              </el-tooltip>
+              <div v-for="(item, index) in riskControlItems" :key="index" class="risk-item">
+                <el-form :model="item" label-width="160px">
+                  <el-divider>
+                    风控项{{ index + 1 }}
+                    <el-tooltip content="删除风控项" placement="top">
+                      <el-button type="danger" icon="el-icon-delete" circle @click="removeRiskItem(index)" />
+                    </el-tooltip>
+                  </el-divider>
+
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item label="风控类型">
+                        <el-select v-model="item.type" @change="handleTypeChange(item)">
+                          <el-option v-for="type in riskControlTypes" :key="type.value" :label="type.label" :value="type.value" />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item v-if="item.type" label="阈值">
+                        <el-input v-model="item.threshold">
+                          <template v-if="riskControlTypes.find((t) => t.value === item.type).isPercentage" slot="append">%</template>
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                  <el-row :gutter="20">
+                    <el-col :span="12">
+                      <el-form-item v-if="item.type" label="风控等级">
+                        <el-select v-model="item.action" @change="handleActionChange(item)">
+                          <el-option v-for="opt in actionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item v-if="item.action >= 2" label="恢复方式">
+                        <el-select v-model="item.actionDetail.manualResume">
+                          <el-option v-for="opt in resumeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                  <el-row :gutter="20">
+                    <el-col :span="24">
+                      <el-form-item v-if="item.action >= 2 && item.actionDetail.manualResume === false" label="风控持续时间(s)">
+                        <el-select v-model="item.actionDetail.pauseDuration" filterable allow-create placeholder="请输入持续时间">
+                          <el-option label="次日零点" :value="-1" />
+                          <el-option label="1H" :value="3600" />
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+
+                </el-form>
+              </div>
+
+              <div v-if="riskControlItems.length === 0" style="min-height: 50px;" />
+
+              <div slot="footer" class="dialog-footer">
+                <el-button @click="cancelEditGlobalRiskConfig">取消</el-button>
+                <el-button type="primary" @click="submitRiskConfig">提交</el-button>
+              </div>
+
+            </div>
+          </template>
+
         </el-dialog>
 
         <el-dialog :title="title" :visible.sync="batchOpen" width="800px">
@@ -504,7 +600,8 @@ import {
   delBusDexCexTriangularObserver,
   getBusDexCexTriangularObserver,
   listBusDexCexTriangularObserver,
-  listBusDexCexTriangularSymbolList
+  listBusDexCexTriangularSymbolList,
+  busDexCexTriangularGetGlobalRiskConfig, busDexCexTriangularUpdateGlobalRiskConfig
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -531,6 +628,7 @@ export default {
       batchOpen: false,
       isEdit: false,
       editGlobalConfig: false, // 全局参数调节编辑开关
+      editGlobalRiskConfig: false, // 全局风控参数编辑开关
       // 类型数据字典
       typeOptions: [],
       busDexCexTriangularObserverList: [],
@@ -593,6 +691,21 @@ export default {
       },
       originalMinQuoteAmount: {}, // 记录原始值，方便取消恢复
       originalMaxQuoteAmount: {}, // 记录原始值，方便取消恢复
+
+      riskControlItems: [], // 存储风控项的数组
+      riskControlTypes: [ // 预设可选风控类型
+        { label: '单笔交易亏损金额阈值', value: 'absoluteLossThreshold', isPercentage: false },
+        { label: '单笔交易亏损比例阈值', value: 'relativeLossThreshold', isPercentage: true }
+      ],
+      actionOptions: [
+        { label: '预警', value: 1 },
+        { label: '暂停当前实例交易', value: 2 },
+        { label: '暂停全局交易', value: 3 }
+      ],
+      resumeOptions: [
+        { label: '人工恢复', value: true },
+        { label: '自动恢复', value: false }
+      ],
 
       // 表单校验
       rules: {
@@ -742,6 +855,92 @@ export default {
     cancelEditGlobalSolConfig() {
       this.editGlobalConfig = false
     },
+    // 开启编辑全局风控参数弹窗
+    handleEditGlobalRiskConfig() {
+      this.riskControlItems = []
+      // this.updateGlobalRiskControlFormData = {}
+      busDexCexTriangularGetGlobalRiskConfig().then(response => {
+        const data = response.data || {} // 确保 data 不为空
+
+        this.riskControlItems = [
+          ...(data.absoluteLossThreshold || []).map(item => ({
+            ...item,
+            type: 'absoluteLossThreshold', // 这里加一个类型标识，方便后续回显
+            threshold: this.convertThresholdForDisplay('absoluteLossThreshold', item.threshold)
+          })),
+          ...(data.relativeLossThreshold || []).map(item => ({
+            ...item,
+            type: 'relativeLossThreshold',
+            threshold: this.convertThresholdForDisplay('relativeLossThreshold', item.threshold)
+          }))
+        ]
+
+        this.editGlobalRiskConfig = true
+      })
+    },
+    // 阈值回显转换方法
+    convertThresholdForDisplay(type, threshold) {
+      const typeConfig = this.riskControlTypes.find(t => t.value === type)
+      if (typeConfig?.isPercentage) {
+        return (parseFloat(threshold) * 100).toFixed(2) // 转换为百分比并保留两位小数
+      }
+      return threshold
+    },
+    // 取消编辑全局风控参数弹窗
+    cancelEditGlobalRiskConfig() {
+      this.editGlobalRiskConfig = false
+    },
+    addRiskItem() {
+      this.riskControlItems.push({
+        type: '',
+        threshold: '',
+        action: null,
+        actionDetail: {}
+      })
+    },
+    removeRiskItem(index) {
+      this.riskControlItems.splice(index, 1)
+    },
+    handleTypeChange(item) {
+      const selectedType = this.riskControlTypes.find((t) => t.value === item.type)
+      item.isPercentage = selectedType?.isPercentage || false
+    },
+    handleActionChange(item) {
+      if (item.action === 1) {
+        item.actionDetail = {}
+      }
+    },
+    submitRiskConfig() {
+      const formattedData = {}
+
+      this.riskControlItems.forEach((item) => {
+        const typeConfig = this.riskControlTypes.find(t => t.value === item.type)
+        let threshold = Number(item.threshold)
+
+        if (typeConfig?.isPercentage) {
+          threshold = parseFloat(threshold) / 100 // 百分比类型的阈值转换成小数
+        }
+
+        if (!formattedData[item.type]) formattedData[item.type] = []
+        formattedData[item.type].push({
+          threshold: threshold,
+          action: item.action,
+          actionDetail: item.actionDetail
+        })
+      })
+
+      console.log('提交的数据', formattedData)
+      busDexCexTriangularUpdateGlobalRiskConfig(formattedData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.editGlobalRiskConfig = false
+        } else {
+          this.msgError(res.msg)
+          this.editGlobalRiskConfig = false
+        }
+      })
+    },
+
     // 提交批量添加
     submitBatchForm() {
       const targetTokenArray = [this.batchForm.targetToken]

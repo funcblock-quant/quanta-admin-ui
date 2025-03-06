@@ -122,3 +122,20 @@ export function busDexCexTriangularUpdateGlobalWaterLevel(data) {
     data: data
   })
 }
+
+// 获取全局风控参数
+export function busDexCexTriangularGetGlobalRiskConfig() {
+  return request({
+    url: '/api/v1/busDexCexTriangularGetRiskConfig',
+    method: 'get'
+  })
+}
+
+// 更新全局风控参数
+export function busDexCexTriangularUpdateGlobalRiskConfig(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularUpdateRiskConfig',
+    method: 'post',
+    data: data
+  })
+}
