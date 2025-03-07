@@ -44,10 +44,10 @@ export function updateBusPriceTriggerStrategyProfitTarget(data) {
   })
 }
 
-// 修改BusPriceTriggerStrategyInstance执行次数
-export function updateBusPriceTriggerStrategyExecuteNum(data) {
+// 修改BusPriceTriggerStrategyInstance执行参数
+export function updateBusPriceTriggerStrategyExecuteConfig(data) {
   return request({
-    url: '/api/v1/updateExecuteNum',
+    url: '/api/v1/updateExecuteConfig',
     method: 'put',
     data: data
   })

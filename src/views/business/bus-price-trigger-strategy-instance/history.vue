@@ -81,7 +81,7 @@
           </div>
           <div class="data-item">
             <span class="label">平仓价格：</span>
-            <span class="value">{{ item.closePrice }}</span>
+            <span class="value">{{ item.closePrice }} ({{ item.closeOrderType }})</span>
           </div>
           <div class="data-item">
             <span class="label">开仓数量：</span>
@@ -99,29 +99,23 @@
             <span class="label">状态：</span>
             <span class="value" :class="statusClass(item.status)">{{ statusFormat(item.status) }}</span>
           </div>
-          <div class="data-item full-width">
+          <div class="data-item">
+            <span class="label">执行次数：</span>
+            <span v-if="!item.editingExecuteNum" class="value">{{ item.executeNum }}</span>
+          </div>
+          <div class="data-item">
+            <span class="label">延迟时间：</span>
+            <span v-if="!item.editingDelayTime" class="value">{{ item.delayTime }}</span>
+          <!-- 修改按钮 -->
+          </div>
+
+          <div class="data-item">
             <span class="label">总下单次数：</span>
             <span class="value">{{ item.statistical.orderNum }}</span>
           </div>
-          <div class="data-item full-width">
+          <div class="data-item">
             <span class="label">总盈亏：</span>
             <span class="value">{{ item.statistical.totalPnl }}</span>
-          </div>
-          <div v-if="item.status==='started'" class="data-item">
-            <el-popconfirm
-              class="delete-popconfirm"
-              title="确认要暂停吗?"
-              confirm-button-text="暂停"
-              @confirm="handleStopInstance(item.id)"
-            >
-              <el-button
-                slot="reference"
-                size="mini"
-                type="text"
-                icon="el-icon-delete"
-              >暂停
-              </el-button>
-            </el-popconfirm>
           </div>
         </div>
 
@@ -153,6 +147,16 @@
           </el-collapse-item>
         </el-collapse>
       </el-card>
+
+      <el-pagination
+        background
+        layout="prev, pager, next, sizes, total"
+        :total="totalRecord"
+        :current-page.sync="queryParams.pageIndex"
+        :page-size.sync="queryParams.pageSize"
+        @current-change="getList"
+        @size-change="getList"
+      />
 
     </template>
   </BasicLayout>
@@ -186,6 +190,8 @@ export default {
       multiple: true,
       // 总条数
       total: 0,
+      // 总记录数
+      totalRecord: 0,
       // 弹出层标题
       title: '',
       apiKeyManageTitle: '',
@@ -223,7 +229,7 @@ export default {
       // 查询参数
       queryParams: {
         pageIndex: 1,
-        pageSize: 10000,
+        pageSize: 10,
         closeTime: undefined,
         status: 'stopped',
         symbol: 'BTC/USDT',
@@ -303,7 +309,7 @@ export default {
           loadingDetails: false,
           details: item.details
         }))
-        this.total = response.data.count
+        this.totalRecord = response.data.count
         this.loading = false
       })
     },
