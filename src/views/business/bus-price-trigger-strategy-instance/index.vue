@@ -164,7 +164,7 @@
             </div>
             <div class="data-item">
               <span class="label">平仓价格：</span>
-              <span class="value">{{ item.closePrice }}</span>
+              <span class="value">{{ item.closePrice }} ({{ item.closeOrderType }})</span>
             </div>
             <div class="data-item">
               <span class="label">开仓数量：</span>
@@ -218,10 +218,45 @@
               </div>
             </div>
             <div class="data-item">
+              <span class="label">延迟时间：</span>
+              <span v-if="!item.editingDelayTime" class="value">{{ item.delayTime }}</span>
+              <!-- 修改按钮 -->
+              <el-button
+                v-if="!item.editingDelayTime"
+                size="mini"
+                type="text"
+                icon="el-icon-edit"
+                @click="enableEditDelayTime(item)"
+              >修改</el-button>
+              <!-- 可编辑输入框 -->
+              <div v-else>
+                <el-input
+                  v-model="item.delayTime"
+                  size="mini"
+                  style="width: 80px;"
+                  @keyup.enter.native="submitDelayTimeUpdate(item)"
+                />
+                <el-button
+                  icon="el-icon-check"
+                  size="mini"
+                  type="text"
+                  :disabled="item.isEditing"
+                  @click="submitDelayTimeUpdate(item)"
+                />
+                <el-button
+                  icon="el-icon-close"
+                  size="mini"
+                  type="text"
+                  :disabled="item.isEditing"
+                  @click="cancelDelayTimeUpdate(item)"
+                />
+              </div>
+            </div>
+            <div class="data-item">
               <span class="label">总下单次数：</span>
               <span class="value">{{ item.statistical.orderNum }}</span>
             </div>
-            <div class="data-item half-width">
+            <div class="data-item">
               <span class="label">总盈亏：</span>
               <span class="value">{{ item.statistical.totalPnl }}</span>
             </div>
@@ -373,6 +408,24 @@
               </el-form-item>
             </el-col>
             <el-col :span="11">
+              <el-form-item label="平仓模式" prop="closeType">
+                <el-select
+                  v-model="form.closeOrderType"
+                  placeholder="平仓模式"
+                  style="width: 180px;"
+                >
+                  <el-option
+                    v-for="type in closeOrderTypes"
+                    :key="type.value"
+                    :label="type.label"
+                    :value="type.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="10">
+            <el-col :span="11">
               <el-form-item label="停止时间" prop="closeTime">
                 <el-date-picker
                   v-model="form.closeTime"
@@ -382,8 +435,6 @@
                 />
               </el-form-item>
             </el-col>
-          </el-row>
-          <el-row :gutter="10">
             <el-col :span="11">
               <el-form-item label="api key" prop="side">
                 <el-select
@@ -400,18 +451,26 @@
                 </el-select>
               </el-form-item>
             </el-col>
+
+          </el-row>
+          <el-row :gutter="10">
             <el-col :span="11">
-              <el-form-item label="Exchange User Id" prop="exchangeUserId">
-                <el-input
-                  v-model="form.exchangeUserId"
-                  placeholder="交易所userId"
-                  style="width: 180px;"
-                />
+              <el-form-item label="执行次数" prop="executeNum">
+                <el-input v-model="form.executeNum" type="number" placeholder="执行次数" style="width: 180px;" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="延迟时间(s)" prop="delayTime">
+                <el-input v-model="form.delayTime" type="number" placeholder="延迟时间(s)" style="width: 180px;" />
               </el-form-item>
             </el-col>
           </el-row>
-          <el-form-item label="执行次数" prop="executeNum">
-            <el-input v-model="form.executeNum" type="number" placeholder="执行次数" style="width: 180px;" />
+          <el-form-item label="Exchange User Id" prop="exchangeUserId">
+            <el-input
+              v-model="form.exchangeUserId"
+              placeholder="交易所userId"
+              style="width: 180px;"
+            />
           </el-form-item>
           <el-divider />
 
@@ -633,7 +692,7 @@ import {
   addBusPriceTriggerStrategyInstance,
   getBusPriceTriggerStrategyInstance, getSymbolList,
   listBusPriceTriggerStrategyInstance,
-  stopBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyExecuteNum,
+  stopBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyExecuteConfig,
   updateBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyProfitTarget
 } from '@/api/business/bus-price-trigger-strategy-instance'
 import { listBusPriceMonitorForOptionHedging } from '@/api/business/bus-price-monitor-for-option-hedging'
@@ -704,6 +763,10 @@ export default {
       exchangeList: [
         { label: 'Gate.io', value: 'GateIo' }
       ],
+      closeOrderTypes: [
+        { label: 'Maker', value: 'Maker' },
+        { label: 'Taker', value: 'Taker' }
+      ],
       // 查询参数
       queryParams: {
         pageIndex: 1,
@@ -721,6 +784,7 @@ export default {
       apikeyTestResult: null, // 测试结果提示
       // 表单参数
       form: {
+        exchangeUserId: '20871096'
       },
       allowChangeType: false, // 是否允许切换止盈方式
       // 更新止盈配置表单
@@ -736,7 +800,8 @@ export default {
       // 修改执行次数的表单
       executeNumForm: {
         id: undefined,
-        executeNum: undefined
+        executeNum: undefined,
+        delayTime: undefined
       },
       // 表单校验
       rules: {
@@ -762,7 +827,9 @@ export default {
       editProfitTarget: false, // 止盈配置更新标识
       addProfitTarget: false, // 新增止盈配置标识
       editingExecuteNum: false, // 修改执行次数标识
-      originExecuteNum: {} // 记录原始执行次数值，方便恢复
+      editingDelayTime: false, // 修改延迟次数标识
+      originExecuteNum: {}, // 记录原始执行次数值，方便恢复
+      originDelayTime: {}// 记录原始延迟时间值，方便恢复
     }
   },
   computed: {
@@ -943,11 +1010,18 @@ export default {
       this.apiKeyEditMode = true
     },
     enableEditExecuteNum(item) {
-      console.log('row.editingExecuteNum', item.editingExecuteNum)
       this.originExecuteNum[item.id] = item.executeNum
       clearInterval(this.timers['listKey'])
       this.$set(item, 'editingExecuteNum', true)
       this.executeNumForm.executeNum = item.executeNum
+      this.executeNumForm.id = item.id
+    },
+    enableEditDelayTime(item) {
+      console.log('item', item)
+      this.originDelayTime[item.id] = item.delayTime
+      clearInterval(this.timers['listKey'])
+      this.$set(item, 'editingDelayTime', true)
+      this.executeNumForm.delayTime = item.delayTime
       this.executeNumForm.id = item.id
     },
     handleApiKeyDelete(row) {
@@ -1000,13 +1074,12 @@ export default {
     // },
     // 提交执行次数更新
     submitExecuteNumUpdate(item) {
-      console.log('item', item)
       this.executeNumForm.executeNum = item.executeNum
       const requestData = { ...this.executeNumForm }
       console.log('requestData', requestData)
       requestData.id = Number(requestData.id)
       requestData.executeNum = Number(requestData.executeNum)
-      updateBusPriceTriggerStrategyExecuteNum(requestData).then(response => {
+      updateBusPriceTriggerStrategyExecuteConfig(requestData).then(response => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
           this.$set(item, 'editingExecuteNum', false)
@@ -1017,11 +1090,42 @@ export default {
           this.msgError(response.msg)
         }
       })
+      this.executeNumForm = {}
+    },
+    // 提交延迟时间更新
+    submitDelayTimeUpdate(item) {
+      this.executeNumForm.delayTime = item.delayTime
+      const requestData = { ...this.executeNumForm }
+      console.log('requestData', requestData)
+      requestData.id = Number(requestData.id)
+      requestData.delayTime = Number(requestData.delayTime)
+      updateBusPriceTriggerStrategyExecuteConfig(requestData).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.$set(item, 'editingDelayTime', false)
+          this.timers['listKey'] = setInterval(() => {
+            this.getList()
+          }, 2000)
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+      this.executeNumForm = {}
     },
     // 取消执行次数编辑
     cancelExecuteNumUpdate(item) {
       this.editingExecuteNum = false
       this.$set(item, 'editingExecuteNum', false)
+      this.executeNumForm = {}
+      this.timers['listKey'] = setInterval(() => {
+        this.getList()
+      }, 2000)
+    },
+    // 取消执行次数编辑
+    cancelDelayTimeUpdate(item) {
+      this.editingDelayTime = false
+      this.$set(item, 'editingDelayTime', false)
+      this.executeNumForm = {}
       this.timers['listKey'] = setInterval(() => {
         this.getList()
       }, 2000)
@@ -1078,6 +1182,7 @@ export default {
       this.form = {
 
         id: undefined,
+        exchangeUserId: '20871096',
         openPrice: undefined,
         closePrice: undefined,
         execTimes: undefined,
@@ -1229,6 +1334,7 @@ export default {
               // this.form.cutoffRatio = Number(this.form.cutoffRatio)
               requestData.callbackRatio = Number(this.form.callbackRatio) / 100
               requestData.minProfit = Number(this.form.minProfit)
+              requestData.delayTime = Number(requestData.delayTime)
               addBusPriceTriggerStrategyInstance(requestData).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)
