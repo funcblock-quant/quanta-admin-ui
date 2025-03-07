@@ -425,7 +425,7 @@
             </el-col>
           </el-row>
           <el-row :gutter="10">
-            <el-col :span="11">
+            <!-- <el-col :span="11">
               <el-form-item label="停止时间" prop="closeTime">
                 <el-date-picker
                   v-model="form.closeTime"
@@ -434,7 +434,8 @@
                   style="width: 180px;"
                 />
               </el-form-item>
-            </el-col>
+            </el-col> -->
+
             <el-col :span="11">
               <el-form-item label="api key" prop="side">
                 <el-select
@@ -447,6 +448,24 @@
                     :key="apikey.id"
                     :label="apikey.accountName"
                     :value="apikey.id"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="11">
+              <el-form-item label="Exchange User Id" prop="exchangeUserId">
+
+                <el-select
+                  v-model="form.exchangeUserId"
+                  filterable
+                  allow-create
+                  placeholder="交易所userId"
+                  style="width: 180px;"
+                >
+                  <el-option
+                    v-for="id in exchangeUserIds"
+                    :key="id.value"
+                    :value="id.value"
                   />
                 </el-select>
               </el-form-item>
@@ -465,13 +484,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-form-item label="Exchange User Id" prop="exchangeUserId">
-            <el-input
-              v-model="form.exchangeUserId"
-              placeholder="交易所userId"
-              style="width: 180px;"
-            />
-          </el-form-item>
+
           <el-divider />
 
           <div>
@@ -690,7 +703,7 @@
 <script>
 import {
   addBusPriceTriggerStrategyInstance,
-  getBusPriceTriggerStrategyInstance, getSymbolList,
+  getBusPriceTriggerStrategyInstance, getExchangeUserIdList, getSymbolList,
   listBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyExecuteConfig,
   updateBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyProfitTarget
@@ -758,6 +771,9 @@ export default {
         { label: 'BTC/USDC', value: 'BTC/USDC' },
         { label: 'ETH/USDC', value: 'ETH/USDC' },
         { label: 'DOGE/USDC', value: 'DOGE/USDC' }
+
+      ],
+      exchangeUserIds: [
 
       ],
       exchangeList: [
@@ -867,6 +883,7 @@ export default {
   created() {
     // this.getList()
     this.getSymbolList()
+    this.getExchangeUserIds()
     this.getBindApiKey()
     this.getUserRole()
   },
@@ -926,6 +943,20 @@ export default {
         this.symbolList = [
           ...this.symbolList,
           ...newSymbolList.filter(newItem => !this.symbolList.some(existingItem => existingItem.value === newItem.value))
+        ]
+      })
+    },
+    // 获取交易所userId列表
+    getExchangeUserIds() {
+      getExchangeUserIdList().then(response => {
+        const newExchangeUserIdList = response.data.map(item => ({
+          label: item.exchangeUserId,
+          value: item.exchangeUserId
+        }))
+        // 增量合并数据，避免重复
+        this.exchangeUserIds = [
+          ...this.exchangeUserIds,
+          ...newExchangeUserIdList.filter(newItem => !this.exchangeUserIds.some(existingItem => existingItem.value === newItem.value))
         ]
       })
     },
@@ -1252,6 +1283,7 @@ export default {
       this.title = '添加价格触发下单条件'
       this.isEdit = false
       this.getApiKeyList()
+      this.getSymbolList()
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -1335,6 +1367,7 @@ export default {
               requestData.callbackRatio = Number(this.form.callbackRatio) / 100
               requestData.minProfit = Number(this.form.minProfit)
               requestData.delayTime = Number(requestData.delayTime)
+
               addBusPriceTriggerStrategyInstance(requestData).then(response => {
                 if (response.code === 200) {
                   this.msgSuccess(response.msg)

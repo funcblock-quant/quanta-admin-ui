@@ -78,3 +78,11 @@ export function getSymbolList() {
     method: 'get'
   })
 }
+
+// 获取BusPriceTriggerStrategyInstance交易所userId列表
+export function getExchangeUserIdList() {
+  return request({
+    url: '/api/v1/getExchangeUserIdList',
+    method: 'get'
+  })
+}
