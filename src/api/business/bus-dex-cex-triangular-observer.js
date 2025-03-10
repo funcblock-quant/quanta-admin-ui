@@ -106,6 +106,15 @@ export function busDexCexTriangularUpdateWaterLevel(data) {
   })
 }
 
+// 暂停全部trader
+export function busDexCexTriangularStopAllTraders(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularStopAllTrades',
+    method: 'put',
+    data: data
+  })
+}
+
 // 获取全局水位参数
 export function busDexCexTriangularGetGlobalWaterLevel() {
   return request({
