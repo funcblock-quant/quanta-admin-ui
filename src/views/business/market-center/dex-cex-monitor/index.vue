@@ -36,7 +36,7 @@
             >新增
             </el-button>
           </el-col>
-          <el-col :span="20">
+          <el-col :span="19">
             <el-button
               v-permisaction="['business:busDexCexMonitor:list']"
               type="primary"
@@ -53,6 +53,18 @@
               @click="handleEditGlobalRiskConfig"
             >风控参数配置
             </el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <!-- 一键暂停按钮 -->
+            <el-button
+              v-permisaction="['business:busDexCexMonitor:list']"
+              type="danger"
+              size="mini"
+              @click="handleStopAllTrades"
+            >
+              一键暂停
+            </el-button>
+
           </el-col>
         </el-row>
 
@@ -237,6 +249,23 @@
           @pagination="getList"
         />
 
+        <!-- 确认暂停的弹框 -->
+        <el-dialog
+          title="确认暂停"
+          :visible.sync="stopAllDialogVisible"
+          width="400px"
+          center
+        >
+          <span>确定要暂停所有交易吗？</span>
+
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="cancelStopAllTrades">取消</el-button>
+              <el-button type="primary" @click="confirmStopAllTrades">确定</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
         <!-- 启动交易表单弹窗 -->
         <el-dialog title="启动交易参数设置" :visible.sync="showStartDialog" width="600px">
           <!-- 说明区域 -->
@@ -257,18 +286,22 @@
           </el-descriptions>
           <el-form :model="startTraderFormData" label-width="150px">
             <!-- 水位调节参数 -->
-            <h3 style="margin-top: 50px; margin-bottom: 10px;">水位调节参数</h3>
+            <h3 style="margin-top: 50px; margin-bottom: 20px;">水位调节参数</h3>
+            <el-switch v-model="isQuickMode" active-text="快速设置" inactive-text="自定义设置" @change="handleModeChange(startTradingDialogData.maxQuoteAmount)" />
+            <el-form-item v-if="isQuickMode" label="调节倍数">
+              <el-input-number v-model="waterLevelMultiplier" :min="1" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount)" />
+              <el-tooltip content="最低预警余额 = 最大交易额 * 倍数；低水位触发余额 = 最大交易额 * 4 * 倍数；高水位触发余额 = 最大交易额 * 6 * 倍数" placement="top">
+                <i class="el-icon-question" style="margin-left: 5px;" />
+              </el-tooltip>
+            </el-form-item>
             <el-form-item label="最低预警余额" class="mb16">
-              <el-input v-model="startTraderFormData.alertThreshold" placeholder="请输入最低预警余额" />
+              <el-input v-model="startTraderFormData.alertThreshold" :disabled="isQuickMode" />
             </el-form-item>
             <el-form-item label="低水位触发余额" class="mb16">
-              <el-input v-model="startTraderFormData.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
+              <el-input v-model="startTraderFormData.buyTriggerThreshold" :disabled="isQuickMode" />
             </el-form-item>
-            <!--            <el-form-item label="低水位调节目标余额" class="mb16">-->
-            <!--              <el-input v-model="startTraderFormData.targetBalanceThreshold" placeholder="请输入低水位调节目标余额" />-->
-            <!--            </el-form-item>-->
             <el-form-item label="高水位触发余额" class="mb16">
-              <el-input v-model="startTraderFormData.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
+              <el-input v-model="startTraderFormData.sellTriggerThreshold" :disabled="isQuickMode" />
             </el-form-item>
             <el-form-item label="最小充值金额阈值" class="mb16">
               <el-input v-model="startTraderFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
@@ -601,7 +634,8 @@ import {
   getBusDexCexTriangularObserver,
   listBusDexCexTriangularObserver,
   listBusDexCexTriangularSymbolList,
-  busDexCexTriangularGetGlobalRiskConfig, busDexCexTriangularUpdateGlobalRiskConfig
+  busDexCexTriangularGetGlobalRiskConfig, busDexCexTriangularUpdateGlobalRiskConfig,
+  busDexCexTriangularStopAllTraders
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -629,6 +663,9 @@ export default {
       isEdit: false,
       editGlobalConfig: false, // 全局参数调节编辑开关
       editGlobalRiskConfig: false, // 全局风控参数编辑开关
+      stopAllDialogVisible: false, // 暂停全部交易弹框开关
+      isQuickMode: true, // 设置水位调节参数是否是快速模式
+      waterLevelMultiplier: 0,
       // 类型数据字典
       typeOptions: [],
       busDexCexTriangularObserverList: [],
@@ -855,6 +892,18 @@ export default {
     cancelEditGlobalSolConfig() {
       this.editGlobalConfig = false
     },
+    handleModeChange(maxQuoteAmount) {
+      if (this.isQuickMode) {
+        this.calculateWaterLevels(maxQuoteAmount)
+      }
+    },
+
+    calculateWaterLevels(maxQuoteAmount) {
+      this.startTraderFormData.alertThreshold = maxQuoteAmount * this.waterLevelMultiplier
+      this.startTraderFormData.buyTriggerThreshold = maxQuoteAmount * 4 * this.waterLevelMultiplier
+      this.startTraderFormData.sellTriggerThreshold = maxQuoteAmount * 6 * this.waterLevelMultiplier
+    },
+
     // 开启编辑全局风控参数弹窗
     handleEditGlobalRiskConfig() {
       this.riskControlItems = []
@@ -877,6 +926,14 @@ export default {
 
         this.editGlobalRiskConfig = true
       })
+    },
+    // 开启暂停所有交易的确认弹窗
+    handleStopAllTrades() {
+      this.stopAllDialogVisible = true
+    },
+    // 关闭暂停所有交易的确认弹窗
+    cancelStopAllTrades() {
+      this.stopAllDialogVisible = false
     },
     // 阈值回显转换方法
     convertThresholdForDisplay(type, threshold) {
@@ -998,12 +1055,26 @@ export default {
         }
       })
     },
+    confirmStopAllTrades() {
+      busDexCexTriangularStopAllTraders().then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.stopAllDialogVisible = false
+          this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.stopAllDialogVisible = false
+          this.getList()
+        }
+      })
+    },
 
     // 打开启动交易表单
     openStartTradeDialog(row) {
       this.currentRow = row
       this.resetStartTraderFormData()
       this.startTradingDialogData.symbol = row.symbol
+      this.startTradingDialogData.maxQuoteAmount = row.maxQuoteAmount
       this.showStartDialog = true
     },
 
@@ -1019,6 +1090,7 @@ export default {
         priorityFeeRate: '',
         jitoFeeRate: ''
       }
+      this.waterLevelMultiplier = 1
     },
 
     // 确认启动交易
