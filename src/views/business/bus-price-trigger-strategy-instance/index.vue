@@ -425,16 +425,6 @@
             </el-col>
           </el-row>
           <el-row :gutter="10">
-            <!-- <el-col :span="11">
-              <el-form-item label="停止时间" prop="closeTime">
-                <el-date-picker
-                  v-model="form.closeTime"
-                  type="datetime"
-                  placeholder="选择日期"
-                  style="width: 180px;"
-                />
-              </el-form-item>
-            </el-col> -->
 
             <el-col :span="11">
               <el-form-item label="api key" prop="side">
@@ -484,6 +474,14 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-form-item label="停止时间" prop="closeTime">
+            <el-date-picker
+              v-model="form.closeTime"
+              type="datetime"
+              placeholder="选择日期"
+              style="width: 180px;"
+            />
+          </el-form-item>
 
           <el-divider />
 
@@ -845,7 +843,8 @@ export default {
       editingExecuteNum: false, // 修改执行次数标识
       editingDelayTime: false, // 修改延迟次数标识
       originExecuteNum: {}, // 记录原始执行次数值，方便恢复
-      originDelayTime: {}// 记录原始延迟时间值，方便恢复
+      originDelayTime: {}, // 记录原始延迟时间值，方便恢复
+      defaultApiKey: 'kingtrading 实盘'// 默认的apikey label
     }
   },
   computed: {
@@ -1284,6 +1283,8 @@ export default {
       this.isEdit = false
       this.getApiKeyList()
       this.getSymbolList()
+      this.setDefaultCloseTime()
+      this.setDefaultApiKey(this.apiKeyList)
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -1511,6 +1512,23 @@ export default {
       } else if (role === '2') {
         return 'taker'
       }
+    },
+    setDefaultCloseTime() {
+      const now = new Date()
+      const tomorrow = new Date(now)
+      tomorrow.setDate(now.getDate() + 1) // 设置为明天
+      tomorrow.setHours(16, 0, 0, 0) // 设定为 16:00:00
+      this.$set(this.form, 'closeTime', tomorrow)
+    },
+    setDefaultApiKey(apiKeyList) {
+      console.log('setDefaultApiKey', apiKeyList)
+      console.log('deafultApiKey', this.defaultApiKey)
+      if (apiKeyList.length === 0) return
+
+      // 检查是否存在目标 API Key
+      const defaultKey = apiKeyList.find(apikey => apikey.accountName === this.defaultApiKey)
+
+      this.form.apiConfig = defaultKey ? defaultKey.id : apiKeyList[0]?.id || null
     }
 
   }
