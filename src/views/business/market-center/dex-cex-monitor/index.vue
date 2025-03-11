@@ -287,10 +287,16 @@
           <el-form :model="startTraderFormData" label-width="150px">
             <!-- 水位调节参数 -->
             <h3 style="margin-top: 50px; margin-bottom: 20px;">水位调节参数</h3>
-            <el-switch v-model="isQuickMode" active-text="快速设置" inactive-text="自定义设置" @change="handleModeChange(startTradingDialogData.maxQuoteAmount)" />
+            <el-switch
+              v-model="isQuickMode"
+              active-text="快速设置"
+              inactive-text="自定义设置"
+              :disabled="startTradingDialogData.targetTokenQuotePrice === 0"
+              @change="handleModeChange(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)"
+            />
             <el-form-item v-if="isQuickMode" label="调节倍数">
-              <el-input-number v-model="waterLevelMultiplier" :min="1" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount)" />
-              <el-tooltip content="最低预警余额 = 最大交易额 * 倍数；低水位触发余额 = 最大交易额 * 4 * 倍数；高水位触发余额 = 最大交易额 * 6 * 倍数" placement="top">
+              <el-input-number v-model="waterLevelMultiplier" :min="1" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)" />
+              <el-tooltip content="最低预警余额 = (最大交易额/币价) * 倍数；低水位触发余额 = (最大交易额/币价) * 4 * 倍数；高水位触发余额 = (最大交易额/币价) * 6 * 倍数" placement="top">
                 <i class="el-icon-question" style="margin-left: 5px;" />
               </el-tooltip>
             </el-form-item>
@@ -732,12 +738,13 @@ export default {
       riskControlItems: [], // 存储风控项的数组
       riskControlTypes: [ // 预设可选风控类型
         { label: '单笔交易亏损金额阈值', value: 'absoluteLossThreshold', isPercentage: false },
-        { label: '单笔交易亏损比例阈值', value: 'relativeLossThreshold', isPercentage: true }
+        { label: '单笔交易亏损比例阈值', value: 'relativeLossThreshold', isPercentage: true },
+        { label: '单币种交易日亏损阈值', value: 'symbolDailyMaxLossThreshold', isPercentage: false }
       ],
       actionOptions: [
         { label: '预警', value: 1 },
-        { label: '暂停当前实例交易', value: 2 },
-        { label: '暂停全局交易', value: 3 }
+        { label: '暂停当前实例交易', value: 2 }
+        // { label: '暂停全局交易', value: 3 }
       ],
       resumeOptions: [
         { label: '人工恢复', value: true },
@@ -892,16 +899,17 @@ export default {
     cancelEditGlobalSolConfig() {
       this.editGlobalConfig = false
     },
-    handleModeChange(maxQuoteAmount) {
+    handleModeChange(maxQuoteAmount, targetTokenQuotePrice) {
       if (this.isQuickMode) {
-        this.calculateWaterLevels(maxQuoteAmount)
+        this.calculateWaterLevels(maxQuoteAmount, targetTokenQuotePrice)
       }
     },
 
-    calculateWaterLevels(maxQuoteAmount) {
-      this.startTraderFormData.alertThreshold = maxQuoteAmount * this.waterLevelMultiplier
-      this.startTraderFormData.buyTriggerThreshold = maxQuoteAmount * 4 * this.waterLevelMultiplier
-      this.startTraderFormData.sellTriggerThreshold = maxQuoteAmount * 6 * this.waterLevelMultiplier
+    calculateWaterLevels(maxQuoteAmount, targetTokenQuotePrice) {
+      const baseAmount = Math.ceil(maxQuoteAmount / targetTokenQuotePrice)
+      this.startTraderFormData.alertThreshold = baseAmount * this.waterLevelMultiplier
+      this.startTraderFormData.buyTriggerThreshold = baseAmount * 4 * this.waterLevelMultiplier
+      this.startTraderFormData.sellTriggerThreshold = baseAmount * 6 * this.waterLevelMultiplier
     },
 
     // 开启编辑全局风控参数弹窗
@@ -921,6 +929,11 @@ export default {
             ...item,
             type: 'relativeLossThreshold',
             threshold: this.convertThresholdForDisplay('relativeLossThreshold', item.threshold)
+          })),
+          ...(data.symbolDailyMaxLossThreshold || []).map(item => ({
+            ...item,
+            type: 'symbolDailyMaxLossThreshold',
+            threshold: this.convertThresholdForDisplay('symbolDailyMaxLossThreshold', item.threshold)
           }))
         ]
 
@@ -1075,6 +1088,10 @@ export default {
       this.resetStartTraderFormData()
       this.startTradingDialogData.symbol = row.symbol
       this.startTradingDialogData.maxQuoteAmount = row.maxQuoteAmount
+      this.startTradingDialogData.targetTokenQuotePrice = row.cexBuyPrice
+      if (row.cexBuyPrice === 0) {
+        this.isQuickMode = false
+      }
       this.showStartDialog = true
     },
 
