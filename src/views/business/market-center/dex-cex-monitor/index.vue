@@ -318,6 +318,9 @@
 
             <!-- 交易参数 -->
             <h3 style="margin-top: 30px; margin-bottom: 10px;">交易参数</h3>
+            <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
+              <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
+            </el-form-item>
             <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">
               <el-slider
                 v-model="startTraderFormData.slippageBpsRate"
@@ -329,7 +332,7 @@
                 <template slot="append">%</template>
               </el-slider>
             </el-form-item>
-            <el-form-item label="Priority Fee Rate" prop="priorityFeeRate" class="mb16">
+            <!-- <el-form-item label="Priority Fee Rate" prop="priorityFeeRate" class="mb16">
               <el-slider
                 v-model="startTraderFormData.priorityFeeRate"
                 show-input
@@ -339,7 +342,8 @@
               >
                 <template slot="append">%</template>
               </el-slider>
-            </el-form-item>
+            </el-form-item> -->
+
             <el-form-item label="Jito Fee Rate" prop="jitoFeeRate" class="mb16">
               <el-slider
                 v-model="startTraderFormData.jitoFeeRate"
@@ -729,7 +733,7 @@ export default {
         buyTriggerThreshold: undefined,
         targetBalanceThreshold: undefined,
         sellTriggerThreshold: undefined,
-        priorityFeeRate: undefined,
+        priorityFee: undefined,
         jitoFeeRate: undefined
       },
       originalMinQuoteAmount: {}, // 记录原始值，方便取消恢复
@@ -763,7 +767,7 @@ export default {
         exchangeType: [{ required: true, message: '请选择交易所', trigger: 'blur' }],
         profitTriggerRate: [{ required: true, message: '请输入触发套利的最小利润', trigger: 'blur' }],
         // triggerHoldingMs: [{ required: true, message: '请输入触发套利的最小持续时间', trigger: 'blur' }],
-        priorityFeeRate: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
+        priorityFee: [{ required: true, message: '请输入交易优先费', trigger: 'blur' }],
         jitoFeeRate: [{ required: true, message: '请输入jito费比例', trigger: 'blur' }]
       }
     }
@@ -1104,7 +1108,7 @@ export default {
         targetBalanceThreshold: undefined,
         sellTriggerThreshold: undefined,
         slippageBpsRate: '',
-        priorityFeeRate: '',
+        priorityFee: '',
         jitoFeeRate: ''
       }
       this.waterLevelMultiplier = 1
@@ -1121,7 +1125,7 @@ export default {
       requestData.minWithdrawAmountThreshold = Number(requestData.minWithdrawAmountThreshold)
       requestData.sellTriggerThreshold = Number(requestData.sellTriggerThreshold)
       requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
-      requestData.priorityFeeRate = Number(requestData.priorityFeeRate) / 100
+      requestData.priorityFee = Number(requestData.priorityFee)
       requestData.jitoFeeRate = Number(Number(requestData.jitoFeeRate) / 100)
       console.log('this.requestData', requestData)
 

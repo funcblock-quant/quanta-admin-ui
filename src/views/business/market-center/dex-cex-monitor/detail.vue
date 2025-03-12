@@ -89,11 +89,11 @@
               </el-input>
             </template>
           </el-descriptions-item>
-          <el-descriptions-item label="Priority Fee Rate">
+          <el-descriptions-item label="Priority Fee(SOL)">
             <template v-if="!isTraderEdit">
-              {{ formattedPriorityFeeRate }}%
+              {{ formattedPriorityFee }}
             </template>
-            <el-input v-else v-model="traderRequestParams.priorityFeeRate" size="mini" @input="handleSlippageInput" />
+            <el-input v-else v-model="traderRequestParams.priorityFee" size="mini" @input="handleSlippageInput" />
           </el-descriptions-item>
           <el-descriptions-item label="Jito Fee Rate">
             <template v-if="!isTraderEdit">
@@ -409,8 +409,8 @@ export default {
     }
   },
   computed: {
-    formattedPriorityFeeRate() {
-      return parseFloat(this.busDexCexTriangularObserver.priorityFeeRate * 100)
+    formattedPriorityFee() {
+      return parseFloat(this.busDexCexTriangularObserver.priorityFee)
     },
     formattedJitoFeeRate() {
       return parseFloat(this.busDexCexTriangularObserver.jitoFeeRate * 100)
@@ -551,7 +551,7 @@ export default {
       if (!this.isTraderEdit) {
         this.clearTimer()
         this.traderRequestParams = { ...this.busDexCexTriangularObserver }
-        this.traderRequestParams.priorityFeeRate = this.busDexCexTriangularObserver.priorityFeeRate * 100
+        this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee
         this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
         this.traderRequestParams.slippageBpsRate = this.busDexCexTriangularObserver.slippageBpsRate * 100
         console.log(this.traderRequestParams)
@@ -613,7 +613,7 @@ export default {
       console.log('提交数据:', this.traderRequestParams)
       const requestData = { ...this.traderRequestParams }
       // requestData.slippage = (requestData.slippage * 100).toString() // 只在副本上*100
-      requestData.priorityFeeRate = Number(this.traderRequestParams.priorityFeeRate) / 100
+      requestData.priorityFee = Number(this.traderRequestParams.priorityFee)
       requestData.jitoFeeRate = Number(Number(this.traderRequestParams.jitoFeeRate) / 100)
       requestData.slippageBpsRate = Number(this.traderRequestParams.slippageBpsRate) / 100 // 只在副本上*100
       busDexCexTriangularUpdateTrader(requestData).then(res => {
