@@ -117,6 +117,10 @@
             <span class="label">总盈亏：</span>
             <span class="value">{{ item.statistical.totalPnl }}</span>
           </div>
+          <div class="data-item">
+            <span class="label">平均滑点：</span>
+            <span class="value">{{ formmatSlippage(item.averageSlippage) }}</span>
+          </div>
         </div>
 
         <el-collapse v-model="activeNames" @change="handleCollapseChange">
@@ -537,6 +541,12 @@ export default {
       } else if (role === '2') {
         return 'taker'
       }
+    },
+    formmatSlippage(slippage) {
+      if (slippage === null || slippage === undefined || slippage === '') {
+        return '-'
+      }
+      return slippage * 100 + '%'
     }
 
   }
