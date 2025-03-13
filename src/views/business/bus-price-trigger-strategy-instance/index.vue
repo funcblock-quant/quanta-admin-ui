@@ -1526,7 +1526,7 @@ export default {
       if (slippage === null || slippage === undefined || slippage === '') {
         return '-'
       }
-      return slippage * 100 + '%'
+      return (slippage * 100).toFixed(4) + '%'
     },
     setDefaultCloseTime() {
       const now = new Date()
