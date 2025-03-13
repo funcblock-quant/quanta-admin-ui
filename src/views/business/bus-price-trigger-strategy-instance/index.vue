@@ -260,6 +260,15 @@
               <span class="label">总盈亏：</span>
               <span class="value">{{ item.statistical.totalPnl }}</span>
             </div>
+            <div class="data-item">
+              <span class="label">平均滑点：</span>
+              <span class="value">{{ formmatSlippage(item.averageSlippage) }}</span>
+            </div>
+            <div class="data-item three-of-four-width">
+              <span class="label">最新滑点：</span>
+              <span class="value">{{ formmatSlippage(item.latestSlippage) }}</span>
+            </div>
+
             <div v-if="item.profitTargetType" class="data-item">
               <el-button
                 slot="reference"
@@ -1513,6 +1522,12 @@ export default {
         return 'taker'
       }
     },
+    formmatSlippage(slippage) {
+      if (slippage === null || slippage === undefined || slippage === '') {
+        return '-'
+      }
+      return slippage * 100 + '%'
+    },
     setDefaultCloseTime() {
       const now = new Date()
       const tomorrow = new Date(now)
@@ -1633,6 +1648,10 @@ export default {
 /* 新增样式 */
 .half-width {
   width: 50%;
+  min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
+}
+.three-of-four-width {
+  width: 75%;
   min-width: 0;/*重置最小宽度，否则会以min-width宽度为准*/
 }
 .error-message {
