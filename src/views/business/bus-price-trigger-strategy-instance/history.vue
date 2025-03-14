@@ -118,6 +118,10 @@
             <span class="value">{{ item.statistical.totalPnl }}</span>
           </div>
           <div class="data-item">
+            <span class="label">净盈亏：</span>
+            <span class="value">{{ item.statistical.netProfit }}</span>
+          </div>
+          <div class="data-item">
             <span class="label">平均滑点：</span>
             <span class="value">{{ formmatSlippage(item.averageSlippage) }}</span>
           </div>
