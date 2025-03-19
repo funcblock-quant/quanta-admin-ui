@@ -355,6 +355,40 @@
                 <template slot="append">%</template>
               </el-slider>
             </el-form-item>
+            <h3 style="margin-top: 30px; margin-bottom: 10px;">账户配置</h3>
+            <el-form-item label="DEX地址" prop="dexWallet">
+              <el-select
+                v-model="startTraderFormData.dexWallet"
+                placeholder="请选择dex交易的地址"
+                clearable
+                size="small"
+                style="width: 400px;"
+              >
+                <el-option
+                  v-for="wallet in dexWalletList"
+                  :key="wallet.id"
+                  :value="wallet.id"
+                  :label="wallet.walletName + '-' + wallet.walletAddress"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="CEX账户" prop="cexAccount">
+              <el-select
+                v-model="startTraderFormData.cexAccount"
+                placeholder="请选择cex交易账户"
+                clearable
+                size="small"
+                style="width: 400px;"
+              >
+                <el-option
+                  v-for="account in cexAccountList"
+                  :key="account.id"
+                  :value="account.id"
+                  :label="account.accountName + '-' + account.amberAccountName"
+                />
+              </el-select>
+            </el-form-item>
+
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="showStartDialog = false">取消</el-button>
@@ -363,30 +397,44 @@
         </el-dialog>
 
         <el-dialog title="全局参数调整" :visible.sync="editGlobalConfig" width="800px">
-          <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
-            <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
-            <el-form-item label="最低预警余额" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
-            </el-form-item>
-            <el-form-item label="低水位触发余额" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
-            </el-form-item>
-            <el-form-item label="高水位触发余额" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
-            </el-form-item>
-            <el-form-item label="最小充值金额阈值" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
-            </el-form-item>
-            <el-form-item label="最小提现金额阈值" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
-            </el-form-item>
+          <el-select
+            v-model="updateGlobalWaterLevelFormData.exchangeType"
+            placeholder="请选择交易所"
+            style="margin-bottom: 20px;"
+            @change="getExchangeConfig"
+          >
+            <el-option
+              v-for="item in exchangeOptions"
+              :key="item.exchange"
+              :label="item.exchange"
+              :value="item.exchange"
+            />
+          </el-select>
+          <div v-if="updateGlobalWaterLevelFormData.exchangeType">
+            <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
+              <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
+              <el-form-item label="最低预警余额" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+              </el-form-item>
+              <el-form-item label="低水位触发余额" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
+              </el-form-item>
+              <el-form-item label="高水位触发余额" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
+              </el-form-item>
+              <el-form-item label="最小充值金额阈值" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+              </el-form-item>
+              <el-form-item label="最小提现金额阈值" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+              </el-form-item>
 
-            <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
-            <el-form-item label="最低预警余额" class="mb16">
-              <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
-            </el-form-item>
-          </el-form>
-
+              <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
+              <el-form-item label="最低预警余额" class="mb16">
+                <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+              </el-form-item>
+            </el-form>
+          </div>
           <div slot="footer" class="dialog-footer">
             <el-button @click="cancelEditGlobalSolConfig">取消</el-button>
             <el-button type="primary" @click="submitUpdateGlobalSolConfig">确定</el-button>
@@ -637,7 +685,7 @@
 
 <script>
 import {
-  batchAddBusDexCexTriangularObserver, busDexCexTriangularGetGlobalWaterLevel,
+  batchAddBusDexCexTriangularObserver,
   busDexCexTriangularStartTrader,
   busDexCexTriangularStopTrader, busDexCexTriangularUpdateGlobalWaterLevel,
   delBusDexCexTriangularObserver,
@@ -645,7 +693,11 @@ import {
   listBusDexCexTriangularObserver,
   listBusDexCexTriangularSymbolList,
   busDexCexTriangularGetGlobalRiskConfig, busDexCexTriangularUpdateGlobalRiskConfig,
-  busDexCexTriangularStopAllTraders
+  busDexCexTriangularStopAllTraders,
+  listBusDexCexTriangularDexWalletlList,
+  listBusDexCexTriangularCexAccountList,
+  listBusDexCexTriangularExchangeList,
+  busDexCexTriangularGetGlobalWaterLevel
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -681,6 +733,11 @@ export default {
       busDexCexTriangularObserverList: [],
       // 观察币对列表
       symbolWatchList: [],
+      // dex钱包列表
+      dexWalletList: [],
+      // cex账户列表
+      cexAccountList: [],
+      exchangeOptions: [],
 
       // 查询参数
       queryParams: {
@@ -775,6 +832,7 @@ export default {
   created() {
     this.getList()
     this.getSymbolWatchList()
+    this.getDexWalletList()
     this.startTimer()
   },
   mounted() {
@@ -814,6 +872,34 @@ export default {
         console.log(this.symbolWatchList)
       }
       )
+    },
+    /** 查询dex钱包列表 */
+    getDexWalletList() {
+      this.loading = true
+      listBusDexCexTriangularDexWalletlList().then(response => {
+        this.dexWalletList = response.data
+        this.loading = false
+        console.log('this.dexWalletList', this.dexWalletList)
+      }
+      )
+    },
+    /** 查询dex钱包列表 */
+    getCexAccountList(exchange) {
+      this.loading = true
+      listBusDexCexTriangularCexAccountList(exchange).then(response => {
+        this.cexAccountList = response.data
+        this.loading = false
+        console.log('this.cexAccountList', this.cexAccountList)
+      }
+      )
+    },
+    getExchangeConfig() {
+      const selectedExchange = this.updateGlobalWaterLevelFormData.exchangeType
+      console.log('getExchangeConfig', this.updateGlobalWaterLevelFormData.exchangeType)
+      busDexCexTriangularGetGlobalWaterLevel(this.updateGlobalWaterLevelFormData.exchangeType).then(response => {
+        this.updateGlobalWaterLevelFormData = response.data
+        this.updateGlobalWaterLevelFormData.exchangeType = selectedExchange //
+      })
     },
     startTimer() {
       if (this.timer) {
@@ -894,8 +980,8 @@ export default {
     },
     // 开启编辑全局参数弹窗
     handleEditGlobalConfig() {
-      busDexCexTriangularGetGlobalWaterLevel().then(response => {
-        this.updateGlobalWaterLevelFormData = response.data
+      listBusDexCexTriangularExchangeList().then(response => {
+        this.exchangeOptions = response.data
         this.editGlobalConfig = true
       })
     },
@@ -1059,6 +1145,7 @@ export default {
       requestData.solWaterLevelConfig.minDepositAmountThreshold = Number(requestData.solWaterLevelConfig.minDepositAmountThreshold)
       requestData.solWaterLevelConfig.minWithdrawAmountThreshold = Number(requestData.solWaterLevelConfig.minWithdrawAmountThreshold)
       requestData.stableCoinWaterLevelConfig.alertThreshold = Number(requestData.stableCoinWaterLevelConfig.alertThreshold)
+      requestData.exchangeType = this.updateGlobalWaterLevelFormData.exchangeType
 
       busDexCexTriangularUpdateGlobalWaterLevel(requestData).then(res => {
         if (res.code === 200) {
@@ -1090,6 +1177,7 @@ export default {
     openStartTradeDialog(row) {
       this.currentRow = row
       this.resetStartTraderFormData()
+      this.getCexAccountList(row.exchangeType)
       this.startTradingDialogData.symbol = row.symbol
       this.startTradingDialogData.maxQuoteAmount = row.maxQuoteAmount
       this.startTradingDialogData.targetTokenQuotePrice = row.cexBuyPrice
