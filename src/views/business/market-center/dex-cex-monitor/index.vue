@@ -363,6 +363,7 @@
                 clearable
                 size="small"
                 style="width: 400px;"
+                @change="getRelatedCexAccountList"
               >
                 <el-option
                   v-for="wallet in dexWalletList"
@@ -379,6 +380,7 @@
                 clearable
                 size="small"
                 style="width: 400px;"
+                @change="getRelatedDexWalletList"
               >
                 <el-option
                   v-for="account in cexAccountList"
@@ -397,7 +399,7 @@
         </el-dialog>
 
         <el-dialog title="全局参数调整" :visible.sync="editGlobalConfig" width="800px">
-          <el-select
+          <!-- <el-select
             v-model="updateGlobalWaterLevelFormData.exchangeType"
             placeholder="请选择交易所"
             style="margin-bottom: 20px;"
@@ -409,32 +411,32 @@
               :label="item.exchange"
               :value="item.exchange"
             />
-          </el-select>
-          <div v-if="updateGlobalWaterLevelFormData.exchangeType">
-            <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
-              <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
-              <el-form-item label="最低预警余额" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
-              </el-form-item>
-              <el-form-item label="低水位触发余额" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
-              </el-form-item>
-              <el-form-item label="高水位触发余额" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
-              </el-form-item>
-              <el-form-item label="最小充值金额阈值" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
-              </el-form-item>
-              <el-form-item label="最小提现金额阈值" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
-              </el-form-item>
+          </el-select> -->
+          <!-- <div v-if="updateGlobalWaterLevelFormData.exchangeType"> -->
+          <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
+            <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
+            <!-- <el-form-item label="最低预警余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+            </el-form-item>
+            <el-form-item label="低水位触发余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
+            </el-form-item>
+            <el-form-item label="高水位触发余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
+            </el-form-item> -->
+            <el-form-item label="最小充值金额阈值" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+            </el-form-item>
+            <el-form-item label="最小提现金额阈值" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+            </el-form-item>
 
-              <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
-              <el-form-item label="最低预警余额" class="mb16">
-                <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
-              </el-form-item>
-            </el-form>
-          </div>
+            <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
+            <el-form-item label="最低预警余额" class="mb16">
+              <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
+            </el-form-item>
+          </el-form>
+          <!-- </div> -->
           <div slot="footer" class="dialog-footer">
             <el-button @click="cancelEditGlobalSolConfig">取消</el-button>
             <el-button type="primary" @click="submitUpdateGlobalSolConfig">确定</el-button>
@@ -697,7 +699,9 @@ import {
   listBusDexCexTriangularDexWalletlList,
   listBusDexCexTriangularCexAccountList,
   listBusDexCexTriangularExchangeList,
-  busDexCexTriangularGetGlobalWaterLevel
+  busDexCexTriangularGetGlobalWaterLevel,
+  getBoundAccountList,
+  getCanBoundAccountList
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -777,7 +781,8 @@ export default {
       ],
       dexTypeList: [
         { key: 'RAY_AMM', label: 'Raydium Liquidity Pool V4' },
-        { key: 'RAY_CLMM', label: 'Raydium Centralized Liquidity' }
+        { key: 'RAY_CLMM', label: 'Raydium Centralized Liquidity' },
+        { key: 'ORCA_WHIRL_POOL', label: 'Orca Whirl Pool' }
       ],
 
       showStartDialog: false, // 控制启动trader表单弹窗显示
@@ -892,6 +897,84 @@ export default {
         console.log('this.cexAccountList', this.cexAccountList)
       }
       )
+    },
+    getRelatedCexAccountList() {
+      console.log('getRelatedCexAccountList', this.startTraderFormData.dexWallet)
+      const exchangeType = this.startTradingDialogData.exchangeType
+      if (this.startTraderFormData.dexWallet === '') {
+        // 用户清除了选项
+        if (this.startTraderFormData.cexAccount === '' || this.startTraderFormData.dexWallet === undefined) {
+          // cex和dex都未选中
+          this.getDexWalletList()
+          this.getCexAccountList(exchangeType)
+        }
+      } else {
+        // 用户选中了某dex
+        if (this.startTraderFormData.cexAccount === '' || this.startTraderFormData.cexAccount === undefined) {
+          // 用户只是选中了dex，未选中cex, 获取是否有已绑定的cex账户
+          const queryParams = {
+            accountType: 'Dex',
+            accountId: this.startTraderFormData.dexWallet
+          }
+          getBoundAccountList(queryParams).then(response => {
+            if (response.code === 200) {
+              console.log('response:', response.data)
+              if (response.data.cexAccountList !== null) {
+                console.log('change :this.startTraderFormData.cexAccountList', response.data.cexAccountList)
+                this.cexAccountList = response.data.cexAccountList
+              } else {
+                // 获取可以被绑定的账号
+                getCanBoundAccountList(queryParams).then(response => {
+                  console.log('getCanBoundAccountList response:', response.data)
+                  this.cexAccountList = response.data.cexAccountList
+                })
+              }
+            } else {
+              this.msgError(response.msg)
+            }
+          })
+        }
+      }
+    },
+    getRelatedDexWalletList() {
+      console.log('getRelatedDexWalletList', this.startTraderFormData.cexAccount)
+      const exchangeType = this.startTradingDialogData.exchangeType
+      if (this.startTraderFormData.cexAccount === '') {
+        // 用户清除了选项
+        console.log('清除了cexaccount选项')
+        if (this.startTraderFormData.dexWallet === '' || this.startTraderFormData.dexWallet === undefined) {
+          // cex和dex都未选中
+          console.log('dex选项也为空，重新加载')
+          this.getDexWalletList()
+          this.getCexAccountList(exchangeType)
+        }
+      } else {
+        // 用户选中了某cex
+        if (this.startTraderFormData.dexWallet === '' || this.startTraderFormData.dexWallet === undefined) {
+          // 用户只是选中了cex，未选中dex, 获取是否有已绑定的dex账户
+          const queryParams = {
+            accountType: 'Cex',
+            accountId: this.startTraderFormData.cexAccount
+          }
+          getBoundAccountList(queryParams).then(response => {
+            if (response.code === 200) {
+              console.log('response:', response.data)
+              if (response.data.dexWalletList !== null) {
+                console.log('change :this.startTraderFormData.dexWalletList', response.data.dexWalletList)
+                this.dexWalletList = response.data.dexWalletList
+              } else {
+                // 获取可以被绑定的账号
+                getCanBoundAccountList(queryParams).then(response => {
+                  console.log('getCanBoundAccountList response:', response.data)
+                  this.dexWalletList = response.data.dexWalletList
+                })
+              }
+            } else {
+              this.msgError(response.msg)
+            }
+          })
+        }
+      }
     },
     getExchangeConfig() {
       const selectedExchange = this.updateGlobalWaterLevelFormData.exchangeType
@@ -1181,6 +1264,7 @@ export default {
       this.startTradingDialogData.symbol = row.symbol
       this.startTradingDialogData.maxQuoteAmount = row.maxQuoteAmount
       this.startTradingDialogData.targetTokenQuotePrice = row.cexBuyPrice
+      this.startTradingDialogData.exchangeType = row.exchangeType
       if (row.cexBuyPrice === 0) {
         this.isQuickMode = false
       }

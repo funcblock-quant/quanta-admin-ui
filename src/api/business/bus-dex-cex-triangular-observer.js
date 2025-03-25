@@ -172,3 +172,21 @@ export function busDexCexTriangularUpdateGlobalRiskConfig(data) {
     data: data
   })
 }
+
+// 根据某一侧的账户信息获取绑定的另一侧的账户列表
+export function getBoundAccountList(data) {
+  return request({
+    url: '/api/v1/getRelatedAccounts',
+    method: 'post',
+    data: data
+  })
+}
+
+// 根据某一侧的账户信息获取可以绑定的另一侧的账户列表
+export function getCanBoundAccountList(data) {
+  return request({
+    url: '/api/v1/getCanBoundAccounts',
+    method: 'post',
+    data: data
+  })
+}
