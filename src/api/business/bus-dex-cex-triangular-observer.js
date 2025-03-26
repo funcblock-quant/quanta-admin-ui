@@ -61,6 +61,30 @@ export function listBusDexCexTriangularSymbolList() {
   })
 }
 
+// 查询BusDexCexTriangularObserver所有的观察币种配置的交易所列表
+export function listBusDexCexTriangularExchangeList() {
+  return request({
+    url: '/api/v1/busDexCexTriangularExchangeList',
+    method: 'get'
+  })
+}
+
+// 查询BusDexCexTriangularObserver所有的dex钱包列表
+export function listBusDexCexTriangularDexWalletlList() {
+  return request({
+    url: '/api/v1/busDexCexTriangularDexWalletList',
+    method: 'get'
+  })
+}
+
+// 查询BusDexCexTriangularObserver所有的cex钱包列表
+export function listBusDexCexTriangularCexAccountList(exchange) {
+  return request({
+    url: '/api/v1/busDexCexTriangularCexAccountList/' + exchange,
+    method: 'get'
+  })
+}
+
 // 启动交易
 export function busDexCexTriangularStartTrader(data) {
   return request({
@@ -116,9 +140,9 @@ export function busDexCexTriangularStopAllTraders(data) {
 }
 
 // 获取全局水位参数
-export function busDexCexTriangularGetGlobalWaterLevel() {
+export function busDexCexTriangularGetGlobalWaterLevel(exchange) {
   return request({
-    url: '/api/v1/busDexCexTriangularGetGlobalWaterLevel',
+    url: '/api/v1/busDexCexTriangularGetGlobalWaterLevel/' + exchange,
     method: 'get'
   })
 }
@@ -144,6 +168,24 @@ export function busDexCexTriangularGetGlobalRiskConfig() {
 export function busDexCexTriangularUpdateGlobalRiskConfig(data) {
   return request({
     url: '/api/v1/busDexCexTriangularUpdateRiskConfig',
+    method: 'post',
+    data: data
+  })
+}
+
+// 根据某一侧的账户信息获取绑定的另一侧的账户列表
+export function getBoundAccountList(data) {
+  return request({
+    url: '/api/v1/getRelatedAccounts',
+    method: 'post',
+    data: data
+  })
+}
+
+// 根据某一侧的账户信息获取可以绑定的另一侧的账户列表
+export function getCanBoundAccountList(data) {
+  return request({
+    url: '/api/v1/getCanBoundAccounts',
     method: 'post',
     data: data
   })
