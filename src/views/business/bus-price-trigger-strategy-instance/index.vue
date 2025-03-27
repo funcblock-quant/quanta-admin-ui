@@ -1051,6 +1051,7 @@ export default {
       this.apiKeyBound = false
       this.showBindForm = true
       this.apiKeyEditMode = true
+      this.showApiKeyList = false
     },
     enableEditExecuteNum(item) {
       this.originExecuteNum[item.id] = item.executeNum
@@ -1442,6 +1443,7 @@ export default {
             this.msgSuccess(response.msg)
             this.showBindForm = false
             this.apiKeyBound = true
+            this.showApiKeyList = true
             this.getApiKeyList()
             this.getList()
           } else {
