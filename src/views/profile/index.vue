@@ -170,12 +170,17 @@ export default {
         this.roleGroup = response.data.roles
         this.twoFABound = response.data.user.activeTwoFa
 
-        if (this.roleIds[0]) {
-          for (const key in this.roleGroup) {
-            if (this.roleIds[0] === this.roleGroup[key].roleId) {
-              this.roleName = this.roleGroup[key].roleName
+        if (this.roleIds && this.roleIds.length > 0) {
+          const roleNames = []
+          for (const roleId of this.roleIds) {
+            for (const key in this.roleGroup) {
+              if (roleId === this.roleGroup[key].roleId) {
+                roleNames.push(this.roleGroup[key].roleName)
+                break // 找到匹配的角色后跳出内层循环
+              }
             }
           }
+          this.roleName = roleNames.join(', ') // 使用逗号拼接角色名称
         } else {
           this.roleName = '暂无'
         }
