@@ -25,7 +25,8 @@
           <el-descriptions-item label="Dex Priority Fee" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ formatNumber(busDexCexTriangularRecord.dexTxPriorityFee) }} SOL</el-descriptions-item>
           <el-descriptions-item label="Dex Jito Fee" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ formatNumber(busDexCexTriangularRecord.dexTxJitoFee) }} SOL</el-descriptions-item>
           <el-descriptions-item label="Dex Trader Address" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.dexTrader }}</el-descriptions-item>
-          <el-descriptions-item label="Cex Amber Account" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexAmberAccount }}</el-descriptions-item>
+          <el-descriptions-item label="Cex Account Id" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexAccountId }}</el-descriptions-item>
+          <el-descriptions-item label="Cex Account Type" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexAccountType }}</el-descriptions-item>
           <el-descriptions-item label="Cex Exchange Type" label-class-name="custom-descriptions-label" content-class-name="custom-descriptions-content">{{ busDexCexTriangularRecord.cexExchangeType }}</el-descriptions-item>
         </el-descriptions>
 
