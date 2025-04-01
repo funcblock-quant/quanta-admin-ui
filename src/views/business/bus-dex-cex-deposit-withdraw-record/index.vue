@@ -69,6 +69,7 @@
             align="center"
             prop="orderType"
             :show-overflow-tooltip="true"
+            :formatter="formatOrderType"
           />
           <el-table-column
             label="充提币种"
@@ -148,6 +149,7 @@
             align="center"
             prop="status"
             :show-overflow-tooltip="true"
+            :formatter="formatStatus"
           />
           <el-table-column
             label="备注"
@@ -156,15 +158,15 @@
             :show-overflow-tooltip="true"
           />
 
-          <pagination
-            v-show="total>0"
-            :total="total"
-            :page.sync="queryParams.pageIndex"
-            :limit.sync="queryParams.pageSize"
-            @pagination="getList"
-          />
-
-        </el-table></el-card>
+        </el-table>
+        <pagination
+          v-show="total>0"
+          :total="total"
+          :page.sync="queryParams.pageIndex"
+          :limit.sync="queryParams.pageSize"
+          @pagination="getList"
+        />
+      </el-card>
     </template>
   </BasicLayout>
 </template>
@@ -218,6 +220,13 @@ export default {
       orderTypeList: [
         { 'label': '提现', 'value': '-1' },
         { 'label': '充值', 'value': '1' }
+      ],
+      orderStatus: [
+        { 'label': '初始化', 'value': '0' },
+        { 'label': '处理中', 'value': '1' },
+        { 'label': '成功', 'value': '2' },
+        { 'label': '失败', 'value': '3' },
+        { 'label': '未知状态', 'value': '4' }
       ],
       // 表单校验
       rules: { orderType: [{ required: true, message: '订单类型不能为空', trigger: 'blur' }],
@@ -273,6 +282,28 @@ export default {
       this.dateRange = []
       this.resetForm('queryForm')
       this.handleQuery()
+    },
+    formatOrderType(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
+        return '' // 或者其他默认值，例如 0
+      }
+      this.orderTypeList.forEach(item => {
+        if (item.value === cellValue) {
+          cellValue = item.label
+        }
+      })
+      return cellValue
+    },
+    formatStatus(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
+        return '' // 或者其他默认值，例如 0
+      }
+      this.orderStatus.forEach(item => {
+        if (item.value === cellValue) {
+          cellValue = item.label
+        }
+      })
+      return cellValue
     }
   }
 }

@@ -75,6 +75,7 @@
             align="center"
             prop="debitType"
             :show-overflow-tooltip="true"
+            :formatter="formatDebitType"
           />
           <el-table-column
             label="借贷币种"
@@ -111,6 +112,7 @@
             align="center"
             prop="status"
             :show-overflow-tooltip="true"
+            :formatter="formatDebitStatus"
           />
         </el-table>
 
@@ -238,6 +240,28 @@ export default {
       this.dateRange = []
       this.resetForm('queryForm')
       this.handleQuery()
+    },
+    formatDebitType(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
+        return '' // 或者其他默认值，例如 0
+      }
+      this.debitTypeList.forEach(item => {
+        if (item.value === cellValue) {
+          cellValue = item.label
+        }
+      })
+      return cellValue
+    },
+    formatDebitStatus(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
+        return '' // 或者其他默认值，例如 0
+      }
+      this.debitStatusList.forEach(item => {
+        if (item.value === cellValue) {
+          cellValue = item.label
+        }
+      })
+      return cellValue
     }
   }
 }
