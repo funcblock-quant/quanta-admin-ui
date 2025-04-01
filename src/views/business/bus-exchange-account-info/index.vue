@@ -385,8 +385,8 @@
             </el-col>
           </el-row>
         </el-form>
-        <div v-if="accountFunds && accountFunds.length > 0">
-          <el-table :data="accountFunds" border style="width: 100%">
+        <div v-if="accountFunds" style="margin-bottom: 20px;">
+          <el-table :data="[accountFunds]" border style="width: 100%">
             <el-table-column prop="tokenName" label="Token 名称" />
             <el-table-column prop="walletBalance" label="钱包余额" />
             <el-table-column prop="traderAccountMarginBalance" label="交易所杠杆账户余额" />
@@ -397,7 +397,7 @@
         </div>
 
         <el-button v-if="!accountFunds" type="primary" @click="handleCheckFunds">检查资产信息</el-button>
-        <el-button v-if="accountFunds && accountFunds.length > 0" type="primary" @click="handleMoneyCollectionSubmit">发起资金归拢</el-button>
+        <el-button v-if="accountFunds" type="primary" @click="handleMoneyCollectionSubmit">发起资金归拢</el-button>
         <el-button @click="handleMoneyCollectionFormReset">重置</el-button>
 
       </el-card>
@@ -562,6 +562,8 @@ export default {
       this.moneyCollectionForm.cexAccountId = undefined
       this.moneyCollectionForm.dexWalletId = undefined
       this.moneyCollectionForm.tokenName = undefined
+      this.moneyCollectionForm.tokenAddress = undefined
+      this.accountFunds = null // 重置 accountFunds
     },
     getImgList: function() {
       this.form[this.fileIndex] = this.$refs['fileChoose'].resultList[0].fullUrl
@@ -794,6 +796,7 @@ export default {
       getPortfolioUnwindingInfo(this.moneyCollectionForm).then(response => {
         if (response.code === 200) {
           this.msgSuccess(response.msg)
+          this.accountFunds = response.data
         } else {
           this.msgError(response.msg)
         }
