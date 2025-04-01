@@ -392,12 +392,12 @@
             <el-table-column prop="traderAccountMarginBalance" label="交易所杠杆账户余额" />
             <el-table-column prop="traderAccountSpotBalance" label="交易所现货账户余额" />
             <el-table-column prop="masterAccountSpotBalance" label="主账户现货账户余额" />
-            <el-table-column prop="traderAccountBorrowed" label="交易所借贷账户余额" />
+            <el-table-column prop="traderAccountBorrowed" label="交易所杠杆账户借贷金额" />
           </el-table>
         </div>
 
-        <el-button v-if="!accountFunds" type="primary" @click="handleCheckFunds">检查资产信息</el-button>
-        <el-button v-if="accountFunds" type="primary" @click="handleMoneyCollectionSubmit">发起资金归拢</el-button>
+        <el-button type="primary" @click="handleCheckFunds">查询资产信息</el-button>
+        <el-button type="primary" @click="handleMoneyCollectionSubmit">发起资金归拢</el-button>
         <el-button @click="handleMoneyCollectionFormReset">重置</el-button>
 
       </el-card>
