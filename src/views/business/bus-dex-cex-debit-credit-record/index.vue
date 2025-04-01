@@ -114,6 +114,26 @@
             :show-overflow-tooltip="true"
             :formatter="formatDebitStatus"
           />
+          <el-table-column
+            label="发起时间"
+            align="center"
+            prop="createdAt"
+            :show-overflow-tooltip="true"
+          >
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.createdAt) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="完成时间"
+            align="center"
+            prop="updatedAt"
+            :show-overflow-tooltip="true"
+          >
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.updatedAt) }}</span>
+            </template>
+          </el-table-column>
         </el-table>
 
         <pagination

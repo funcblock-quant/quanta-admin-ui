@@ -134,7 +134,8 @@
             <template slot-scope="scope">
               <span>{{ parseTime(scope.row.startTime) }}</span>
             </template>
-          </el-table-column><el-table-column
+          </el-table-column>
+          <el-table-column
             label="完成时间"
             align="center"
             prop="finishTime"
