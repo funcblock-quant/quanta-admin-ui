@@ -51,3 +51,26 @@ export function listBusExchangeAccountInfoByGroupId(groupId) {
   })
 }
 
+export function queryExchangeListInUse() {
+  return request({
+    url: '/api/v1/queryExchangeListInUse',
+    method: 'get'
+  })
+}
+
+export function getPortfolioUnwindingInfo(data) {
+  return request({
+    url: '/api/v1/getPortfolioUnwindingInfo',
+    method: 'post',
+    data: data
+  })
+}
+
+export function portfolioUnwinding(data) {
+  return request({
+    url: '/api/v1/portfolioUnwinding',
+    method: 'post',
+    data: data
+  })
+}
+
