@@ -347,7 +347,7 @@
       <el-card class="box-card">
         <h3>资金归拢</h3>
 
-        <el-form ref="moneyCollectionForm" :model="moneyCollectionForm" :rules="rules" label-width="120px">
+        <el-form ref="moneyCollectionForm" :model="moneyCollectionForm" :rules="moneyCollectionRules" label-width="120px">
           <el-row>
             <el-col :span="8">
               <el-form-item label="币种" prop="tokenName">
@@ -484,6 +484,12 @@ export default {
         exchangeId: [{ required: true, message: '请选择账户对应交易所', trigger: 'blur' }],
         accountType: [{ required: true, message: '账户类型不能为空', trigger: 'blur' }],
         status: [{ required: true, message: '状态不能为空', trigger: 'blur' }]
+      },
+      moneyCollectionRules: {
+        tokenName: [{ required: true, message: '币种不能为空', trigger: 'blur' }],
+        tokenAddress: [{ required: true, message: 'token地址不能为空', trigger: 'blur' }],
+        dexWalletId: [{ required: true, message: '请选择 DEX 账号', trigger: 'blur' }],
+        cexAccountId: [{ required: true, message: '请选择 CEX 账号', trigger: 'blur' }]
       }
     }
   },
@@ -788,7 +794,11 @@ export default {
       }
     },
     handleCheckFunds() {
-      this.fetchAccountFunds()
+      this.$refs['moneyCollectionForm'].validate(valid => {
+        if (valid) {
+          this.fetchAccountFunds()
+        }
+      })
     },
     fetchAccountFunds() {
       // 调用接口，查看账户资金情况

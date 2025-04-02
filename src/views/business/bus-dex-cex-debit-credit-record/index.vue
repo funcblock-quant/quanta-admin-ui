@@ -88,6 +88,7 @@
             align="center"
             prop="amount"
             :show-overflow-tooltip="true"
+            :formatter="formatAmount"
           />
           <el-table-column
             label="交易所"
@@ -195,7 +196,7 @@ export default {
       },
       exchangeTypeList: [
         { 'label': 'Binance', 'value': 'Binance' },
-        { 'label': 'GateIO', 'value': 'GateIO' }
+        { 'label': 'Gate', 'value': 'Gate' }
       ],
       debitTypeList: [
         { 'label': '借贷', 'value': '1' },
@@ -282,6 +283,19 @@ export default {
         }
       })
       return cellValue
+    },
+    formatAmount(row, column, cellValue, index) {
+      if (cellValue === null || cellValue === undefined || cellValue === '' || cellValue === 0) {
+        return '0.000000' // 或者其他默认值，例如 0
+      }
+      // 将 cellValue 转换为数字，并保留 6 位小数
+      const formattedValue = parseFloat(cellValue).toFixed(6)
+
+      // 如果转换失败（例如，cellValue 不是数字），则返回原始值
+      if (isNaN(formattedValue)) {
+        return cellValue
+      }
+      return formattedValue
     }
   }
 }
