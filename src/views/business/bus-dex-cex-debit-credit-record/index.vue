@@ -195,7 +195,7 @@ export default {
       },
       exchangeTypeList: [
         { 'label': 'Binance', 'value': 'Binance' },
-        { 'label': 'GateIO', 'value': 'GateIO' }
+        { 'label': 'Gate', 'value': 'Gate' }
       ],
       debitTypeList: [
         { 'label': '借贷', 'value': '1' },
