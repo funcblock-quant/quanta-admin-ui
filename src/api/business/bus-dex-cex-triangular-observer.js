@@ -190,3 +190,11 @@ export function getCanBoundAccountList(data) {
     data: data
   })
 }
+
+// 获取dex-cex套利的所有交易中的账户对的全局水位配置列表
+export function getActiveAccountPairs() {
+  return request({
+    url: '/api/v1/getActiveAccountPairs',
+    method: 'get'
+  })
+}
