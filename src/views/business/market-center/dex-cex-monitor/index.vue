@@ -41,7 +41,7 @@
               v-permisaction="['business:busDexCexMonitor:list']"
               type="primary"
               size="mini"
-              @click="handleEditGlobalConfig"
+              @click="handleShowGlobalConfig"
             >全局水位参数调节
             </el-button>
           </el-col>
@@ -412,10 +412,14 @@
               :value="item.exchange"
             />
           </el-select> -->
+          <el-descriptions border style="margin-bottom: 20px;">
+            <el-descriptions-item label="Cex 账户名称">{{ updateGlobalWaterLevelFormData.cexAccountName }}</el-descriptions-item>
+            <el-descriptions-item label="Dex 钱包名称">{{ updateGlobalWaterLevelFormData.dexWalletName }}</el-descriptions-item>
+          </el-descriptions>
           <!-- <div v-if="updateGlobalWaterLevelFormData.exchangeType"> -->
           <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
             <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
-            <!-- <el-form-item label="最低预警余额" class="mb16">
+            <el-form-item label="最低预警余额" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
             </el-form-item>
             <el-form-item label="低水位触发余额" class="mb16">
@@ -423,7 +427,7 @@
             </el-form-item>
             <el-form-item label="高水位触发余额" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
-            </el-form-item> -->
+            </el-form-item>
             <el-form-item label="最小充值金额阈值" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
             </el-form-item>
@@ -440,6 +444,43 @@
           <div slot="footer" class="dialog-footer">
             <el-button @click="cancelEditGlobalSolConfig">取消</el-button>
             <el-button type="primary" @click="submitUpdateGlobalSolConfig">确定</el-button>
+          </div>
+        </el-dialog>
+
+        <el-dialog title="全局水位参数配置列表" :visible.sync="showGlobalConfig" width="1000px">
+          <!-- <el-select
+            v-model="updateGlobalWaterLevelFormData.exchangeType"
+            placeholder="请选择交易所"
+            style="margin-bottom: 20px;"
+            @change="getExchangeConfig"
+          >
+            <el-option
+              v-for="item in exchangeOptions"
+              :key="item.exchange"
+              :label="item.exchange"
+              :value="item.exchange"
+            />
+          </el-select> -->
+          <!-- <div v-if="updateGlobalWaterLevelFormData.exchangeType"> -->
+          <el-table :data="accountPairList" border style="width: 100%">
+            <el-table-column prop="cexAccountId" label="Cex Account ID" />
+            <el-table-column prop="cexAccountName" label="Cex Account Name" />
+            <el-table-column prop="dexWalletId" label="Dex Wallet ID" />
+            <el-table-column prop="dexWalletName" label="Dex Wallet Name" />
+            <el-table-column prop="hasGlobalConfig" label="参数是否配置">
+              <template slot-scope="scope">
+                <span>{{ scope.row.hasGlobalConfig ? '是' : '否' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button size="mini" type="primary" @click="handleGlobalConfigEdit(scope.row)">编辑</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- </div> -->
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="cancelShowGlobalSolConfig">关闭</el-button>
           </div>
         </el-dialog>
 
@@ -701,7 +742,8 @@ import {
   listBusDexCexTriangularExchangeList,
   busDexCexTriangularGetGlobalWaterLevel,
   getBoundAccountList,
-  getCanBoundAccountList
+  getCanBoundAccountList,
+  getActiveAccountPairs
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -728,6 +770,7 @@ export default {
       batchOpen: false,
       isEdit: false,
       editGlobalConfig: false, // 全局参数调节编辑开关
+      showGlobalConfig: false, // 全局水位参数列表展示弹框开关
       editGlobalRiskConfig: false, // 全局风控参数编辑开关
       stopAllDialogVisible: false, // 暂停全部交易弹框开关
       isQuickMode: true, // 设置水位调节参数是否是快速模式
@@ -741,7 +784,8 @@ export default {
       dexWalletList: [],
       // cex账户列表
       cexAccountList: [],
-      exchangeOptions: [],
+      // 账户组列表
+      accountPairList: [],
 
       // 查询参数
       queryParams: {
@@ -1064,13 +1108,51 @@ export default {
     // 开启编辑全局参数弹窗
     handleEditGlobalConfig() {
       listBusDexCexTriangularExchangeList().then(response => {
-        this.exchangeOptions = response.data
         this.editGlobalConfig = true
+      })
+    },
+    handleGlobalConfigEdit(row) {
+      console.log('编辑全局水位参数')
+      console.log('row', row)
+      // 初始化 solWaterLevelConfig 和 stableCoinWaterLevelConfig，避免后续访问 null 属性
+      if (row.solanaConfig) {
+        this.updateGlobalWaterLevelFormData.solWaterLevelConfig = { ...row.solanaConfig }
+      } else {
+        this.updateGlobalWaterLevelFormData.solWaterLevelConfig = {} // 或设置默认值
+      }
+
+      if (row.stableCoinConfig) {
+        this.updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig = { ...row.stableCoinConfig }
+      } else {
+        this.updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig = {} // 或设置默认值
+      }
+      this.updateGlobalWaterLevelFormData.cexAccountId = row.cexAccountId
+      this.updateGlobalWaterLevelFormData.dexWalletId = row.dexWalletId
+      this.updateGlobalWaterLevelFormData.cexAccountName = row.cexAccountName
+      this.updateGlobalWaterLevelFormData.dexWalletName = row.dexWalletName
+      this.showGlobalConfig = false
+      this.editGlobalConfig = true
+    },
+    // 打开全局参数设置弹窗，展示账户组列表
+    handleShowGlobalConfig() {
+      getActiveAccountPairs().then(response => {
+        if (response.code === 200) {
+          this.accountPairList = response.data
+          this.showGlobalConfig = true
+        } else {
+          this.msgError(response.msg)
+          this.showGlobalConfig = false
+        }
       })
     },
     // 取消编辑全局参数弹窗
     cancelEditGlobalSolConfig() {
       this.editGlobalConfig = false
+      this.showGlobalConfig = true
+    },
+    // 取消编辑全局参数弹窗
+    cancelShowGlobalSolConfig() {
+      this.showGlobalConfig = false
     },
     handleModeChange(maxQuoteAmount, targetTokenQuotePrice) {
       if (this.isQuickMode) {
@@ -1234,11 +1316,13 @@ export default {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
           this.editGlobalConfig = false
-          this.getList()
+          this.showGlobalConfig = true
+          this.handleShowGlobalConfig()
         } else {
           this.msgError(res.msg)
           this.editGlobalConfig = false
-          this.getList()
+          this.showGlobalConfig = true
+          this.handleShowGlobalConfig()
         }
       })
     },
