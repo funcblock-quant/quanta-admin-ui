@@ -90,6 +90,36 @@ export function formatTime(time, option) {
   }
 }
 
+export function formatDecimal(row, column, cellValue, index) {
+  if (cellValue === null || cellValue === undefined || cellValue === '') {
+    return ''
+  }
+
+  let numStr = String(cellValue)
+
+  // 处理科学计数法
+  if (numStr.includes('e') || numStr.includes('E')) {
+    numStr = Number(numStr).toFixed(20)
+  }
+
+  if (!numStr.includes('.')) {
+    return numStr
+  }
+
+  while (numStr.endsWith('0') && numStr.includes('.')) {
+    numStr = numStr.slice(0, -1)
+  }
+
+  if (numStr.endsWith('.')) {
+    numStr = numStr.slice(0, -1)
+  }
+
+  // 可以在这里访问 row 的其他属性，例如 row.quoteToken
+  // return numStr + ' ' + (row.quoteToken || ''); // 假设您的 row 对象有 quoteToken 属性
+
+  return numStr
+}
+
 /**
  * @param {string} url
  * @returns {Object}

@@ -82,6 +82,7 @@
             align="center"
             prop="amount"
             :show-overflow-tooltip="true"
+            :formatter="formatDecimal"
           />
           <el-table-column
             label="from地址"
@@ -174,6 +175,7 @@
 
 <script>
 import { listBusDexCexDepositWithdrawRecord } from '@/api/business/bus-dex-cex-deposit-withdraw-record'
+import { formatDecimal } from '@/utils'
 
 export default {
   name: 'BusDexCexDepositWithdrawRecord',
@@ -243,6 +245,7 @@ export default {
   },
   methods: {
     /** 查询参数列表 */
+    formatDecimal,
     getList() {
       this.loading = true
       listBusDexCexDepositWithdrawRecord(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
