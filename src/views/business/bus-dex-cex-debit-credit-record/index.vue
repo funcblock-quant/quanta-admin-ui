@@ -88,7 +88,7 @@
             align="center"
             prop="amount"
             :show-overflow-tooltip="true"
-            :formatter="formatAmount"
+            :formatter="formatDecimal"
           />
           <el-table-column
             label="交易所"
@@ -152,6 +152,7 @@
 
 <script>
 import { listBusDexCexDebitCreditRecord } from '@/api/business/bus-dex-cex-debit-credit-record'
+import { formatDecimal } from '@/utils'
 
 export default {
   name: 'BusDexCexDebitCreditRecord',
@@ -220,6 +221,7 @@ export default {
     this.getList()
   },
   methods: {
+    formatDecimal,
     /** 查询参数列表 */
     getList() {
       this.loading = true
