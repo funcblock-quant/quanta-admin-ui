@@ -1367,7 +1367,7 @@ export default {
         priorityFee: '',
         jitoFeeRate: ''
       }
-      this.waterLevelMultiplier = 1
+      this.waterLevelMultiplier = 0
     },
 
     // 确认启动交易
