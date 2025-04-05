@@ -295,7 +295,7 @@
               @change="handleModeChange(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)"
             />
             <el-form-item v-if="isQuickMode" label="调节倍数">
-              <el-input-number v-model="waterLevelMultiplier" :min="1" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)" />
+              <el-input-number v-model="waterLevelMultiplier" :min="0" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)" />
               <el-tooltip content="最低预警余额 = (最大交易额/币价) * 倍数；低水位触发余额 = (最大交易额/币价) * 4 * 倍数；高水位触发余额 = (最大交易额/币价) * 6 * 倍数" placement="top">
                 <i class="el-icon-question" style="margin-left: 5px;" />
               </el-tooltip>
@@ -474,7 +474,7 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button size="mini" type="primary" @click="handleGlobalConfigEdit(scope.row)">编辑</el-button>
+                <el-button size="mini" type="" @click="handleGlobalConfigEdit(scope.row)">编辑</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -835,10 +835,10 @@ export default {
       currentRow: null, // 当前选中的行数据
       startTraderFormData: {
         instanceId: undefined,
-        alertThreshold: undefined,
-        buyTriggerThreshold: undefined,
+        alertThreshold: 0,
+        buyTriggerThreshold: 0,
         targetBalanceThreshold: undefined,
-        sellTriggerThreshold: undefined,
+        sellTriggerThreshold: 0,
         priorityFee: undefined,
         jitoFeeRate: undefined
       },
