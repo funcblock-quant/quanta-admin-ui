@@ -325,9 +325,9 @@
               <el-slider
                 v-model="startTraderFormData.slippageBpsRate"
                 show-input
-                step="0.01"
-                :precision="2"
-                :max="10"
+                step="0.1"
+                :precision="1"
+                :max="100"
               >
                 <template slot="append">%</template>
               </el-slider>
@@ -348,8 +348,8 @@
               <el-slider
                 v-model="startTraderFormData.jitoFeeRate"
                 show-input
-                step="0.01"
-                :precision="2"
+                step="0.1"
+                :precision="1"
                 :max="50"
               >
                 <template slot="append">%</template>
