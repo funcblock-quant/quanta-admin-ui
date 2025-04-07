@@ -1398,6 +1398,7 @@ export default {
       if (row.cexBuyPrice === 0) {
         this.isQuickMode = false
       }
+      this.loanRate = null
       this.showStartDialog = true
     },
 
@@ -1439,6 +1440,7 @@ export default {
           this.getList()
         }
         this.showStartDialog = false
+        this.loanRate = null
       })
     },
 
