@@ -279,6 +279,10 @@
           </el-alert>
           <el-descriptions border column="2">
             <el-descriptions-item label="币对">{{ startTradingDialogData.symbol }}</el-descriptions-item>
+            <el-descriptions-item v-if="loanRate" label="实时借贷利率">
+              {{ loanRate }}
+            </el-descriptions-item>
+
             <!--            <el-descriptions-item label="当前币价">{{ currentPrice }}</el-descriptions-item>-->
             <!--            <el-descriptions-item label="借贷利率 (BTC)">-->
             <!--              {{ loanRateBTC }}%-->
@@ -318,6 +322,9 @@
 
             <!-- 交易参数 -->
             <h3 style="margin-top: 30px; margin-bottom: 10px;">交易参数</h3>
+            <el-form-item label="Prefer Jito">
+              <el-switch v-model="startTraderFormData.preferJito" />
+            </el-form-item>
             <el-form-item label="Priority Fee(SOL)" prop="priorityFee">
               <el-input v-model="startTraderFormData.priorityFee" placeholder="请指定优先费" />
             </el-form-item>
@@ -363,7 +370,7 @@
                 clearable
                 size="small"
                 style="width: 400px;"
-                @change="getRelatedCexAccountList"
+                @change="handleDexChange"
               >
                 <el-option
                   v-for="wallet in dexWalletList"
@@ -380,7 +387,7 @@
                 clearable
                 size="small"
                 style="width: 400px;"
-                @change="getRelatedDexWalletList"
+                @change="handleCexChange"
               >
                 <el-option
                   v-for="account in cexAccountList"
@@ -743,7 +750,8 @@ import {
   busDexCexTriangularGetGlobalWaterLevel,
   getBoundAccountList,
   getCanBoundAccountList,
-  getActiveAccountPairs
+  getActiveAccountPairs,
+  getRealtimeInterestRate
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -786,6 +794,8 @@ export default {
       cexAccountList: [],
       // 账户组列表
       accountPairList: [],
+      // 借贷利率
+      loanRate: undefined,
 
       // 查询参数
       queryParams: {
@@ -918,7 +928,6 @@ export default {
       listBusDexCexTriangularSymbolList().then(response => {
         this.symbolWatchList = response.data
         this.loading = false
-        console.log(this.symbolWatchList)
       }
       )
     },
@@ -928,7 +937,6 @@ export default {
       listBusDexCexTriangularDexWalletlList().then(response => {
         this.dexWalletList = response.data
         this.loading = false
-        console.log('this.dexWalletList', this.dexWalletList)
       }
       )
     },
@@ -938,12 +946,61 @@ export default {
       listBusDexCexTriangularCexAccountList(exchange).then(response => {
         this.cexAccountList = response.data
         this.loading = false
-        console.log('this.cexAccountList', this.cexAccountList)
       }
       )
     },
+    handleCexChange() {
+      console.log('handleCexChange')
+      this.getRelatedDexWalletList()
+      this.checkAndFetchLoanRates()
+    },
+    handleDexChange() {
+      this.getRelatedCexAccountList()
+    },
+
+    // 新增检查方法
+    checkAndFetchLoanRates() {
+      console.log('checkAndFetchLoanRates')
+      if (this.shouldFetchRates()) {
+        console.log('true')
+        this.fetchLoanRate()
+      } else {
+        console.log('false')
+        this.clearRates()
+      }
+    },
+
+    // 判断是否需要获取利率
+    shouldFetchRates() {
+      return this.startTraderFormData.cexAccount
+    },
+
+    // 清空利率显示
+    clearRates() {
+      this.loanRate = null
+      this.loanRatesError = null
+    },
+
+    // 获取借贷利率
+    fetchLoanRate() {
+      console.log('this.startTraderFormData', this.startTraderFormData)
+      const params = {
+        cexAccount: this.startTraderFormData.cexAccount,
+        exchangeType: this.startTradingDialogData.exchangeType,
+        currency: this.startTradingDialogData.targetToken
+      }
+      getRealtimeInterestRate(params).then(response => {
+        if (response.code === 200) {
+          this.loanRate = response.data.interestRate
+        } else {
+          this.loanRatesError = response.msg
+        }
+      }).catch(error => {
+        this.loanRatesError = error.message
+      })
+    },
+
     getRelatedCexAccountList() {
-      console.log('getRelatedCexAccountList', this.startTraderFormData.dexWallet)
       const exchangeType = this.startTradingDialogData.exchangeType
       if (this.startTraderFormData.dexWallet === '') {
         // 用户清除了选项
@@ -962,14 +1019,11 @@ export default {
           }
           getBoundAccountList(queryParams).then(response => {
             if (response.code === 200) {
-              console.log('response:', response.data)
               if (response.data.cexAccountList !== null) {
-                console.log('change :this.startTraderFormData.cexAccountList', response.data.cexAccountList)
                 this.cexAccountList = response.data.cexAccountList
               } else {
                 // 获取可以被绑定的账号
                 getCanBoundAccountList(queryParams).then(response => {
-                  console.log('getCanBoundAccountList response:', response.data)
                   this.cexAccountList = response.data.cexAccountList
                 })
               }
@@ -981,14 +1035,11 @@ export default {
       }
     },
     getRelatedDexWalletList() {
-      console.log('getRelatedDexWalletList', this.startTraderFormData.cexAccount)
       const exchangeType = this.startTradingDialogData.exchangeType
       if (this.startTraderFormData.cexAccount === '') {
         // 用户清除了选项
-        console.log('清除了cexaccount选项')
         if (this.startTraderFormData.dexWallet === '' || this.startTraderFormData.dexWallet === undefined) {
           // cex和dex都未选中
-          console.log('dex选项也为空，重新加载')
           this.getDexWalletList()
           this.getCexAccountList(exchangeType)
         }
@@ -1002,14 +1053,11 @@ export default {
           }
           getBoundAccountList(queryParams).then(response => {
             if (response.code === 200) {
-              console.log('response:', response.data)
               if (response.data.dexWalletList !== null) {
-                console.log('change :this.startTraderFormData.dexWalletList', response.data.dexWalletList)
                 this.dexWalletList = response.data.dexWalletList
               } else {
                 // 获取可以被绑定的账号
                 getCanBoundAccountList(queryParams).then(response => {
-                  console.log('getCanBoundAccountList response:', response.data)
                   this.dexWalletList = response.data.dexWalletList
                 })
               }
@@ -1022,7 +1070,6 @@ export default {
     },
     getExchangeConfig() {
       const selectedExchange = this.updateGlobalWaterLevelFormData.exchangeType
-      console.log('getExchangeConfig', this.updateGlobalWaterLevelFormData.exchangeType)
       busDexCexTriangularGetGlobalWaterLevel(this.updateGlobalWaterLevelFormData.exchangeType).then(response => {
         this.updateGlobalWaterLevelFormData = response.data
         this.updateGlobalWaterLevelFormData.exchangeType = selectedExchange //
@@ -1113,7 +1160,6 @@ export default {
     },
     handleGlobalConfigEdit(row) {
       console.log('编辑全局水位参数')
-      console.log('row', row)
       // 初始化 solWaterLevelConfig 和 stableCoinWaterLevelConfig，避免后续访问 null 属性
       if (row.solanaConfig) {
         this.updateGlobalWaterLevelFormData.solWaterLevelConfig = { ...row.solanaConfig }
@@ -1254,7 +1300,6 @@ export default {
         })
       })
 
-      console.log('提交的数据', formattedData)
       busDexCexTriangularUpdateGlobalRiskConfig(formattedData).then(res => {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
@@ -1349,6 +1394,7 @@ export default {
       this.startTradingDialogData.maxQuoteAmount = row.maxQuoteAmount
       this.startTradingDialogData.targetTokenQuotePrice = row.cexBuyPrice
       this.startTradingDialogData.exchangeType = row.exchangeType
+      this.startTradingDialogData.targetToken = row.targetToken
       if (row.cexBuyPrice === 0) {
         this.isQuickMode = false
       }
@@ -1383,7 +1429,6 @@ export default {
       requestData.slippageBpsRate = Number(requestData.slippageBpsRate) / 100
       requestData.priorityFee = Number(requestData.priorityFee)
       requestData.jitoFeeRate = Number(Number(requestData.jitoFeeRate) / 100)
-      console.log('this.requestData', requestData)
 
       busDexCexTriangularStartTrader(requestData).then(res => {
         if (res.code === 200) {
@@ -1399,7 +1444,6 @@ export default {
 
     // 暂停交易
     pauseTrader(row) {
-      console.log('暂停交易:', row)
       const requestData = {
         id: row.id
       }
