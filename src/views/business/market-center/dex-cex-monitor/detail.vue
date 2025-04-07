@@ -79,6 +79,7 @@
           <template slot="extra">
             <el-button v-if="!loading && !isTraderEdit" type="text" icon="el-icon-edit" @click="handleTraderEdit">编辑</el-button>
           </template>
+
           <el-descriptions-item label="SlippageBpsRate">
             <template v-if="!isTraderEdit">
               {{ (busDexCexTriangularObserver.slippageBpsRate * 100).toFixed(2) }}%
@@ -94,6 +95,12 @@
               {{ formattedPriorityFee }}
             </template>
             <el-input v-else v-model="traderRequestParams.priorityFee" size="mini" @input="handleSlippageInput" />
+          </el-descriptions-item>
+          <el-descriptions-item label="Prefer Jito">
+            <el-switch
+              v-model="traderRequestParams.preferJito"
+              :disabled="!isTraderEdit"
+            />
           </el-descriptions-item>
           <el-descriptions-item label="Jito Fee Rate">
             <template v-if="!isTraderEdit">
@@ -548,13 +555,14 @@ export default {
       this.isObserverEdit = !this.isObserverEdit
     },
     handleTraderEdit() {
+      this.traderRequestParams = { ...this.busDexCexTriangularObserver }
+      this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee
+      this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
+      this.traderRequestParams.slippageBpsRate = this.busDexCexTriangularObserver.slippageBpsRate * 100
+      this.traderRequestParams.preferJito = this.busDexCexTriangularObserver.preferJito
+      console.log('this.traderRequestParams', this.traderRequestParams)
       if (!this.isTraderEdit) {
         this.clearTimer()
-        this.traderRequestParams = { ...this.busDexCexTriangularObserver }
-        this.traderRequestParams.priorityFee = this.busDexCexTriangularObserver.priorityFee
-        this.traderRequestParams.jitoFeeRate = this.busDexCexTriangularObserver.jitoFeeRate * 100
-        this.traderRequestParams.slippageBpsRate = this.busDexCexTriangularObserver.slippageBpsRate * 100
-        console.log(this.traderRequestParams)
       }
       this.isTraderEdit = !this.isTraderEdit
     },

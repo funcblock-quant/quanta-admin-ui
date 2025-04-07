@@ -198,3 +198,12 @@ export function getActiveAccountPairs() {
     method: 'get'
   })
 }
+
+// 获取dex-cex套利的账户组的实时借贷利率
+export function getRealtimeInterestRate(data) {
+  return request({
+    url: '/api/v1/getRealtimeInterestRate',
+    method: 'post',
+    data: data
+  })
+}
