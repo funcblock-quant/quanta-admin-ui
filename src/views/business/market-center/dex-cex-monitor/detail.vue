@@ -98,6 +98,12 @@
           </el-descriptions-item>
           <el-descriptions-item label="Prefer Jito">
             <el-switch
+              v-if="!isTraderEdit"
+              v-model="busDexCexTriangularObserver.preferJito"
+              :disabled="!isTraderEdit"
+            />
+            <el-switch
+              v-else
               v-model="traderRequestParams.preferJito"
               :disabled="!isTraderEdit"
             />
