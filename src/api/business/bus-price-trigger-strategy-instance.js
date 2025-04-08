@@ -71,6 +71,15 @@ export function stopBusPriceTriggerStrategyInstance(data) {
   })
 }
 
+// 重启BusPriceTriggerStrategyInstance
+export function restartBusPriceTriggerStrategyInstance(data) {
+  return request({
+    url: '/api/v1/restartTriggerInstance',
+    method: 'post',
+    data: data
+  })
+}
+
 // 获取BusPriceTriggerStrategyInstance币种列表
 export function getSymbolList() {
   return request({
