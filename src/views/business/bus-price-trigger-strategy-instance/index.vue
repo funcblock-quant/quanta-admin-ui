@@ -381,7 +381,7 @@
         </el-card></div>
 
       <!-- 添加或修改对话框 -->
-      <el-dialog :title="title" :visible.sync="open" width="800px">
+      <el-dialog :title="title" :visible.sync="open" width="800px" :close-on-click-modal="false">
         <el-form ref="form" :model="form" :rules="rules" label-width="150px">
           <el-row :gutter="20">
             <el-col :span="11">
@@ -573,6 +573,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="reset">重 置</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </el-dialog>
@@ -1228,7 +1229,7 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false
-      this.reset()
+      // this.reset()
     },
     // 取消按钮
     cancelProfitTargetForm() {
@@ -1251,6 +1252,7 @@ export default {
 
         id: undefined,
         exchangeUserId: '20871096',
+        apiConfig: this.defaultApiKey,
         openPrice: undefined,
         closePrice: undefined,
         execTimes: undefined,
@@ -1260,6 +1262,8 @@ export default {
         closeTime: undefined,
         status: undefined
       }
+      this.setDefaultCloseTime()
+      this.setDefaultApiKey(this.apiKeyList)
     },
     // 表单重置
     resetProfitTargetForm() {
@@ -1317,7 +1321,7 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset()
+      // this.reset()
       this.open = true
       this.title = '添加价格触发下单条件'
       this.isEdit = false
