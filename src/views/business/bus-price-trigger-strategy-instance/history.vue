@@ -216,7 +216,8 @@ export default {
       // 关系表类型
       strategyStatus: [
         { label: '已暂停', value: 'stopped' },
-        { label: '已过期', value: 'expired' }
+        { label: '已过期', value: 'expired' },
+        { label: '已止盈', value: 'paused' }
       ],
       sideDict: [
         { label: '做多', value: 'long' },
@@ -310,6 +311,7 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
+      this.queryParams.isHistory = true
       listBusPriceTriggerStrategyInstance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busPriceTriggerStrategyInstanceList = response.data.list.map(item => ({
           ...item,
@@ -397,6 +399,8 @@ export default {
         return '已过期'
       } else if (status === 'started') {
         return '运行中'
+      } else if (status === 'paused') {
+        return '已止盈'
       } else {
         return '未知状态'
       }

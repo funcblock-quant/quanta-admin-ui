@@ -187,14 +187,14 @@
               <span v-if="!item.editingExecuteNum" class="value">{{ item.executeNum }}</span>
               <!-- 修改按钮 -->
               <el-button
-                v-if="!item.editingExecuteNum"
+                v-if="item.status === 'started' && !item.editingExecuteNum"
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
                 @click="enableEditExecuteNum(item)"
               >修改</el-button>
               <!-- 可编辑输入框 -->
-              <div v-else>
+              <div v-else-if="item.status === 'started' && item.editingExecuteNum">
                 <el-input
                   v-model="item.executeNum"
                   size="mini"
@@ -222,14 +222,14 @@
               <span v-if="!item.editingDelayTime" class="value">{{ item.delayTime }}</span>
               <!-- 修改按钮 -->
               <el-button
-                v-if="!item.editingDelayTime"
+                v-if="item.status === 'started' && !item.editingDelayTime"
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
                 @click="enableEditDelayTime(item)"
               >修改</el-button>
               <!-- 可编辑输入框 -->
-              <div v-else>
+              <div v-else-if="item.status === 'started' && item.editingDelayTime">
                 <el-input
                   v-model="item.delayTime"
                   size="mini"
@@ -273,42 +273,64 @@
               <span class="value">{{ formmatSlippage(item.latestSlippage) }}</span>
             </div>
 
-            <div v-if="item.profitTargetType" class="data-item">
-              <el-button
-                slot="reference"
-                size="mini"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleProfitTargetUpdate(item)"
-              >更新止盈配置
-              </el-button>
-            </div>
-            <div v-else class="data-item">
-              <el-button
-                slot="reference"
-                size="mini"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleProfitTargetAdd(item)"
-              >设置止盈
-              </el-button>
-            </div>
             <div v-if="item.status==='started'" class="data-item">
-              <el-popconfirm
-                class="delete-popconfirm"
-                title="确认要暂停吗?"
-                confirm-button-text="暂停"
-                @confirm="handleStopInstance(item.id)"
-              >
+              <div v-if="item.profitTargetType" class="data-item">
                 <el-button
                   slot="reference"
                   size="mini"
                   type="text"
-                  icon="el-icon-delete"
-                >暂停
+                  icon="el-icon-edit"
+                  @click="handleProfitTargetUpdate(item)"
+                >更新止盈配置
                 </el-button>
-              </el-popconfirm>
+              </div>
+              <div v-else class="data-item">
+                <el-button
+                  slot="reference"
+                  size="mini"
+                  type="text"
+                  icon="el-icon-edit"
+                  @click="handleProfitTargetAdd(item)"
+                >设置止盈
+                </el-button>
+              </div>
+              <div v-if="item.status==='started'" class="data-item">
+                <el-popconfirm
+                  class="delete-popconfirm"
+                  title="确认要暂停吗?"
+                  confirm-button-text="暂停"
+                  @confirm="handleStopInstance(item.id)"
+                >
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-delete"
+                  >暂停
+                  </el-button>
+                </el-popconfirm>
+              </div>
             </div>
+
+            <div v-if="item.status==='paused'" class="data-item">
+              <div class="data-item">
+                <el-popconfirm
+                  class="delete-popconfirm"
+                  title="确认要重启任务吗?"
+                  confirm-button-text="重启任务"
+                  @confirm="handlePausedRestart(item.id)"
+                >
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-refresh-right"
+                  >重启
+                  </el-button>
+                </el-popconfirm>
+              </div>
+            </div>
+
             <!--          <div class="mt-10">-->
             <!--            <el-button-->
             <!--              v-permisaction="['business:busPriceTriggerStrategyInstance:edit']"-->
@@ -716,6 +738,7 @@ import {
   addBusPriceTriggerStrategyInstance,
   getBusPriceTriggerStrategyInstance, getExchangeUserIdList, getSymbolList,
   listBusPriceTriggerStrategyInstance,
+  restartBusPriceTriggerStrategyInstance,
   stopBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyExecuteConfig,
   updateBusPriceTriggerStrategyInstance, updateBusPriceTriggerStrategyProfitTarget
 } from '@/api/business/bus-price-trigger-strategy-instance'
@@ -762,8 +785,8 @@ export default {
       // 关系表类型
       strategyStatus: [
         { label: '已创建', value: 'created' },
-        { label: '运行中', value: 'started' }
-        // { label: '已暂停', value: 'stopped' },
+        { label: '运行中', value: 'started' },
+        { label: '已止盈', value: 'paused' }
         // { label: '已过期', value: 'expired' }
       ],
       sideDict: [
@@ -1016,6 +1039,7 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
+      this.queryParams.isHistory = false
       listBusPriceTriggerStrategyInstance(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.busPriceTriggerStrategyInstanceList = response.data.list.map(item => ({
           ...item,
@@ -1257,6 +1281,8 @@ export default {
         return '已过期'
       } else if (status === 'started') {
         return '运行中'
+      } else if (status === 'paused') {
+        return '已止盈'
       } else {
         return '未知状态'
       }
@@ -1321,6 +1347,20 @@ export default {
           this.getList()
           // 清除该记录的定时器
           clearInterval(this.timers[instanceId])
+        } else {
+          this.msgError(response.msg)
+        }
+      })
+    },
+    handlePausedRestart(instanceId) {
+      const restartRequest = {
+        id: instanceId
+      }
+      restartBusPriceTriggerStrategyInstance(restartRequest).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.queryParams.status = 'started'
+          this.getList()
         } else {
           this.msgError(response.msg)
         }
