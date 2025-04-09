@@ -133,31 +133,31 @@
             <el-button v-if="!loading && !isWaterLevelEdit" type="text" icon="el-icon-edit" @click="handleWaterLevelEdit">编辑</el-button>
           </template>
 
-          <el-descriptions-item label="最低预警余额">
+          <el-descriptions-item label="最低预警余额(U)">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.alertThreshold }}
             </template>
             <el-input v-else v-model="waterLevelRequestParams.alertThreshold" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="低水位触发余额">
+          <el-descriptions-item label="低水位触发余额(U)">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.buyTriggerThreshold }}
             </template>
             <el-input v-else v-model="waterLevelRequestParams.buyTriggerThreshold" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="高水位触发余额">
+          <el-descriptions-item label="高水位触发余额(U)">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.sellTriggerThreshold }}
             </template>
             <el-input v-else v-model="waterLevelRequestParams.sellTriggerThreshold" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="最低充值金额阈值">
+          <el-descriptions-item label="最低充值金额阈值(U)">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.minDepositAmountThreshold }}
             </template>
             <el-input v-else v-model="waterLevelRequestParams.minDepositAmountThreshold" size="mini" />
           </el-descriptions-item>
-          <el-descriptions-item label="最低提现金额阈值">
+          <el-descriptions-item label="最低提现金额阈值(U)">
             <template v-if="!isWaterLevelEdit">
               {{ busDexCexTriangularObserver.minWithdrawAmountThreshold }}
             </template>

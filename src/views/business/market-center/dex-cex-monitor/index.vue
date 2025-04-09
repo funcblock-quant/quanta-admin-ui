@@ -291,32 +291,32 @@
           <el-form :model="startTraderFormData" label-width="150px">
             <!-- 水位调节参数 -->
             <h3 style="margin-top: 50px; margin-bottom: 20px;">水位调节参数</h3>
-            <el-switch
+            <!-- <el-switch
               v-model="isQuickMode"
               active-text="快速设置"
               inactive-text="自定义设置"
               :disabled="startTradingDialogData.targetTokenQuotePrice === 0"
               @change="handleModeChange(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)"
-            />
-            <el-form-item v-if="isQuickMode" label="调节倍数">
+            /> -->
+            <!-- <el-form-item v-if="isQuickMode" label="调节倍数">
               <el-input-number v-model="waterLevelMultiplier" :min="0" @change="calculateWaterLevels(startTradingDialogData.maxQuoteAmount, startTradingDialogData.targetTokenQuotePrice)" />
               <el-tooltip content="最低预警余额 = (最大交易额/币价) * 倍数；低水位触发余额 = (最大交易额/币价) * 4 * 倍数；高水位触发余额 = (最大交易额/币价) * 6 * 倍数" placement="top">
                 <i class="el-icon-question" style="margin-left: 5px;" />
               </el-tooltip>
-            </el-form-item>
-            <el-form-item label="最低预警余额" class="mb16">
+            </el-form-item> -->
+            <el-form-item label="最低预警余额(U)" class="mb16">
               <el-input v-model="startTraderFormData.alertThreshold" :disabled="isQuickMode" />
             </el-form-item>
-            <el-form-item label="低水位触发余额" class="mb16">
+            <el-form-item label="低水位触发余额(U)" class="mb16">
               <el-input v-model="startTraderFormData.buyTriggerThreshold" :disabled="isQuickMode" />
             </el-form-item>
-            <el-form-item label="高水位触发余额" class="mb16">
+            <el-form-item label="高水位触发余额(U)" class="mb16">
               <el-input v-model="startTraderFormData.sellTriggerThreshold" :disabled="isQuickMode" />
             </el-form-item>
-            <el-form-item label="最小充值金额阈值" class="mb16">
+            <el-form-item label="最小充值金额阈值(U)" class="mb16">
               <el-input v-model="startTraderFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
             </el-form-item>
-            <el-form-item label="最小提现金额阈值" class="mb16">
+            <el-form-item label="最小提现金额阈值(U)" class="mb16">
               <el-input v-model="startTraderFormData.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
             </el-form-item>
 
@@ -426,24 +426,24 @@
           <!-- <div v-if="updateGlobalWaterLevelFormData.exchangeType"> -->
           <el-form :model="updateGlobalWaterLevelFormData" label-width="150px">
             <h3 style="margin-top: 50px; margin-bottom: 10px;">SOL水位调节参数</h3>
-            <el-form-item label="最低预警余额" class="mb16">
+            <el-form-item label="最低预警余额(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
             </el-form-item>
-            <el-form-item label="低水位触发余额" class="mb16">
+            <el-form-item label="低水位触发余额(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.buyTriggerThreshold" placeholder="请输入低水位触发余额" />
             </el-form-item>
-            <el-form-item label="高水位触发余额" class="mb16">
+            <el-form-item label="高水位触发余额(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.sellTriggerThreshold" placeholder="请输入高水位触发余额" />
             </el-form-item>
-            <el-form-item label="最小充值金额阈值" class="mb16">
+            <el-form-item label="最小充值金额阈值(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
             </el-form-item>
-            <el-form-item label="最小提现金额阈值" class="mb16">
+            <el-form-item label="最小提现金额阈值(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.solWaterLevelConfig.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
             </el-form-item>
 
             <h3 style="margin-top: 30px; margin-bottom: 10px;">稳定币水位调节参数</h3>
-            <el-form-item label="最低预警余额" class="mb16">
+            <el-form-item label="最低预警余额(U)" class="mb16">
               <el-input v-model="updateGlobalWaterLevelFormData.stableCoinWaterLevelConfig.alertThreshold" placeholder="请输入最低预警余额" />
             </el-form-item>
           </el-form>
