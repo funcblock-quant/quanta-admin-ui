@@ -61,6 +61,14 @@ export function listBusDexCexTriangularSymbolList() {
   })
 }
 
+// 获取某个币种的最新一次的配置信息，主要是链上信息
+export function getLatestObserverConfigByTargetToken(token) {
+  return request({
+    url: '/api/v1/getLatestObserverConfigByTargetToken/' + token,
+    method: 'get'
+  })
+}
+
 // 查询BusDexCexTriangularObserver所有的观察币种配置的交易所列表
 export function listBusDexCexTriangularExchangeList() {
   return request({
@@ -108,6 +116,15 @@ export function busDexCexTriangularUpdateObserver(data) {
   return request({
     url: '/api/v1/busDexCexTriangularUpdateObserver',
     method: 'put',
+    data: data
+  })
+}
+
+// 查看水位调节中的进度
+export function busDexCexTriangularGetWaterLevelDetail(data) {
+  return request({
+    url: '/api/v1/busDexCexTriangularGetWaterLevelDetail',
+    method: 'post',
     data: data
   })
 }

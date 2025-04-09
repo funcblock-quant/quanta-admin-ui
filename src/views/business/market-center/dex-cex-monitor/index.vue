@@ -71,7 +71,7 @@
         <el-table v-loading="loading" :data="busDexCexTriangularObserverList" class="table-container" style="width: 100%;">
           <el-table-column
             label="TargetToken"
-            width="100"
+            width="120"
             align="center"
             :show-overflow-tooltip="true"
           >
@@ -83,7 +83,7 @@
           </el-table-column>
           <el-table-column
             label="QuoteToken"
-            width="100"
+            width="120"
             align="center"
             prop="quoteToken"
             :show-overflow-tooltip="true"
@@ -91,13 +91,13 @@
           <el-table-column
             label="CEX"
             align="center"
-            width="100"
+            width="150"
             prop="exchangeType"
             :show-overflow-tooltip="true"
           />
           <el-table-column
             label="DEX"
-            width="150"
+            width="250"
             align="center"
             prop="dexType"
             :show-overflow-tooltip="true"
@@ -105,7 +105,7 @@
           />
           <el-table-column
             label="交易金额"
-            width="160"
+            width="200"
             align="center"
             prop="volume"
             :show-overflow-tooltip="true"
@@ -115,7 +115,7 @@
             </template>
           </el-table-column>
           <el-table-column label="DEX买入CEX卖出" align="center">
-            <el-table-column
+            <!-- <el-table-column
               label="CEX卖价"
               width="150"
               align="center"
@@ -138,9 +138,9 @@
               prop="dexBuyDiffPrice"
               :show-overflow-tooltip="true"
               :formatter="formatProfit"
-            />
+            /> -->
             <el-table-column
-              label="利润"
+              label="预期利润"
               width="150"
               align="center"
               prop="profitOfBuyOnDex"
@@ -150,7 +150,7 @@
           </el-table-column>
 
           <el-table-column label="DEX卖出CEX买入" align="center">
-            <el-table-column
+            <!-- <el-table-column
               label="CEX买价"
               width="150"
               align="center"
@@ -173,11 +173,11 @@
               prop="dexSellDiffPrice"
               :show-overflow-tooltip="true"
               :formatter="formatProfit"
-            />
+            /> -->
             <el-table-column
-              label="利润"
-              width="150"
+              label="预期利润"
               align="center"
+              width="150"
               prop="profitOfSellOnDex"
               :show-overflow-tooltip="true"
               :formatter="formatProfit"
@@ -208,7 +208,7 @@
                   size="mini"
                   type="info"
                   style="color: #606266; background-color: #f5f7fa; border-color: #dcdfe6;"
-                  disabled
+                  @click="showWaterLevelState(scope.row)"
                 >
                   ⏳ 水位调节中
                 </el-button>
@@ -574,10 +574,23 @@
                 <h5>策略基础信息</h5>
               </div>
               <el-form-item label="Target Token" prop="targetToken">
-                <el-input
+                <el-select
                   v-model="batchForm.targetToken"
-                  placeholder="请输入Target Token"
-                />
+                  placeholder="请选择Target Token"
+                  filterable
+                  allow-create
+                  clearable
+                  size="small"
+                  style="width: 400px;"
+                  @change="handleTargetTokenChange(batchForm.targetToken)"
+                >
+                  <el-option
+                    v-for="token in targetTokenList"
+                    :key="token.key"
+                    :value="token.key"
+                    :label="token.label"
+                  />
+                </el-select>
               </el-form-item>
               <el-form-item label="Quote Token" prop="quoteToken">
                 <el-input
@@ -681,6 +694,19 @@
                     placeholder="请输入最大Quote交易量"
                   />
                 </el-form-item>
+                <el-form-item label="Bid Depth" prop="bidDepth">
+                  <el-input
+                    v-model="batchForm.bidDepth"
+                    placeholder="请输入bid深度"
+                  />
+                </el-form-item>
+                <el-form-item label="Ask Depth" prop="askDepth">
+                  <el-input
+                    v-model="batchForm.askDepth"
+                    placeholder="请输入ask深度"
+                  />
+                </el-form-item>
+
                 <!--                <el-form-item label="指定滑点BPS" prop="slippageBpsRate" class="mb16">-->
                 <!--                  <el-slider-->
                 <!--                    v-model="batchForm.slippageBpsRate"-->
@@ -728,6 +754,14 @@
             <el-button @click="batchOpen = false">取消</el-button>
           </div>
         </el-dialog>
+
+        <el-dialog title="水位调节状态" :visible.sync="showWaterLevelStateDetail" width="600px">
+          <p>当前水位调节状态：</p>
+          <p>TaskType: {{ waterLevelTaskState.taskType }}</p>
+          <p>TaskStep: {{ waterLevelTaskState.taskStep }}</p>
+          <p>TaskStatus: {{ waterLevelTaskState.taskStatus }}</p>
+          <p>TaskError: {{ waterLevelTaskState.taskError }}</p>
+        </el-dialog>
       </el-card>
     </template>
   </BasicLayout>
@@ -751,7 +785,9 @@ import {
   getBoundAccountList,
   getCanBoundAccountList,
   getActiveAccountPairs,
-  getRealtimeInterestRate
+  getRealtimeInterestRate,
+  busDexCexTriangularGetWaterLevelDetail,
+  getLatestObserverConfigByTargetToken
 } from '@/api/business/bus-dex-cex-triangular-observer'
 
 export default {
@@ -783,6 +819,14 @@ export default {
       stopAllDialogVisible: false, // 暂停全部交易弹框开关
       isQuickMode: true, // 设置水位调节参数是否是快速模式
       waterLevelMultiplier: 0,
+      showWaterLevelStateDetail: false, // 显示水位调节状态弹窗
+      waterLevelTaskState: {
+        taskType: 'Test',
+        taskStep: 'Test',
+        taskStatus: 'Test',
+        taskError: 'Test'
+      }, // 水位调节状态详情
+      targetTokenList: {}, // 目标Token列表
       // 类型数据字典
       typeOptions: [],
       busDexCexTriangularObserverList: [],
@@ -817,6 +861,8 @@ export default {
         slippageBpsRate: undefined,
         minQuoteAmount: undefined,
         maxQuoteAmount: undefined,
+        bidDepth: 20,
+        askDepth: 20,
         exchangeType: undefined,
         dexType: undefined,
         takerFee: undefined,
@@ -877,6 +923,8 @@ export default {
         quoteToken: [{ required: true, message: '至少指定一个Quote Token', trigger: 'blur' }],
         ammPool: [{ required: true, message: 'ammPool不能为空', trigger: 'blur' }],
         slippageBpsRate: [{ required: true, message: '请设置滑点', trigger: 'blur' }],
+        bidDepth: [{ required: true, message: '请设置bid订单深度', trigger: 'blur' }],
+        askDepth: [{ required: true, message: '请设置ask订单深度', trigger: 'blur' }],
         minQuoteAmount: [{ required: true, message: '请设置最小交易金额', trigger: 'blur' }],
         maxQuoteAmount: [{ required: true, message: '请设置最大交易金额', trigger: 'blur' }],
         takerFee: [{ required: true, message: '请设置交易所taker手续费', trigger: 'blur' }],
@@ -926,10 +974,37 @@ export default {
     getSymbolWatchList() {
       this.loading = true
       listBusDexCexTriangularSymbolList().then(response => {
-        this.symbolWatchList = response.data
+        this.symbolWatchList = [...response.data]
+        this.targetTokenList = response.data.map(item => {
+          if (typeof item.symbol === 'string') {
+            const targetToken = item.symbol.split('/')[0]
+            return { key: targetToken, label: targetToken } // 返回 { key, label } 对象
+          } else {
+            // 如果 symbol 不是字符串，你可能需要根据实际数据结构来决定 key 和 label 的值
+            return { key: item.symbol, label: item.symbol } // 假设直接使用 symbol 作为 key 和 label
+          }
+        })
         this.loading = false
       }
       )
+    },
+    // targetToken 变化时的处理函数
+    handleTargetTokenChange(token) {
+      console.log('handleTargetTokenChange', token)
+      if (token === undefined || token === null || token === '') {
+        this.batchForm = {}
+        return
+      }
+      // 尝试获取最新一次的token配置
+      getLatestObserverConfigByTargetToken(token).then(response => {
+        if (response.code === 200) {
+          this.batchForm = response.data
+          this.batchForm.targetToken = token
+        }
+        console.log('batchForm', this.batchForm)
+      }).catch(error => {
+        console.error('获取最新配置失败：', error)
+      })
     },
     /** 查询dex钱包列表 */
     getDexWalletList() {
@@ -1109,7 +1184,9 @@ export default {
         id: undefined
       }
       this.batchForm = {
-        symbol: []
+        symbol: [],
+        bidDepth: 20,
+        askDepth: 20
         // slippageBpsRate: undefined
       }
       this.resetForm('form')
@@ -1319,6 +1396,8 @@ export default {
       requestData.takerFee = Number(requestData.takerFee)
       requestData.minQuoteAmount = Number(requestData.minQuoteAmount)
       requestData.maxQuoteAmount = Number(requestData.maxQuoteAmount)
+      requestData.bidDepth = Number(requestData.bidDepth)
+      requestData.askDepth = Number(requestData.askDepth)
       requestData.maxArraySize = Number(requestData.maxArraySize)
       requestData.decimals = Number(requestData.decimals)
       requestData.profitTriggerRate = Number(requestData.profitTriggerRate) / 100
@@ -1453,6 +1532,23 @@ export default {
         if (res.code === 200) {
           this.msgSuccess(res.msg)
           this.getList()
+        } else {
+          this.msgError(res.msg)
+          this.getList()
+        }
+      })
+    },
+    // 展示水位调节状态
+    showWaterLevelState(row) {
+      console.log('showWaterLevelState')
+      const requestData = {
+        id: row.id
+      }
+      busDexCexTriangularGetWaterLevelDetail(requestData).then(res => {
+        if (res.code === 200) {
+          this.msgSuccess(res.msg)
+          this.waterLevelTaskState = res.data
+          this.showWaterLevelStateDetail = true
         } else {
           this.msgError(res.msg)
           this.getList()
