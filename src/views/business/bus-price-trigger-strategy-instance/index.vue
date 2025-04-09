@@ -524,14 +524,14 @@
             <h5>止盈配置</h5>
             <el-form-item label="止盈方式">
               <el-radio-group v-model="form.profitTargetType" size="small">
-                <el-radio-button label="LIMIT">限价止盈</el-radio-button>
+                <el-radio-button label="LIMIT">利润止盈</el-radio-button>
                 <el-radio-button label="FLOATING">浮动止盈</el-radio-button>
               </el-radio-group>
             </el-form-item>
             <!-- 限价止盈 -->
             <div v-if="form.profitTargetType === 'LIMIT'">
-              <el-form-item label="止盈价">
-                <el-input v-model="form.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              <el-form-item label="止盈利润">
+                <el-input v-model="form.profitTargetPrice" placeholder="请输入止盈利润" style="width: 180px;" />
               </el-form-item>
               <!--              <el-form-item label="止损价">-->
               <!--                <el-input v-model="form.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
@@ -589,7 +589,7 @@
                   size="small"
                   :disabled="!allowChangeType && profitTargetForm.profitTargetType"
                 >
-                  <el-radio-button v-if="profitTargetForm.profitTargetType === 'LIMIT'" label="LIMIT">限价止盈</el-radio-button>
+                  <el-radio-button v-if="profitTargetForm.profitTargetType === 'LIMIT'" label="LIMIT">利润止盈</el-radio-button>
                   <el-radio-button v-if="profitTargetForm.profitTargetType === 'FLOATING'" label="FLOATING">浮动止盈</el-radio-button>
                 </el-radio-group>
               </div>
@@ -597,8 +597,8 @@
 
             <!-- 限价止盈表单 -->
             <div v-if="profitTargetForm.profitTargetType === 'LIMIT'">
-              <el-form-item label="止盈价">
-                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              <el-form-item label="止盈利润">
+                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈利润" style="width: 180px;" />
               </el-form-item>
               <!--              <el-form-item label="止损价">-->
               <!--                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
@@ -633,15 +633,15 @@
                 v-model="profitTargetForm.profitTargetType"
                 size="small"
               >
-                <el-radio-button label="LIMIT">限价止盈</el-radio-button>
+                <el-radio-button label="LIMIT">利润止盈</el-radio-button>
                 <el-radio-button label="FLOATING">浮动止盈</el-radio-button>
               </el-radio-group>
             </el-form-item>
 
             <!-- 限价止盈表单 -->
             <div v-if="profitTargetForm.profitTargetType === 'LIMIT'">
-              <el-form-item label="止盈价">
-                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈价" style="width: 180px;" />
+              <el-form-item label="止盈利润">
+                <el-input v-model="profitTargetForm.profitTargetPrice" placeholder="请输入止盈利润" style="width: 180px;" />
               </el-form-item>
               <!--              <el-form-item label="止损价">-->
               <!--                <el-input v-model="profitTargetForm.lossTargetPrice" placeholder="请输入止损价" style="width: 180px;" />-->
@@ -1293,7 +1293,7 @@ export default {
     },
     formatProfitTargetType(profitType) {
       if (profitType === 'LIMIT') {
-        return '限价止盈'
+        return '利润止盈'
       } else if (profitType === 'FLOATING') {
         return '浮动止盈'
       } else {
