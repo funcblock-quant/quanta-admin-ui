@@ -304,7 +304,7 @@
                 <i class="el-icon-question" style="margin-left: 5px;" />
               </el-tooltip>
             </el-form-item> -->
-            <el-form-item label="最低预警余额(U)" class="mb16">
+            <!-- <el-form-item label="最低预警余额(U)" class="mb16">
               <el-input v-model="startTraderFormData.alertThreshold" :disabled="isQuickMode" />
             </el-form-item>
             <el-form-item label="低水位触发余额(U)" class="mb16">
@@ -312,6 +312,22 @@
             </el-form-item>
             <el-form-item label="高水位触发余额(U)" class="mb16">
               <el-input v-model="startTraderFormData.sellTriggerThreshold" :disabled="isQuickMode" />
+            </el-form-item>
+            <el-form-item label="最小充值金额阈值(U)" class="mb16">
+              <el-input v-model="startTraderFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
+            </el-form-item>
+            <el-form-item label="最小提现金额阈值(U)" class="mb16">
+              <el-input v-model="startTraderFormData.minWithdrawAmountThreshold" placeholder="请输入最小提现金额阈值" />
+            </el-form-item> -->
+
+            <el-form-item label="最低预警余额(U)" class="mb16">
+              <el-input v-model="startTraderFormData.alertThreshold" />
+            </el-form-item>
+            <el-form-item label="低水位触发余额(U)" class="mb16">
+              <el-input v-model="startTraderFormData.buyTriggerThreshold" />
+            </el-form-item>
+            <el-form-item label="高水位触发余额(U)" class="mb16">
+              <el-input v-model="startTraderFormData.sellTriggerThreshold" />
             </el-form-item>
             <el-form-item label="最小充值金额阈值(U)" class="mb16">
               <el-input v-model="startTraderFormData.minDepositAmountThreshold" placeholder="请输入最小充值金额阈值" />
