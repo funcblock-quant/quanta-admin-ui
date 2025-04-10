@@ -1412,8 +1412,8 @@ export default {
       requestData.takerFee = Number(requestData.takerFee)
       requestData.minQuoteAmount = Number(requestData.minQuoteAmount)
       requestData.maxQuoteAmount = Number(requestData.maxQuoteAmount)
-      requestData.bidDepth = Number(requestData.bidDepth)
-      requestData.askDepth = Number(requestData.askDepth)
+      // requestData.bidDepth = Number(requestData.bidDepth)
+      // requestData.askDepth = Number(requestData.askDepth)
       requestData.maxArraySize = Number(requestData.maxArraySize)
       requestData.decimals = Number(requestData.decimals)
       requestData.profitTriggerRate = Number(requestData.profitTriggerRate) / 100
