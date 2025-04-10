@@ -771,13 +771,26 @@
           </div>
         </el-dialog>
 
+        HTML
+
         <el-dialog title="水位调节状态" :visible.sync="showWaterLevelStateDetail" width="600px">
           <p>当前水位调节状态：</p>
+
+          <template v-if="!waterLevelTaskState.traderSwitchDesc">
+            <p>交易状态：开启</p>
+          </template>
+          <template v-else>
+            <p>交易开关：关闭</p>
+            <p>交易关闭原因：{{ waterLevelTaskState.traderSwitchDesc }}</p>
+          </template>
+
           <p>TaskType: {{ waterLevelTaskState.taskType }}</p>
           <p>TaskStep: {{ waterLevelTaskState.taskStep }}</p>
           <p>TaskStatus: {{ waterLevelTaskState.taskStatus }}</p>
           <p>TaskError: {{ waterLevelTaskState.taskError }}</p>
+
         </el-dialog>
+
       </el-card>
     </template>
   </BasicLayout>
