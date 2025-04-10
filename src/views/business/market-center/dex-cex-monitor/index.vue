@@ -772,21 +772,22 @@
         </el-dialog>
 
         <el-dialog title="水位调节状态" :visible.sync="showWaterLevelStateDetail" width="600px">
-          <p>当前水位调节状态：</p>
+          <p class="dialog-section-title">当前水位调节状态</p>
 
           <template v-if="!waterLevelTaskState.traderSwitchDesc">
-            <p>交易状态：开启</p>
+            <p class="trading-status trading-on">交易状态：开启</p>
           </template>
           <template v-else>
-            <p>交易开关：关闭</p>
-            <p>交易关闭原因：{{ waterLevelTaskState.traderSwitchDesc }}</p>
+            <p class="trading-status trading-off">交易开关：关闭</p>
+            <p class="trading-reason">交易关闭原因：{{ waterLevelTaskState.traderSwitchDesc }}</p>
           </template>
 
-          <p>TaskType: {{ waterLevelTaskState.taskType }}</p>
-          <p>TaskStep: {{ waterLevelTaskState.taskStep }}</p>
-          <p>TaskStatus: {{ waterLevelTaskState.taskStatus }}</p>
-          <p>TaskError: {{ waterLevelTaskState.taskError }}</p>
-
+          <div class="task-info">
+            <p><span class="task-label">TaskType:</span> {{ waterLevelTaskState.taskType }}</p>
+            <p><span class="task-label">TaskStep:</span> {{ waterLevelTaskState.taskStep }}</p>
+            <p><span class="task-label">TaskStatus:</span> {{ waterLevelTaskState.taskStatus }}</p>
+            <p><span class="task-label">TaskError:</span> {{ waterLevelTaskState.taskError }}</p>
+          </div>
         </el-dialog>
 
       </el-card>
@@ -1678,5 +1679,45 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 4px; /* 按钮之间的间距 */
+}
+.dialog-section-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.trading-status {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.trading-on {
+  color: #5cb85c; /* 绿色，表示开启 */
+}
+
+.trading-off {
+  color: #d9534f; /* 红色，表示关闭 */
+}
+
+.trading-reason {
+  color: #777;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.task-info {
+  margin-top: 10px;
+}
+
+.task-label {
+  font-weight: bold;
+  color: #555;
+  margin-right: 5px;
+}
+
+.task-info p {
+  margin-bottom: 5px;
 }
 </style>
