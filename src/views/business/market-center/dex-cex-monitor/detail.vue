@@ -18,7 +18,7 @@
         <el-descriptions v-loading="loading" title="DEX信息">
           <el-descriptions-item label="Dex">{{ formatDexType(busDexCexTriangularObserver.dexType) }}</el-descriptions-item>
           <el-descriptions-item label="TokenMint">{{ busDexCexTriangularObserver.tokenMint }}</el-descriptions-item>
-          <el-descriptions-item label="Market地址">{{ busDexCexTriangularObserver.ammPoolId }}</el-descriptions-item>
+          <el-descriptions-item label="Market地址">{{ busDexCexTriangularObserver.ammPool }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
 
