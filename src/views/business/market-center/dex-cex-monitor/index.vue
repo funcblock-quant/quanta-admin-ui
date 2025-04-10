@@ -1510,6 +1510,8 @@ export default {
       this.startTraderFormData.slippageBpsRate = (row.slippageBpsRate) * 100
       this.startTraderFormData.dexWallet = row.dexWallet
       this.startTraderFormData.cexAccount = row.cexAccount
+      this.startTraderFormData.minDepositAmountThreshold = row.minDepositAmountThreshold
+      this.startTraderFormData.minWithdrawAmountThreshold = row.minWithdrawAmountThreshold
       if (row.cexBuyPrice === 0) {
         this.isQuickMode = false
       }
