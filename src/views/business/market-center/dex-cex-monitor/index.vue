@@ -771,8 +771,6 @@
           </div>
         </el-dialog>
 
-        HTML
-
         <el-dialog title="水位调节状态" :visible.sync="showWaterLevelStateDetail" width="600px">
           <p>当前水位调节状态：</p>
 
@@ -1503,6 +1501,15 @@ export default {
       this.startTradingDialogData.targetTokenQuotePrice = row.cexBuyPrice
       this.startTradingDialogData.exchangeType = row.exchangeType
       this.startTradingDialogData.targetToken = row.targetToken
+      this.startTraderFormData.alertThreshold = row.alertThreshold
+      this.startTraderFormData.buyTriggerThreshold = row.buyTriggerThreshold
+      this.startTraderFormData.sellTriggerThreshold = row.sellTriggerThreshold
+      this.startTraderFormData.preferJito = row.preferJito
+      this.startTraderFormData.priorityFee = row.priorityFee
+      this.startTraderFormData.jitoFeeRate = (row.jitoFeeRate) * 100
+      this.startTraderFormData.slippageBpsRate = (row.slippageBpsRate) * 100
+      this.startTraderFormData.dexWallet = row.dexWallet
+      this.startTraderFormData.cexAccount = row.cexAccount
       if (row.cexBuyPrice === 0) {
         this.isQuickMode = false
       }
