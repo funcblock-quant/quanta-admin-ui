@@ -4,6 +4,22 @@
     <template #wrapper>
       <el-card class="box-card">
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="88px">
+          <el-form-item label="交易所" prop="exchangeTypeList">
+            <el-select
+              v-model="queryParams.exchangeType"
+              placeholder="请选择交易所"
+              clearable
+              size="small"
+              style="width: 200px;"
+            >
+              <el-option
+                v-for="exchange in exchangeTypeList"
+                :key="exchange.value"
+                :label="exchange.label"
+                :value="exchange.value"
+              />
+            </el-select>
+          </el-form-item>
           <el-form-item label="订单类型" prop="orderType">
             <el-select
               v-model="queryParams.orderType"
@@ -94,6 +110,12 @@
             label="to地址"
             align="center"
             prop="toAddress"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="交易所"
+            align="center"
+            prop="exchangeType"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -223,6 +245,10 @@ export default {
       orderTypeList: [
         { 'label': '提现', 'value': '-1' },
         { 'label': '充值', 'value': '1' }
+      ],
+      exchangeTypeList: [
+        { 'label': 'Binance', 'value': 'Binance' },
+        { 'label': 'Gate', 'value': 'Gate' }
       ],
       orderStatus: [
         { 'label': '初始化', 'value': '0' },
